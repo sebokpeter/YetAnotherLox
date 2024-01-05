@@ -28,7 +28,7 @@ logicAnd    -> equality ( "and" equality )* ;
 equality    -> comparison ( ( "!=" | "=="   )  comparison )* ;
 comparison  -> term ( ( ">" | ">=" | "<" | "<=") term )* ;
 term        -> factor ( ( "-" | "+") factor )* ;
-factor      -> unary ( ( "/" | "*" ) unary )* ;
+factor      -> unary ( ( "/" | "*" |  "%" ) unary )* ;
 unary       -> ( "!" | "-" ) unary | call ;
 call        -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 arguments   -> expression ( "," expression )* ;

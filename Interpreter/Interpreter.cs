@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Runtime.Serialization;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -31,10 +29,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void DefineGlobalFunctions()
     {
-        _globals.Define("clock", new NativeFunctionNoParams(() => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000.0));
-        _globals.Define("input", new NativeFunctionNoParams(() => Console.ReadLine()!));
-        _globals.Define("stringify", new NativeFunction(1, (param) => Stringify(param[0])));
-        _globals.Define("num", new NativeFunction(1, (param) =>
+        _globals.Define("clock", new NativeFunctionNoParams("clock", () => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000.0));
+        _globals.Define("input", new NativeFunctionNoParams("input", () => Console.ReadLine()!));
+        _globals.Define("stringify", new NativeFunction(1, "stringify", (param) => Stringify(param[0])));
+        _globals.Define("num", new NativeFunction(1, "num", (param) =>
         {
             string s = Stringify(param[0]);
             if (!Double.TryParse(s, out double val))
@@ -43,13 +41,13 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             }
             return val;
         }));
-        _globals.Define("readFile", new NativeFunction(1, (param) => File.ReadAllText((string)param[0])));
-        _globals.Define("print", new NativeFunction(1, (param) =>
+        _globals.Define("readFile", new NativeFunction(1, "readFile", (param) => File.ReadAllText((string)param[0])));
+        _globals.Define("print", new NativeFunction(1, "print", (param) =>
         {
             Console.Write(Stringify(param[0]));
             return null!;
         }));
-        _globals.Define("printLn", new NativeFunction(1, (param) =>
+        _globals.Define("printLine", new NativeFunction(1, "printLine", (param) =>
         {
             Console.WriteLine(Stringify(param[0]));
             return null!;
@@ -136,6 +134,9 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             case STAR:
                 CheckNumberOperands(expr.Operator, left, right);
                 return (double)left * (double)right;
+            case MODULO:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left % (double)right;
             case GREATER:
                 CheckNumberOperands(expr.Operator, left, right);
                 return (double)left > (double)right;

@@ -1,25 +1,19 @@
-var a = 0;
-for(; a <= 10; a = a + 1) {
-    if(a == 0 or a == 2 or a == 4 or a == 6 or a == 8) {
-        continue;
+for(var a = 1; a <= 100; a = a + 1) {
+    var printNum = true;
+    var fizzbuzz = "";
+    if(a % 3 == 0) {
+        printNum = false;
+        fizzbuzz = fizzbuzz + "Fizz";
     }
-    print a;
-}
 
-for(var b = 10; b >= 0; b = b - 1) {
-    print b;
-}
-
-for(var c = 0; ; c = c + 1) {
-    print "c = " + stringify(c);
-    if(c == 10) {
-        break;
+    if(a % 5 == 0) {
+        printNum = false;
+        fizzbuzz = fizzbuzz + "Buzz";
     }
-}
 
-
-for (var d = 0; d < 10;) {
-    print "d = " + stringify(d);
-
-    d = d + 1;
+    if(printNum) {
+        print a;
+    } else {
+        print fizzbuzz;
+    }
 }

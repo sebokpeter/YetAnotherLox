@@ -73,6 +73,7 @@ class Scanner
             case '+': AddToken(PLUS); break;
             case ';': AddToken(SEMICOLON); break;
             case '*': AddToken(STAR); break;
+            case '%': AddToken(MODULO); break;
             case '!':
                 AddToken(Match('=') ? BANG_EQUAL : BANG);
                 break;

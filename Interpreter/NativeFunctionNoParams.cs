@@ -3,13 +3,15 @@ namespace LoxConsole.Interpreter;
 
 internal class NativeFunctionNoParams : ILoxCallable
 {
+    private readonly string _name;
     private readonly Func<object> _func;
 
     public int Arity => 0;
 
-    public NativeFunctionNoParams(Func<object> func)
+    public NativeFunctionNoParams(string name, Func<object> func)
     {
         _func = func;
+        _name = name;
     }
 
     public object Call(Interpreter interpreter, List<object> arguments) 
@@ -24,5 +26,5 @@ internal class NativeFunctionNoParams : ILoxCallable
         }
     }
 
-    public override string ToString() => $"<native fn {_func}>";
+    public override string ToString() => $"<native fn {_name}>";
 }

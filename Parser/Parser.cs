@@ -414,7 +414,7 @@ internal class Parser
     {
         Expr expr = Unary();
 
-        while (Match(SLASH, STAR))
+        while (Match(SLASH, STAR, MODULO))
         {
             Token oper = Previous();
             Expr right = Unary();
