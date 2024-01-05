@@ -48,6 +48,7 @@ namespace LoxConsole
         VAR,
         WHILE,
         BREAK,
+        CONTINUE,
 
         EOF
     }

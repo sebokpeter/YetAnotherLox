@@ -176,6 +176,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitForStmt(Stmt.For stmt)
     {
+        BeginScope();
         if(stmt.Initializer is not null)
         {
             Resolve(stmt.Initializer);
@@ -190,6 +191,8 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
 
         Resolve(stmt.Body);
+        
+        EndScope();
 
         return null!;
     }
@@ -282,6 +285,11 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     }
 
     public object VisitBreakStmt(Stmt.Break stmt)
+    {
+        return null!;
+    }
+
+    public object VisitContinueStmt(Stmt.Continue stmt) 
     {
         return null!;
     }

@@ -161,4 +161,9 @@ public class AstPrinter : Expr.IVisitor<string>, Stmt.IVisitor<string>
     {
         throw new NotImplementedException();
     }
+
+    public string VisitContinueStmt(Stmt.Continue stmt)
+    {
+        throw new NotImplementedException();
+    }
 }

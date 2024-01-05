@@ -2,7 +2,7 @@ program     -> declaration* EOF ;
 
 declaration -> classDecl | funDecl | statement | varDecl ;
 
-statement   -> exprStmt | forStmt | ifStmt | printStmt | returnStmt | breakStmt | continueStmt | whileStmt | block ;
+statement   -> exprStmt | forStmt | ifStmt | printStmt | returnStmt | breakStmt | contStmt | continueStmt | whileStmt | block ;
 
 forStmt     -> "for" "(" (varDecl | exprStmt | ";") expression? ";" expression? ";" ")" statement ;
 whileStmt   -> "while" "(" expression ")" statement ;
@@ -12,6 +12,7 @@ exprStmt    -> expression ";" ;
 printStmt   -> "print" expression ";" ;
 returnStmt  -> "return" expression? ";" ;
 breakStmt   -> "break" ";" ;
+contStmt    -> "continue" ";" ;
 
 classDecl   -> "class" IDENTIFIER ("<" IDENTIFIER)? "{" function* "}" ;
 funDecl     -> "fun" function;

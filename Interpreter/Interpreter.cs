@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -296,39 +297,66 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             while (IsTruthy(Evaluate(stmt.Condition)))
             {
-                Execute(stmt.Body);
+                try 
+                {
+                    Execute(stmt.Body);
+                }
+                catch(Continue)
+                {
+                    continue;
+                }
             }
         }
-        catch(Break){}
+        catch(Break)
+        {}
+
         
         return null!;
     }
 
     public object VisitForStmt(Stmt.For stmt)
     {
-        Debugger.Break();
+        ExecuteForStmt(stmt, new(_environment));
+        return null!;
+    }
 
-        if(stmt.Initializer is not null) 
-        {
-            Execute(stmt.Initializer);
-        }
-
-        Expr condition = stmt.Condition?? new Expr.Literal(true);
-
+    private void ExecuteForStmt(Stmt.For stmt, Environment environment)
+    {
+        Environment previous = _environment;
+        _environment = environment;
         try
         {
-            while(IsTruthy(Evaluate(condition)))
+            if(stmt.Initializer is not null) 
             {
-                Execute(stmt.Body);
-                if(stmt.Increment is not null)
+                Execute(stmt.Initializer);
+            }
+
+            Expr condition = stmt.Condition?? new Expr.Literal(true);
+
+            try
+            {
+                while(IsTruthy(Evaluate(condition)))
                 {
-                    Evaluate(stmt.Increment);
+                    try
+                    {
+                        Execute(stmt.Body);
+                    }
+                    catch(Continue) {}
+                    finally
+                    {
+                        if(stmt.Increment is not null)
+                        {
+                            Evaluate(stmt.Increment);
+                        }
+                    }
                 }
             }
+            catch(Break){}
         }
-        catch(Break){}
-
-        return null!;
+        finally
+        {
+            _environment = previous;
+        }
     }
 
     public object VisitCallExpr(Expr.Call expr)
@@ -456,6 +484,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitBreakStmt(Stmt.Break stmt) => throw new Break();
 
+    public object VisitContinueStmt(Stmt.Continue stmt) => throw new Continue();
     private static void CheckNumberOperand(Token @operator, object operand)
     {
         if (operand is double) return;

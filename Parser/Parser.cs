@@ -140,6 +140,10 @@ internal class Parser
         {
             return BreakStatement();
         }
+        if(Match(CONTINUE))
+        {
+            return ContinueStatement();
+        }
         if(Match(WHILE))
         {
             return WhileStatement();
@@ -150,6 +154,21 @@ internal class Parser
         }
 
         return ExpressionStatement();
+    }
+
+    private Stmt.Continue ContinueStatement()
+    {
+        Token keyword = Previous();
+
+        if(_loopDepth == 0) 
+        {
+            Lox.Error(keyword, "Must be inside a loop to use 'break'");
+        }
+
+        Consume(SEMICOLON, "Expect ';' after 'break'.");
+
+        return new Stmt.Continue(keyword);
+
     }
 
     private Stmt.Break BreakStatement()
@@ -180,7 +199,7 @@ internal class Parser
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt ForStatement()
+    private Stmt.For ForStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'for'");
 
@@ -217,30 +236,11 @@ internal class Parser
             _loopDepth++;
             Stmt body = Statement();
 
-
-            // if (increment is not null)
-            // {
-            //     body = new Stmt.Block([body, new Stmt.Expression(increment)]);
-            // }
-
-            // if (condition is null)
-            // {
-            //     condition = new Expr.Literal(true);
-            // }
-
-            //body = new Stmt.While(condition, body);
-
-            // if (initializer is not null)
-            // {
-            //     body = new Stmt.Block([initializer, body]);
-            // }
-
-            //return body;
             return new Stmt.For(initializer, condition, increment, body);
         }
         finally
         {
-                _loopDepth--;
+            _loopDepth--;
         }
     }
 

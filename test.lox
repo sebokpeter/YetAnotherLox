@@ -1,7 +1,25 @@
 var a = 0;
-for(; a <= 100000; a = a + 1) {
+for(; a <= 10; a = a + 1) {
+    if(a == 0 or a == 2 or a == 4 or a == 6 or a == 8) {
+        continue;
+    }
     print a;
-    if(a == 101) {
+}
+
+for(var b = 10; b >= 0; b = b - 1) {
+    print b;
+}
+
+for(var c = 0; ; c = c + 1) {
+    print "c = " + stringify(c);
+    if(c == 10) {
         break;
     }
+}
+
+
+for (var d = 0; d < 10;) {
+    print "d = " + stringify(d);
+
+    d = d + 1;
 }

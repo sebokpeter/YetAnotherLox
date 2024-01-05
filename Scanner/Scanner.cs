@@ -31,7 +31,8 @@ class Scanner
         {"true", TRUE},
         {"var", VAR},
         {"while", WHILE},
-        {"break", BREAK}
+        {"break", BREAK},
+        {"continue", CONTINUE}
     };
     }
 
