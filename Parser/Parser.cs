@@ -236,18 +236,7 @@ internal class Parser
             _loopDepth++;
             Stmt body = Statement();
 
-            if(increment is not null) {
-                body = new Stmt.Block([body, new Stmt.Expression(increment)]);
-            }
-
-            condition ??= new Expr.Literal(true);
-
-            body = new Stmt.While(condition, body);
-            if(initializer is not null) {
-                body = new Stmt.Block([initializer, body]);
-            }
-            return body;
-            //return new Stmt.For(initializer, condition, increment, body);
+            return new Stmt.For(initializer, condition, increment, body);
         }
         finally
         {
