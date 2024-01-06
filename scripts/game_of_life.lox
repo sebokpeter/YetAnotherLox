@@ -1,3 +1,5 @@
+// FROM: https://lox.nanmu.me/en/
+
 // An implementation of Conway's Game of Life.
 //
 // Since Lox hasn't got the concept of array,

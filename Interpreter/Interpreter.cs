@@ -30,88 +30,13 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void DefineGlobalFunctions()
     {
-        _globals.Define("clock", new NativeFunctionNoParams("clock", () => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000.0));
-        _globals.Define("input", new NativeFunctionNoParams("input", () => Console.ReadLine()!));
-        _globals.Define("stringify", new NativeFunction(1, "stringify", (param) => Stringify(param[0])));
-        _globals.Define("num", new NativeFunction(1, "num", (param) =>
-        {
-            Debugger.Break();
-
-            double val = ConvertToDouble(param);
-            return val;
-        }));
-        _globals.Define("readFile", new NativeFunction(1, "readFile", (param) => File.ReadAllText((string)param[0])));
-        _globals.Define("print", new NativeFunction(1, "print", (param) =>
-        {
-            Console.Write(param[0]);
-            return null!;
-        }));
-        _globals.Define("printLine", new NativeFunction(1, "printLine", (param) =>
-        {
-            Console.WriteLine(param[0]);
-            return null!;
-        }));
-        _globals.Define("sleep", new NativeFunction(1, "sleep", (param) =>
-        {
-            Debugger.Break();
-            int val = ConvertToInt(param[0]);
-
-            Thread.Sleep(val);
-            return null!;
-        }));
-        _globals.Define("random", new NativeFunction(1, "random", (param) =>
-        {
-            int val = ConvertToInt(param[0]);
-            return (double)Random.Shared.Next(val);
-        }));
-    }
-
-    private static int ConvertToInt(object p)
-    {
-        if (p is int val)
-        {
-            return val;
-        }
-        if (p is double d)
-        {
-            return Convert.ToInt32(d);
-        }
-        if (p is string s)
-        {
-            if (!int.TryParse(s, out int i))
-            {
-                throw new RuntimeException($"Could not convert '{s}' to a number.");
-            }
-
-            return i;
-        }
-
-        Debugger.Break();
-
-        throw new RuntimeException($"Value '{p}' can not be converted to a number.");
-    }
-
-    private static double ConvertToDouble(object p)
-    {
-        if (p is int val)
-        {
-            return val;
-        }
-        if (p is double d)
-        {
-            return Convert.ToInt32(d);
-        }
-        if (p is string s)
-        {
-            if (!Double.TryParse(s, out double i))
-            {
-                throw new RuntimeException($"Could not convert '{s}' to a number.");
-            }
-
-            return i;
-        }
-
-        throw new RuntimeException($"Value '{p}' can not be converted to a number.");
+        _globals.Define("sleep", new NativeFunction.Sleep());
+        _globals.Define("clock", new NativeFunction.Clock());
+        _globals.Define("random", new NativeFunction.LoxRandom());
+        _globals.Define("stringify", new NativeFunction.Stringify(Stringify));
+        _globals.Define("num", new NativeFunction.Num());
+        _globals.Define("input", new NativeFunction.Input());
+        _globals.Define("readFile", new NativeFunction.ReadFile());
     }
 
     internal void Interpret(List<Stmt> statements)
@@ -134,7 +59,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         stmt.Accept(this);
     }
 
-    private static string Stringify(object value)
+    private static string Stringify(object? value)
     {
         if (value is null)
         {

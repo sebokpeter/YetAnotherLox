@@ -1,0 +1,40 @@
+print "10 random numbers:";
+
+for(var i = 0; i < 10; i = i+1) {
+    print random(10);
+}
+
+print "This is a string and a number: " + stringify(123.345);
+print stringify(1) + " another " + stringify(34);
+
+print "1 + 1 = ";
+print num("1") + num("1");
+
+print "Please enter something: ";
+var inp = input();
+
+print "You entered: " + inp;
+
+print "Sleeping for 500 ms";
+print clock();
+sleep(500);
+print clock();
+print "Slept for 500 ms";
+
+
+print "Please enter a number: ";
+var ms = num(input());
+print "Sleeping for an extra " + stringify(ms) + " milliseconds";
+sleep(ms);
+
+print "The source of this program is: ";
+print readFile("scripts/native_fns.lox");
+
+print "Native functions: ";
+print sleep;
+print clock;
+print input;
+print num;
+print readFile;
+print random;
+print stringify;

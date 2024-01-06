@@ -14,8 +14,6 @@ internal class Lox
 
     private static void Main(string[] args)
     {
-        RunFile("test.lox");
-        return;
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: clox [script]");
@@ -88,12 +86,7 @@ internal class Lox
 
     internal static void RuntimeError(RuntimeException ex)
     {
-        Console.WriteLine("AAA");
-        if(ex is null) {
-            Console.WriteLine("BBBBB");
-        }
-        //Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
-        Console.WriteLine(ex);
+        Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
         HadRuntimeError = true; 
     }
 
