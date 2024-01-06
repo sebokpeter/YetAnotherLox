@@ -138,7 +138,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             case EQUAL_EQUAL:
                 return IsEqual(left, right);
             case PLUS:
-                return Plus(expr.Operator, left, right);
+                return Plus(left, right);
         }
 
         return null!;
@@ -211,7 +211,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return left.Equals(right);
     }
 
-    private static object Plus(Token oper, object left, object right)
+    private static object Plus(object left, object right)
     {
         if (left is double l && right is double r)
         {
@@ -222,9 +222,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         string sRight = right is string sr? sr : Stringify(right);
 
         return sLeft + sRight; 
-
-        // This should be unreachable.
-        throw new RuntimeException(oper, "Operands must be two numbers, two strings, or one string and a value convertible to string.");
     }
 
     public object VisitGroupingExpr(Expr.Grouping expr)
