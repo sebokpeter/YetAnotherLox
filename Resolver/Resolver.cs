@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Generated;
 
 namespace LoxConsole.Resolver;
@@ -8,7 +9,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     private readonly Stack<Dictionary<string, bool>> _scopes = new();
 
     private FunctionType currentFunction = FunctionType.NONE;
-    private ClassType currentClass = ClassType.NONE;
+    private ClassType _currentClass = ClassType.NONE;
 
     public Resolver(Interpreter.Interpreter interpreter)
     {
@@ -36,12 +37,13 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-        if (_scopes.Count > 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool b))
+        if(expr.Name.Line == 55) {
+            Debugger.Break();
+        }
+
+        if (_scopes.Count != 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool found) && !found)
         {
-            if (!b)
-            {
-                Lox.Error(expr.Name, "Can't read local variable in  its own initializer.");
-            }
+            Lox.Error(expr.Name, "Can't read local variable in  its own initializer.");
         }
 
         ResolveLocal(expr, expr.Name);
@@ -199,8 +201,8 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitClassStmt(Stmt.Class stmt)
     {
-        ClassType enclosing = currentClass;
-        currentClass = ClassType.CLASS;
+        ClassType enclosing = _currentClass;
+        _currentClass = ClassType.CLASS;
 
         Declare(stmt.Name);
         Define(stmt.Name);
@@ -212,7 +214,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         if(stmt.Superclass is not null)
         {
-            currentClass = ClassType.SUBCLASS;
+            _currentClass = ClassType.SUBCLASS;
             Resolve(stmt.Superclass);
         }
 
@@ -226,12 +228,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         foreach (Stmt.Function method in stmt.Methods)
         {
-            FunctionType declaration = FunctionType.METHOD;
-            if (method.Name.Lexeme.Equals("init"))
-            {
-                declaration = FunctionType.INITIALIZER;
-            }
-            ResolveFunction(method, declaration);
+            ResolveFunction(method, method.Name.Lexeme.Equals("init")? FunctionType.INITIALIZER : FunctionType.METHOD);
         }
 
         EndScope();
@@ -241,7 +238,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
             EndScope();
         }
 
-        currentClass = enclosing;
+        _currentClass = enclosing;
         return null!;
     }
 
@@ -260,7 +257,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitThisExpr(Expr.This expr)
     {
-        if (currentClass is ClassType.NONE)
+        if (_currentClass is ClassType.NONE)
         {
             Lox.Error(expr.Keyword, "Can't use 'this' outside of a class.");
             return null!;
@@ -272,11 +269,11 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitSuperExpr(Expr.Super expr)
     {
-        if(currentClass is ClassType.NONE)
+        if(_currentClass is ClassType.NONE)
         {
             Lox.Error(expr.Keyword, "Can't use 'super' outside of class.");
         } 
-        else if(currentClass is not ClassType.SUBCLASS)
+        else if(_currentClass is not ClassType.SUBCLASS)
         {
             Lox.Error(expr.Keyword, "Can't use 'super' in a class with no superclass.");
         }
@@ -296,7 +293,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void ResolveLocal(Expr expr, Token name)
     {
-        for (int i = _scopes.Count - 1; i >= 0; i--)
+        for (int i = 0; i < _scopes.Count; i++)
         {
             if (_scopes.ElementAt(i).ContainsKey(name.Lexeme))
             {
@@ -313,7 +310,14 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
             return;
         }
 
-        _scopes.Peek()[name.Lexeme] = true;
+        if(_scopes.Peek().ContainsKey(name.Lexeme))
+        {
+            _scopes.Peek()[name.Lexeme] = true;
+        }
+        else 
+        {
+            Lox.Error(name, $"Variable '{name.Lexeme}' has not been declared.");
+        }
     }
 
     private void Declare(Token name)

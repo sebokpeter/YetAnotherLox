@@ -88,7 +88,12 @@ internal class Lox
 
     internal static void RuntimeError(RuntimeException ex)
     {
-        Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
+        Console.WriteLine("AAA");
+        if(ex is null) {
+            Console.WriteLine("BBBBB");
+        }
+        //Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
+        Console.WriteLine(ex);
         HadRuntimeError = true; 
     }
 

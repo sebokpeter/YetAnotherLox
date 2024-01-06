@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -34,24 +35,83 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _globals.Define("stringify", new NativeFunction(1, "stringify", (param) => Stringify(param[0])));
         _globals.Define("num", new NativeFunction(1, "num", (param) =>
         {
-            string s = Stringify(param[0]);
-            if (!Double.TryParse(s, out double val))
-            {
-                throw new RuntimeException($"Could not convert '{s}' to a number!");
-            }
+            Debugger.Break();
+
+            double val = ConvertToDouble(param);
             return val;
         }));
         _globals.Define("readFile", new NativeFunction(1, "readFile", (param) => File.ReadAllText((string)param[0])));
         _globals.Define("print", new NativeFunction(1, "print", (param) =>
         {
-            Console.Write(Stringify(param[0]));
+            Console.Write(param[0]);
             return null!;
         }));
         _globals.Define("printLine", new NativeFunction(1, "printLine", (param) =>
         {
-            Console.WriteLine(Stringify(param[0]));
+            Console.WriteLine(param[0]);
             return null!;
         }));
+        _globals.Define("sleep", new NativeFunction(1, "sleep", (param) =>
+        {
+            Debugger.Break();
+            int val = ConvertToInt(param[0]);
+
+            Thread.Sleep(val);
+            return null!;
+        }));
+        _globals.Define("random", new NativeFunction(1, "random", (param) =>
+        {
+            int val = ConvertToInt(param[0]);
+            return (double)Random.Shared.Next(val);
+        }));
+    }
+
+    private static int ConvertToInt(object p)
+    {
+        if (p is int val)
+        {
+            return val;
+        }
+        if (p is double d)
+        {
+            return Convert.ToInt32(d);
+        }
+        if (p is string s)
+        {
+            if (!int.TryParse(s, out int i))
+            {
+                throw new RuntimeException($"Could not convert '{s}' to a number.");
+            }
+
+            return i;
+        }
+
+        Debugger.Break();
+
+        throw new RuntimeException($"Value '{p}' can not be converted to a number.");
+    }
+
+    private static double ConvertToDouble(object p)
+    {
+        if (p is int val)
+        {
+            return val;
+        }
+        if (p is double d)
+        {
+            return Convert.ToInt32(d);
+        }
+        if (p is string s)
+        {
+            if (!Double.TryParse(s, out double i))
+            {
+                throw new RuntimeException($"Could not convert '{s}' to a number.");
+            }
+
+            return i;
+        }
+
+        throw new RuntimeException($"Value '{p}' can not be converted to a number.");
     }
 
     internal void Interpret(List<Stmt> statements)
@@ -298,20 +358,20 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             while (IsTruthy(Evaluate(stmt.Condition)))
             {
-                try 
+                try
                 {
                     Execute(stmt.Body);
                 }
-                catch(Continue)
+                catch (Continue)
                 {
                     continue;
                 }
             }
         }
-        catch(Break)
-        {}
+        catch (Break)
+        { }
 
-        
+
         return null!;
     }
 
@@ -327,32 +387,32 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _environment = environment;
         try
         {
-            if(stmt.Initializer is not null) 
+            if (stmt.Initializer is not null)
             {
                 Execute(stmt.Initializer);
             }
 
-            Expr condition = stmt.Condition?? new Expr.Literal(true);
+            Expr condition = stmt.Condition ?? new Expr.Literal(true);
 
             try
             {
-                while(IsTruthy(Evaluate(condition)))
+                while (IsTruthy(Evaluate(condition)))
                 {
                     try
                     {
                         Execute(stmt.Body);
                     }
-                    catch(Continue) {}
+                    catch (Continue) { }
                     finally
                     {
-                        if(stmt.Increment is not null)
+                        if (stmt.Increment is not null)
                         {
                             Evaluate(stmt.Increment);
                         }
                     }
                 }
             }
-            catch(Break){}
+            catch (Break) { }
         }
         finally
         {
@@ -379,6 +439,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         try
         {
             return function.Call(this, arguments);
+        }
+        catch (RuntimeException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -407,10 +471,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitClassStmt(Stmt.Class stmt)
     {
         object? superclass = null;
-        if(stmt.Superclass is not null)
+        if (stmt.Superclass is not null)
         {
             superclass = Evaluate(stmt.Superclass);
-            if(superclass is not LoxClass)
+            if (superclass is not LoxClass)
             {
                 throw new RuntimeException(stmt.Superclass.Name, "Superclass must be a class.");
             }
@@ -418,7 +482,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         _environment.Define(stmt.Name.Lexeme, null!);
 
-        if(stmt.Superclass is not null)
+        if (stmt.Superclass is not null)
         {
             _environment = new(_environment);
             _environment.Define("super", superclass!);
@@ -426,7 +490,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         Dictionary<string, LoxFunction> methods = [];
 
-        foreach(Stmt.Function method in stmt.Methods)
+        foreach (Stmt.Function method in stmt.Methods)
         {
             LoxFunction function = new(method, _environment, method.Name.Lexeme.Equals("init"));
             methods.Add(method.Name.Lexeme, function);
@@ -434,7 +498,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         LoxClass @class = new(stmt.Name.Lexeme, (LoxClass?)superclass, methods);
 
-        if(superclass is not null)
+        if (superclass is not null)
         {
             _environment = _environment.Enclosing!;
         }
@@ -455,7 +519,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     }
 
     public object VisitSetExpr(Expr.Set expr)
-    {
+    {        
+        #if DEBUG
+            if(expr.Name.Line == 34) Debugger.Break();
+        #endif
+
         object obj = Evaluate(expr.Obj);
 
         if (obj is not LoxInstance instance)

@@ -134,7 +134,7 @@ class Scanner
             Advance();
         }
 
-        string text = _source.Substring(start, current - start);
+        string text = _source[start..current];
         if (keywords.TryGetValue(text, out TokenType type))
         {
             AddToken(type);

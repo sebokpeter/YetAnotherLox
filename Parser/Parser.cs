@@ -199,7 +199,7 @@ internal class Parser
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt.For ForStatement()
+    private Stmt ForStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'for'");
 
@@ -236,7 +236,18 @@ internal class Parser
             _loopDepth++;
             Stmt body = Statement();
 
-            return new Stmt.For(initializer, condition, increment, body);
+            if(increment is not null) {
+                body = new Stmt.Block([body, new Stmt.Expression(increment)]);
+            }
+
+            condition ??= new Expr.Literal(true);
+
+            body = new Stmt.While(condition, body);
+            if(initializer is not null) {
+                body = new Stmt.Block([initializer, body]);
+            }
+            return body;
+            //return new Stmt.For(initializer, condition, increment, body);
         }
         finally
         {
