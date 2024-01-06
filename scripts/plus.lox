@@ -1,0 +1,5 @@
+print 1+11.1;
+print "Hello " + "World";
+print "The value is: " + 42;
+print 42 + " is the value";
+print "First: " + 1 + "st, " + "Second: " + 2 + "nd.";

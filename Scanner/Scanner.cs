@@ -32,8 +32,7 @@ class Scanner
         {"var", VAR},
         {"while", WHILE},
         {"break", BREAK},
-        {"continue", CONTINUE}
-    };
+        {"continue", CONTINUE}};
     }
 
     public Scanner(string source)

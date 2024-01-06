@@ -35,7 +35,7 @@ internal class Lox
         {
             Console.Write("> ");
             string? line = Console.ReadLine();
-            if (line == null) break;
+            if (line is null) break;
             Run(line);
             HadError = false;
         }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.Intrinsics.Arm;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -216,12 +217,14 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             return l + r;
         }
-        if (left is string sl && right is string sr)
-        {
-            return sl + sr;
-        }
 
-        throw new RuntimeException(oper, "Operands must be two numbers or two strings.");
+        string sLeft = left is string sl? sl : Stringify(left);
+        string sRight = right is string sr? sr : Stringify(right);
+
+        return sLeft + sRight; 
+
+        // This should be unreachable.
+        throw new RuntimeException(oper, "Operands must be two numbers, two strings, or one string and a value convertible to string.");
     }
 
     public object VisitGroupingExpr(Expr.Grouping expr)
@@ -444,10 +447,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     }
 
     public object VisitSetExpr(Expr.Set expr)
-    {        
-        #if DEBUG
-            if(expr.Name.Line == 34) Debugger.Break();
-        #endif
+    {
+#if DEBUG
+        if (expr.Name.Line == 34) Debugger.Break();
+#endif
 
         object obj = Evaluate(expr.Obj);
 

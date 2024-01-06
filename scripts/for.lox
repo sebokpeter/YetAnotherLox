@@ -20,3 +20,22 @@ for(var i = 0; i < 10; ) {
     i = i + 1;
 } 
 
+
+print "Odd numbers: ";
+var o = 0;
+for(;o < 10; ) {
+    o = o + 1;
+    if(o % 2 == 0) {
+        continue;
+    }
+    print o;
+}
+
+print "Nested loops: ";
+for(var i = 0; i < 10; i = i + 1) {
+    for(var j = 0; j < i; j = j + 1) {
+        print "i = " + stringify(i) + "; j = " + stringify(j);
+    }
+}
+
+continue;

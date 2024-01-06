@@ -162,10 +162,10 @@ internal class Parser
 
         if(_loopDepth == 0) 
         {
-            Lox.Error(keyword, "Must be inside a loop to use 'break'");
+            Lox.Error(keyword, "Must be inside a loop to use 'continue'");
         }
 
-        Consume(SEMICOLON, "Expect ';' after 'break'.");
+        Consume(SEMICOLON, "Expect ';' after 'continue'.");
 
         return new Stmt.Continue(keyword);
 
