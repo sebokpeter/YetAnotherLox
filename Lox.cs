@@ -17,7 +17,7 @@ internal class Lox
     private static void Main(string[] args)
     {
         #if RUN_FILE
-            RunFile("scripts/ca.lox");
+            RunFile("scripts/game_of_life_2.lox");
             return;
         #endif
 

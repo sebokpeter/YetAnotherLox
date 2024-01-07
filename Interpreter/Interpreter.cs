@@ -38,6 +38,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _globals.Define("readFile", new NativeFunction.ReadFile());
         _globals.Define("len", new NativeFunction.Len());
         _globals.Define("write", new NativeFunction.Write(Stringify));
+        _globals.Define("clear", new NativeFunction.Clear());
     }
 
     internal void Interpret(List<Stmt> statements)
@@ -478,8 +479,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitArrayExpr(Expr.Array expr)
     {
-       // List<object> values = expr.Initializers.Select(Evaluate).ToList();
-
         List<object> values;
         if(expr.Initializers is not null)
         {
@@ -487,7 +486,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         } 
         else if(expr.DefaultValue is not null && expr.DefaultValueCount is not null)
         {
-            object? defaultValue = Evaluate(expr.DefaultValue);
             object defValCount = Evaluate(expr.DefaultValueCount);
 
             if(defValCount is not double d)
@@ -502,7 +500,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
             int defaultValueCount = Convert.ToInt32(d);
 
-            values = Enumerable.Repeat(defaultValue, defaultValueCount).ToList();
+            values = [];
+            for (int i = 0; i < defaultValueCount; i++)
+            {
+                values.Add(Evaluate(expr.DefaultValue));
+            }
         }
         else
         {

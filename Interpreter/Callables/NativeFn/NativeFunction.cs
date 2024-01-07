@@ -125,6 +125,19 @@ internal class NativeFunction
         public override string ToString() => $"<native fn write{GetVariableString(Arity)}>";
     }
 
+    internal class Clear : ILoxCallable
+    {
+        public int Arity => 0;
+
+        public object Call(Interpreter interpreter, List<object> arguments)
+        {
+            Console.Clear();
+            return null!;
+        }
+
+        public override string ToString() => $"<native fn clear>";
+    }
+
     internal class Int : ILoxCallable
     {
         public int Arity => 1;

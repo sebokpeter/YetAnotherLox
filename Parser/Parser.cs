@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Generated;
 using static LoxConsole.TokenType;
 

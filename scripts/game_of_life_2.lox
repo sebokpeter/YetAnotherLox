@@ -1,0 +1,118 @@
+// Based on: https://natureofcode.com/book/chapter-7-cellular-automata/
+class Cell {
+    init(state) {
+        this.state = state;
+        this.previous = state;
+    }
+
+    toString() {
+        if(this.state == 1) {
+            return "*";
+        } else {
+            return " ";
+        }
+    }
+
+    display() {
+        write(this.toString());
+    }
+}
+
+class Grid {
+    init(rows, cols) {
+        this.grid = [[]; rows];
+    
+        this.cols = cols;
+        this.rows = rows;
+
+        for(var r = 0; r < rows; r = r + 1) {
+            for(var c = 0; c < cols; c = c + 1) {
+                var val = 0;
+                if(random(5) == 1) {
+                    val = 1;
+                }
+                this.grid[r][c] = Cell(val);
+            }
+        }
+
+        //this.grid[2][1] = Cell(1);
+        //this.grid[2][2] = Cell(1);
+        //this.grid[2][3] = Cell(1);
+    }
+
+    step() {
+
+        for(var r = 0; r < this.rows; r = r + 1) {
+            for(var c = 0; c < this.cols; c = c + 1) {
+                var cell = this.grid[r][c];
+                cell.previous = cell.state;
+            }
+        }
+
+        for(var r = 0; r < this.rows; r = r + 1) {
+            for(var c = 0; c < this.cols; c = c + 1) {
+                var neighbors = this.countNeighbors(r, c);
+
+                var cell = this.grid[r][c];
+                if(cell.state == 1 and neighbors < 2) {
+                    cell.state = 0;
+                } else if(cell.state == 1 and neighbors > 3) {
+                    cell.state = 0;
+                } else if(cell.state == 0 and neighbors == 3) {
+                    cell.state = 1;
+                }
+            }
+        }
+    }
+
+    countNeighbors(row, col) {
+        var alive = 0;
+
+        for(var r = - 1; r <= 1; r = r + 1) {
+            for(var c = - 1; c <= 1; c = c + 1) {
+                var nRow = row + r;
+                var nCol = col + c;
+
+                // Wrap around
+                if(nRow < 0) {
+                    nRow = this.rows - 1;
+                } else if (nRow >= this.rows) {
+                    nRow = 0;
+                }
+
+                if(nCol < 0) {
+                    nCol = this.cols - 1;
+                } else if (nCol >= this.cols) {
+                    nCol = 0;
+                }
+
+                var n = this.grid[nRow][nCol];
+                alive = alive + n.previous;
+            }
+        }
+
+        var cell = this.grid[row][col];
+        alive = alive - cell.previous;
+        return alive;
+    }
+
+    display() {
+        for(var r = 0; r < this.rows; r = r + 1) {
+            var line = "";
+            for(var c = 0; c < this.cols; c = c + 1) {
+                var cell = this.grid[r][c];
+                line = line + cell.toString();
+            }
+            print line;
+        }
+    }
+}
+
+var grid = Grid(25, 50);
+for(var i = 0; i < 100; i = i + 1) {
+    grid.display();
+    print "Generation: " + i;
+    grid.step();
+    sleep(100);
+    clear();
+}
