@@ -166,4 +166,19 @@ public class AstPrinter : Expr.IVisitor<string>, Stmt.IVisitor<string>
     {
         throw new NotImplementedException();
     }
+
+    public string VisitArrayExpr(Expr.Array expr)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string VisitArrayAssignExpr(Expr.ArrayAssign expr)
+    {
+        throw new NotImplementedException();
+    }
+
+    public string VisitArrayAccessExpr(Expr.ArrayAccess expr)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -291,6 +291,33 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return null!;
     }
 
+    public object VisitArrayExpr(Expr.Array expr)
+    {
+        foreach (Expr e in expr.Initializers)
+        {
+            Resolve(e);
+        }
+
+        return null!;
+    }
+
+    public object VisitArrayAccessExpr(Expr.ArrayAccess expr)
+    {
+        Resolve(expr.Target);
+        Resolve(expr.Location);
+
+        return null!;
+    }
+
+    public object VisitArrayAssignExpr(Expr.ArrayAssign expr)
+    {
+        Resolve(expr.Target);
+        Resolve(expr.Location);
+        Resolve(expr.Value);
+
+        return null!;
+    }
+
     private void ResolveLocal(Expr expr, Token name)
     {
         for (int i = 0; i < _scopes.Count; i++)

@@ -1,4 +1,5 @@
 using Generated;
+using LoxConsole.Interpreter;
 using static LoxConsole.TokenType;
 
 namespace LoxConsole.Parser;
@@ -199,7 +200,7 @@ internal class Parser
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt ForStatement()
+    private Stmt.For ForStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'for'");
 
@@ -333,6 +334,10 @@ internal class Parser
             {
                 return new Expr.Set(getExpr.Obj, getExpr.Name, value);
             }
+            else if (expr is Expr.ArrayAccess arrayAccessExpr)
+            {
+                return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Location, value);
+            }
 
             Error(equals, "Invalid assignment target");
         }
@@ -433,7 +438,24 @@ internal class Parser
             return new Expr.Unary(oper, expr);
         }
 
-        return Call();
+       // return Call();
+
+        return ArrayAccess();
+    }
+
+    private Expr ArrayAccess()
+    {
+        Expr expr = Call();
+
+        if(Match(LEFT_SQUARE))
+        {   
+            Token leftSquare = Previous();
+            Expr element = Expression();
+            Consume(RIGHT_SQUARE, "Expect closing ']' after array access.");
+            return new Expr.ArrayAccess(expr, leftSquare, element);
+        }
+
+        return expr;
     }
 
     private Expr Call()
@@ -503,6 +525,11 @@ internal class Parser
             return new Expr.Grouping(expr);
         }
 
+        if(Match(LEFT_SQUARE))
+        {
+            return ArrayCreation();
+        }
+
         if(Match(THIS)) return new Expr.This(Previous());
 
         if(Match(IDENTIFIER))
@@ -511,6 +538,23 @@ internal class Parser
         }
 
         throw Error(Peek(), "Expected expression");
+    }
+
+    private Expr.Array ArrayCreation()
+    {
+        Token leftSquare = Previous();
+        List<Expr> initializers = [];
+
+        if(!Check(RIGHT_SQUARE) && !IsAtEnd()) 
+        {
+            do
+            {
+                initializers.Add(Expression());
+            } while (Match(COMMA));
+        }
+
+        Consume(RIGHT_SQUARE, "Expect closing ']'.");
+        return new Expr.Array(leftSquare, initializers);
     }
 
     private Token Consume(TokenType type, string msg)

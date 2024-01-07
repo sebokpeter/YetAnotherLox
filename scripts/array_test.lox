@@ -1,0 +1,42 @@
+var arrayOne = [];
+arrayOne[0] = 0;
+arrayOne[1] = 1;
+arrayOne[10] = 10;
+arrayOne[0] = 99;
+
+print arrayOne[0];
+print arrayOne[10];
+
+var arrayTwo = [1, 2, 3, 4, 5, 6];
+
+for(var i = 0; i < 6; i = i + 1) {
+    print arrayTwo[i];
+}
+
+var randomArray = [];
+
+print "Length before filling: " + len(randomArray);
+
+print "Filling random array: ";
+for(var i = 0; i <10; i = i +1) {
+    randomArray[i] = random(100);
+}
+
+print "Length after filling: " + len(randomArray);
+
+print "Printing random array: ";
+for(var i = 0; i < 10; i = i + 1) {
+    print randomArray[i];
+}
+
+var str = "Length of this string: ";
+print str + len(str);
+
+print "Hello"[0];
+
+var hello = "Hello Word";
+print "Writing '" + hello + "' one character at a time: ";
+
+for(var i = 0; i < len(hello); i = i + 1) {
+    print hello[i];
+}

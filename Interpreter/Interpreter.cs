@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Formats.Tar;
 using System.Runtime.Intrinsics.Arm;
 using Generated;
 using static LoxConsole.TokenType;
@@ -38,6 +39,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _globals.Define("num", new NativeFunction.Num());
         _globals.Define("input", new NativeFunction.Input());
         _globals.Define("readFile", new NativeFunction.ReadFile());
+        _globals.Define("len", new NativeFunction.Len());
     }
 
     internal void Interpret(List<Stmt> statements)
@@ -218,10 +220,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             return l + r;
         }
 
-        string sLeft = left is string sl? sl : Stringify(left);
-        string sRight = right is string sr? sr : Stringify(right);
+        string sLeft = left is string sl ? sl : Stringify(left);
+        string sRight = right is string sr ? sr : Stringify(right);
 
-        return sLeft + sRight; 
+        return sLeft + sRight;
     }
 
     public object VisitGroupingExpr(Expr.Grouping expr)
@@ -445,10 +447,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitSetExpr(Expr.Set expr)
     {
-#if DEBUG
-        if (expr.Name.Line == 34) Debugger.Break();
-#endif
-
         object obj = Evaluate(expr.Obj);
 
         if (obj is not LoxInstance instance)
@@ -479,6 +477,71 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitBreakStmt(Stmt.Break stmt) => throw new Break();
 
     public object VisitContinueStmt(Stmt.Continue stmt) => throw new Continue();
+
+    public object VisitArrayExpr(Expr.Array expr)
+    {
+        List<object> values = expr.Initializers.Select(Evaluate).ToList();
+
+        return new LoxArray(values);
+    }
+
+    public object VisitArrayAccessExpr(Expr.ArrayAccess expr)
+    {
+        object target = Evaluate(expr.Target);
+
+        if(target is not (LoxArray or string))
+        {
+            throw new RuntimeException(expr.Bracket, "Expected array or string.");
+        }
+
+        object location = Evaluate(expr.Location);
+
+        if (location is not double loc || loc % 1 != 0)
+        {
+            throw new RuntimeException(expr.Bracket, "Location must be an integer.");
+        }
+
+        int targetLocation = (int)loc;
+
+        if(target is string str)
+        {
+            if(targetLocation >= str.Length)
+            {
+                throw new RuntimeException(expr.Bracket, "Requested location is higher than the length of the string.");
+            }
+            return str[targetLocation].ToString();
+        }
+        else 
+        {
+            return ((LoxArray)target).Get(targetLocation, expr.Bracket);
+        }
+    }
+
+    public object VisitArrayAssignExpr(Expr.ArrayAssign expr)
+    {
+        object target = Evaluate(expr.Target);
+
+        if (target is not LoxArray array)
+        {
+            throw new RuntimeException(expr.Bracket, "Expected array.");
+        }
+
+        object location = Evaluate(expr.Location);
+
+        if (location is not double loc || loc % 1 != 0)
+        {
+            throw new RuntimeException(expr.Bracket, "Location must be an integer.");
+        }
+
+        int targetLocation = (int)loc;
+        object value = Evaluate(expr.Value);
+
+        array.Assign(targetLocation, value);
+
+        return null!;
+    }
+
+
     private static void CheckNumberOperand(Token @operator, object operand)
     {
         if (operand is double) return;

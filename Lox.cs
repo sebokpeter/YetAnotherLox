@@ -7,13 +7,16 @@ using LoxConsole.Scanner;
 
 internal class Lox
 {
-    private static readonly Interpreter interpreter = new();
+    private static readonly Interpreter _interpreter = new();
 
-    static bool HadError { get; set; } = false;
-    static bool HadRuntimeError {get; set;} = false;
+    static bool _hadError = false;
+    static bool _hadRuntimeError = false;
 
     private static void Main(string[] args)
     {
+        RunFile("scripts/array_test.lox");
+        return;
+
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: clox [script]");
@@ -37,7 +40,7 @@ internal class Lox
             string? line = Console.ReadLine();
             if (line is null) break;
             Run(line);
-            HadError = false;
+            _hadError = false;
         }
     }
 
@@ -45,8 +48,8 @@ internal class Lox
     {
         string file = File.ReadAllText(filePath);
         Run(file);
-        if (HadError) System.Environment.Exit(64);
-        if (HadRuntimeError) System.Environment.Exit(70);
+        if (_hadError) System.Environment.Exit(64);
+        if (_hadRuntimeError) System.Environment.Exit(70);
     }
 
     private static void Run(string source)
@@ -57,14 +60,14 @@ internal class Lox
         Parser parser = new(tokens);
         List<Stmt> statements = parser.Parse();
 
-        if(HadError) return;
+        if(_hadError) return;
 
-        Resolver resolver = new(interpreter);
+        Resolver resolver = new(_interpreter);
         resolver.Resolve(statements);
 
-        if(HadError) return;
+        if(_hadError) return;
 
-        interpreter.Interpret(statements);
+        _interpreter.Interpret(statements);
     }
 
     public static void Error(int line, string msg)
@@ -87,13 +90,13 @@ internal class Lox
     internal static void RuntimeError(RuntimeException ex)
     {
         Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
-        HadRuntimeError = true; 
+        _hadRuntimeError = true; 
     }
 
     private static void Report(int line, string where, string msg)
     {
         Console.Error.WriteLine($"[line {line}] Error{where}: {msg}");
-        HadError = true;
+        _hadError = true;
     }
 
 

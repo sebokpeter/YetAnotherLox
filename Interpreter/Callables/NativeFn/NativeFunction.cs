@@ -83,6 +83,29 @@ internal class NativeFunction
         public override string ToString() => $"<native fn readFile{GetVariableString(Arity)}>";
     }
 
+    internal class Len : ILoxCallable
+    {
+        public int Arity => 1;
+
+        public object Call(Interpreter interpreter, List<object> arguments)
+        {
+            object arg = arguments[0];
+            if(arg is LoxArray array)
+            {
+                return (double)array.Values.Count;
+            }
+
+            if(arg is string s)
+            {
+                return (double)s.Length;
+            }
+
+            throw new Exception("Can only get the length of arrays and strings.");
+        }
+
+        public override string ToString() => $"<native fn len{GetVariableString(Arity)}>";
+    }
+
     private static T ToNum<T>(object p) where T: INumber<T> 
     {
         static T TryParseString(string s)

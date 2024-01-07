@@ -66,6 +66,8 @@ class Scanner
             case ')': AddToken(RIGHT_PAREN); break;
             case '{': AddToken(LEFT_BRACE); break;
             case '}': AddToken(RIGHT_BRACE); break;
+            case '[': AddToken(LEFT_SQUARE); break;
+            case ']': AddToken(RIGHT_SQUARE); break;
             case ',': AddToken(COMMA); break;
             case '.': AddToken(DOT); break;
             case '-': AddToken(MINUS); break;
