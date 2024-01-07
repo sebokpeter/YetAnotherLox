@@ -438,8 +438,6 @@ internal class Parser
             return new Expr.Unary(oper, expr);
         }
 
-       // return Call();
-
         return ArrayAccess();
     }
 
@@ -447,12 +445,12 @@ internal class Parser
     {
         Expr expr = Call();
 
-        if(Match(LEFT_SQUARE))
-        {   
-            Token leftSquare = Previous();
+        while(Match(LEFT_SQUARE))
+        {
+            Token brace = Previous();
             Expr element = Expression();
             Consume(RIGHT_SQUARE, "Expect closing ']' after array access.");
-            return new Expr.ArrayAccess(expr, leftSquare, element);
+            expr = new Expr.ArrayAccess(expr, brace, element);
         }
 
         return expr;

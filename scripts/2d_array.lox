@@ -1,0 +1,26 @@
+var array = [];
+array[0] = [];
+array[0][0] = "HELLO WORLD";
+
+print array[0][0];
+
+var grid = [];
+
+var width = 10;
+var height = 10;
+
+for(var h = 0; h <= height; h = h + 1) {
+    grid[h] = [];
+    for(var w = 0; w <= width; w = w + 1) {
+        grid[h][w] = w * h;
+    }
+}
+
+print "Filled grid...";
+
+for(var h = 0; h < len(grid); h = h + 1) {
+    for(var w = 0; w < len(grid[h]); w = w + 1) {
+        write(grid[h][w] + "|");
+    }
+    print "";
+}

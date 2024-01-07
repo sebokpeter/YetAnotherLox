@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Formats.Tar;
-using System.Runtime.Intrinsics.Arm;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -13,7 +10,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     private Environment _environment;
 
     internal Environment Globals => _globals;
-
 
     internal Interpreter()
     {
