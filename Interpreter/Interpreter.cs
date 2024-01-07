@@ -37,9 +37,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _globals.Define("random", new NativeFunction.LoxRandom());
         _globals.Define("stringify", new NativeFunction.Stringify(Stringify));
         _globals.Define("num", new NativeFunction.Num());
+        _globals.Define("int", new NativeFunction.Int());
         _globals.Define("input", new NativeFunction.Input());
         _globals.Define("readFile", new NativeFunction.ReadFile());
         _globals.Define("len", new NativeFunction.Len());
+        _globals.Define("write", new NativeFunction.Write(Stringify));
     }
 
     internal void Interpret(List<Stmt> statements)
@@ -528,7 +530,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         object location = Evaluate(expr.Location);
 
-        if (location is not double loc || loc % 1 != 0)
+        if (location is not double loc || loc % 1 != 0 )
         {
             throw new RuntimeException(expr.Bracket, "Location must be an integer.");
         }

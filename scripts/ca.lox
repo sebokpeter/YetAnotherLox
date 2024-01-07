@@ -1,0 +1,71 @@
+// 2 dimensional cellular automata, based on The Nature Of Code: https://natureofcode.com/book/chapter-7-cellular-automata/
+
+// There is no functionality (yet) to initialize an array using a given length and an element, so this function will create a new array, that 
+// is filled with 0s.
+fun createZeroArray(width) {
+    var array = [];
+    for(var i = 0; i < width; i = i + 1) {
+        array[i] = 0;
+    }
+    return array;
+}
+
+// If a cell is alive, print "*", otherwise print " " (space).
+fun printCells(cells) {
+    for(var i = 0; i < len(cells); i = i + 1) {
+        var current = cells[i];
+        if(current == 1) {
+            write("*");
+        } else {
+            write(" ");
+        }
+    }
+    print "";
+}
+
+class CA {
+    init(width) {
+        this.width = width;
+        this.cells = [];
+        this.ruleset = [0,1,1,0,1,1,1,1];
+
+        for(var i = 0; i < width; i = i + 1) {
+            this.cells[i] = 0;
+        }
+
+        var middle = int(len(this.cells)/2);
+
+        this.cells[middle] = 1;
+    }
+
+    generate() {
+        var nextGen = createZeroArray(this.width);
+        for(var i = 1; i < len(this.cells) - 1; i = i + 1) {
+            var left = this.cells[i - 1];
+            var middle = this.cells[i];
+            var right = this.cells[i + 1];
+            nextGen[i] = this.rules(left, middle, right);
+        }
+
+        this.cells = nextGen;
+    }
+
+    rules(left, middle, right) {
+        if(left == 1 and middle == 1 and right == 1) return this.ruleset[0];
+        if(left == 1 and middle == 1 and right == 0) return this.ruleset[1];
+        if(left == 1 and middle == 0 and right == 1) return this.ruleset[2];
+        if(left == 1 and middle == 0 and right == 0) return this.ruleset[3];
+        if(left == 0 and middle == 1 and right == 1) return this.ruleset[4];
+        if(left == 0 and middle == 1 and right == 0) return this.ruleset[5];
+        if(left == 0 and middle == 0 and right == 1) return this.ruleset[6];
+        if(left == 0 and middle == 0 and right == 0) return this.ruleset[7];
+    }
+}
+
+var ca = CA(200);
+
+printCells(ca.cells);
+for(var i = 0; i < 200; i = i + 1) {
+    ca.generate();
+    printCells(ca.cells);
+}

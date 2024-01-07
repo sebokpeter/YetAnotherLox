@@ -37,10 +37,6 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-        if(expr.Name.Line == 55) {
-            Debugger.Break();
-        }
-
         if (_scopes.Count != 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool found) && !found)
         {
             Lox.Error(expr.Name, "Can't read local variable in  its own initializer.");

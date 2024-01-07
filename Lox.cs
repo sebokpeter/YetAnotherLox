@@ -14,9 +14,6 @@ internal class Lox
 
     private static void Main(string[] args)
     {
-        RunFile("scripts/array_test.lox");
-        return;
-
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: clox [script]");

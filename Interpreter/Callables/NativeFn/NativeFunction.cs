@@ -106,6 +106,38 @@ internal class NativeFunction
         public override string ToString() => $"<native fn len{GetVariableString(Arity)}>";
     }
 
+    internal class Write : ILoxCallable
+    {
+        private readonly Func<object, string> _strFunc;
+
+        public int Arity => 1;
+
+        public Write(Func<object, string> strFunc)
+        {
+            _strFunc = strFunc;
+        }
+
+        public object Call(Interpreter interpreter, List<object> arguments)
+        {
+            Console.Write(_strFunc(arguments[0]));
+            return null!;
+        }
+        public override string ToString() => $"<native fn write{GetVariableString(Arity)}>";
+    }
+
+    internal class Int : ILoxCallable
+    {
+        public int Arity => 1;
+
+        public object Call(Interpreter interpreter, List<object> arguments) 
+        {
+            double val = ToNum<double>(arguments[0]);
+            return Math.Round(val); // The runtime representation is still a double, but this removes the fractional part.
+        }
+
+        public override string ToString() => $"<native fn int{GetVariableString(Arity)}>";
+    }
+
     private static T ToNum<T>(object p) where T: INumber<T> 
     {
         static T TryParseString(string s)
