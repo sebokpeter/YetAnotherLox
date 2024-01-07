@@ -26,7 +26,7 @@ internal class LoxArray
     {
         if(targetLocation > _values.Count - 1) 
         {
-            throw new RuntimeException(bracket, $"Position is out of range. Array size: {_values.Count - 1}, requested position: {targetLocation}");
+            throw new RuntimeException(bracket, $"Position is out of range. Array size: {_values.Count}, requested position: {targetLocation}");
         }
 
         return _values[targetLocation];

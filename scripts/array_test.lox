@@ -40,3 +40,24 @@ print "Writing '" + hello + "' one character at a time: ";
 for(var i = 0; i < len(hello); i = i + 1) {
     print hello[i];
 }
+
+var defaultArray = [0;10];
+
+for(var i = 0; i < len(defaultArray); i = i + 1) {
+    write(defaultArray[i] + " ");
+}
+print "";
+
+var otherDefaultArray = ["Hello"; 5];
+
+for(var i = 0; i < len(otherDefaultArray); i = i + 1) {
+    print otherDefaultArray[i] + " " + i;
+}
+
+//var wrongDefault = [1; 1.1];
+//var wrongDefault = [1; "a"];
+
+var randomAmount = [random(10); random(10)];
+for(var i = 0; i < len(randomAmount); i = i + 1) {
+    print i + " = " + randomAmount[i];
+}

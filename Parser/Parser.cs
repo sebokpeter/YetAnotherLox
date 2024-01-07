@@ -1,5 +1,4 @@
 using Generated;
-using LoxConsole.Interpreter;
 using static LoxConsole.TokenType;
 
 namespace LoxConsole.Parser;
@@ -541,18 +540,39 @@ internal class Parser
     private Expr.Array ArrayCreation()
     {
         Token leftSquare = Previous();
-        List<Expr> initializers = [];
-
+       
         if(!Check(RIGHT_SQUARE) && !IsAtEnd()) 
         {
-            do
+
+            // If the next token is a semicolon ";", this expr will be the length of the array (e.g. [10; "a"] -> array with ten 'a's)
+            // If the next token is a comma ",", this expression is the first value in the list of array value initializers (e.g. [10,11,12] -> three element array, with elements 10, 11, and 12)
+            Expr first = Expression(); 
+
+            if(Match(SEMICOLON))
             {
-                initializers.Add(Expression());
-            } while (Match(COMMA));
+                Expr defaultValueCount = Expression();
+                Consume(RIGHT_SQUARE, "Expect closing ']'.");
+                return new Expr.Array(leftSquare, null, first, defaultValueCount);
+            } 
+            else if(Match(COMMA))
+            {
+                List<Expr> initializers = [first];
+                do
+                {
+                    initializers.Add(Expression());
+                } while (Match(COMMA));
+                Consume(RIGHT_SQUARE, "Expect closing ']'.");
+                return new Expr.Array(leftSquare, initializers, null, null);
+            }
+            else
+            {
+                Error(Peek(), "Expected ',' or ';'.");
+            }
+
         }
 
         Consume(RIGHT_SQUARE, "Expect closing ']'.");
-        return new Expr.Array(leftSquare, initializers);
+        return new Expr.Array(leftSquare, [], null, null);
     }
 
     private Token Consume(TokenType type, string msg)

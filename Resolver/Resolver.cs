@@ -289,9 +289,17 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitArrayExpr(Expr.Array expr)
     {
-        foreach (Expr e in expr.Initializers)
+        if(expr.Initializers is not null)
         {
-            Resolve(e);
+            foreach (Expr e in expr.Initializers)
+            {
+                Resolve(e);
+            }
+        }
+        else if(expr.DefaultValue is not null && expr.DefaultValueCount is not null)
+        {
+            Resolve(expr.DefaultValue);
+            Resolve(expr.DefaultValueCount);
         }
 
         return null!;

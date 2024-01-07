@@ -33,4 +33,4 @@ unary       -> ( "!" | "-" ) unary | arrayAccess ;
 arrayAccess -> call "[" expression "]" ( "[" expression "]" )* | call ;
 call        -> primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 arguments   -> expression ( "," expression )* ;
-primary     -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "super" "." IDENTIFIER | "[" (expression ( , expression )* )? "]" ;
+primary     -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | "super" "." IDENTIFIER | "[" ( ( (expression ( "," expression )* )? ) | ( expression ";" expression )? )? "]" ;

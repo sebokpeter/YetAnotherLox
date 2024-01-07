@@ -10,6 +10,6 @@ Super       : Token keyword, Token method
 This        : Token keyword
 Unary       : Token operator, Expr right
 Variable    : Token name
-Array       : Token bracket, List<Expr> initializers
+Array       : Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
 ArrayAccess : Expr target, Token bracket, Expr location
 ArrayAssign : Expr target, Token bracket, Expr location, Expr value

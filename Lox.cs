@@ -1,4 +1,6 @@
-﻿using Generated;
+﻿#define RUN_FILE
+
+using Generated;
 using LoxConsole;
 using LoxConsole.Interpreter;
 using LoxConsole.Parser;
@@ -14,6 +16,11 @@ internal class Lox
 
     private static void Main(string[] args)
     {
+        #if RUN_FILE
+            RunFile("scripts/ca.lox");
+            return;
+        #endif
+
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: clox [script]");
