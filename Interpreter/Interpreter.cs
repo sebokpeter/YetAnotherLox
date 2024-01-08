@@ -441,6 +441,17 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             return instance.Get(expr.Name)!;
         }
 
+        if(obj is LoxClass @class)
+        {
+            LoxFunction? func = @class.FindMethod(expr.Name.Lexeme);
+            if(func is null || !func.IsStatic)
+            {
+                throw new RuntimeException(expr.Name, $"Class '{@class.Name}' has no static method named '{expr.Name.Lexeme}'.");
+            }
+
+            return func;
+        }
+
         throw new RuntimeException(expr.Name, "Only instances have properties.");
     }
 

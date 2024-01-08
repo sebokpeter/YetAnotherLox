@@ -1,7 +1,7 @@
 Block       : List<Stmt> statements
 Class       : Token name, Expr.Variable? superclass, List<Stmt.Function> methods
 Expression  : Expr ex
-Function    : Token name, List<Token> params, List<Stmt> body
+Function    : Token name, List<Token> params, List<Stmt> body, bool isStatic
 If          : Expr condition, Stmt thenBranch, Stmt elseBranch
 Print       : Expr ex
 Return      : Token keyword, Expr value

@@ -1,0 +1,18 @@
+class ClassWithStaticMethods {
+
+    init(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    multInstance() {
+        return this.a * this.b;
+    }
+
+    static mult(a, b) {
+        return a * b;
+    }
+}
+
+print ClassWithStaticMethods(3,3).multInstance();
+print ClassWithStaticMethods.mult(5,4);

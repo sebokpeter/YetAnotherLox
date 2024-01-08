@@ -1,4 +1,4 @@
-﻿//#define RUN_FILE
+﻿#define RUN_FILE
 
 using System.Diagnostics;
 using Generated;
@@ -18,7 +18,7 @@ internal class Lox
     private static void Main(string[] args)
     {
         #if RUN_FILE
-            RunFile("scripts/2d_array_2.lox");
+            RunFile("scripts/static.lox");
             return;
         #endif
 

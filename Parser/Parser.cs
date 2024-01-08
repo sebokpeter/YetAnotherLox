@@ -10,6 +10,7 @@ internal class Parser
     private int _current = 0;
 
     private int _loopDepth = 0;
+    private bool _inStaticMethod = false;
 
     public Parser(List<Token> tokens)
     {
@@ -80,6 +81,16 @@ internal class Parser
     private Stmt.Function Function(CallableKind kind)
     {
         string kindStr = kind.ToString().ToLowerInvariant();
+
+        bool isStatic = false;
+
+        if(Check(STATIC))
+        {
+            isStatic = true;
+            _inStaticMethod = true;
+            Advance();
+        }
+
         Token name = Consume(IDENTIFIER, $"Expect {kindStr} name.");
 
         Consume(LEFT_PAREN, $"Expect '(' after {kindStr} name.");
@@ -102,7 +113,8 @@ internal class Parser
         Consume(LEFT_BRACE, $"Expect '{{' before {kindStr} body");
         List<Stmt> body = Block();
 
-        return new Stmt.Function(name, parameters, body);
+        _inStaticMethod = false;
+        return new Stmt.Function(name, parameters, body, isStatic);
     }
 
     private Stmt.Var VarDeclaration()
@@ -519,7 +531,14 @@ internal class Parser
             return ArrayCreation();
         }
 
-        if(Match(THIS)) return new Expr.This(Previous());
+        if(Match(THIS))
+        {
+            if(_inStaticMethod)
+            {
+                throw Error(Previous(), "Cannot access 'this' in static method.");
+            }
+            return new Expr.This(Previous());
+        }
 
         if(Match(IDENTIFIER))
         {
@@ -552,30 +571,11 @@ internal class Parser
                 while (Match(COMMA) && !IsAtEnd())
                 {
                     initializers.Add(Expression());
-                    // Consume(COMMA, "Expect ',' after array member.");
                 }
 
                 Consume(RIGHT_SQUARE, "Expect closing ']'.");
                 return new Expr.Array(leftSquare, initializers, null, null);
             }
-
-            // else if(Match(COMMA))
-            // {
-            //     List<Expr> initializers = [first];
-            //     do
-            //     {
-            //         initializers.Add(Expression());
-            //     } while (Match(COMMA));
-            //     Consume(RIGHT_SQUARE, "Expect closing ']'.");
-            //     return new Expr.Array(leftSquare, initializers, null, null);
-            // }
-            // else
-            // {
-            //     //Error(Peek(), "Expected ',' or ';'.");
-            //     List<Expr> initializers = [first];
-            //     Consume(RIGHT_SQUARE, "Expect closing ']'.");
-            //     return new Expr.Array(leftSquare, initializers, null, null);        
-            // }
 
         }
 

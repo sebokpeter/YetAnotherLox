@@ -10,7 +10,8 @@ internal class LoxFunction : ILoxCallable
     private readonly Environment _closure;
     private readonly bool _isInitializer;
 
-    public int Arity { get => _declaration.Params.Count; }
+    public int Arity => _declaration.Params.Count; 
+    public bool IsStatic => _declaration.IsStatic;
 
     public LoxFunction(Stmt.Function declaration, Environment closure, bool isInitializer)
     {

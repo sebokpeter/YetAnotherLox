@@ -52,6 +52,7 @@ namespace LoxConsole
         WHILE,
         BREAK,
         CONTINUE,
+        STATIC,
 
         EOF
     }
