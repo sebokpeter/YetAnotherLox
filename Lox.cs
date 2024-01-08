@@ -1,5 +1,6 @@
 ﻿//#define RUN_FILE
 
+using System.Diagnostics;
 using Generated;
 using LoxConsole;
 using LoxConsole.Interpreter;
@@ -60,7 +61,7 @@ internal class Lox
     {
         Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
-
+        
         Parser parser = new(tokens);
         List<Stmt> statements = parser.Parse();
 

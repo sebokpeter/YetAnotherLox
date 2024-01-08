@@ -28,16 +28,25 @@ class Grid {
         for(var r = 0; r < rows; r = r + 1) {
             for(var c = 0; c < cols; c = c + 1) {
                 var val = 0;
-                if(random(5) == 1) {
+                if(random(10) < 1) {
                     val = 1;
                 }
                 this.grid[r][c] = Cell(val);
             }
         }
 
-        //this.grid[2][1] = Cell(1);
-        //this.grid[2][2] = Cell(1);
-        //this.grid[2][3] = Cell(1);
+
+        // Manually add a glider:
+        /*
+            var middleRow = int(rows/2);
+            var middleCol = int(cols/2);
+
+            this.grid[middleRow][middleCol] = Cell(1);
+            this.grid[middleRow+1][middleCol] = Cell(1);
+            this.grid[middleRow+2][middleCol] = Cell(1);
+            this.grid[middleRow+1][middleCol-2] = Cell(1);
+            this.grid[middleRow+2][middleCol-1] = Cell(1);
+        */
     }
 
     step() {
@@ -91,8 +100,7 @@ class Grid {
             }
         }
 
-        var cell = this.grid[row][col];
-        alive = alive - cell.previous;
+        alive = alive - this.grid[row][col].previous;
         return alive;
     }
 
@@ -109,10 +117,12 @@ class Grid {
 }
 
 var grid = Grid(25, 50);
-for(var i = 0; i < 100; i = i + 1) {
+var generation = 0;
+while(true) {
+    clear();
     grid.display();
-    print "Generation: " + i;
+    print "Generation: " + generation;
+    generation = generation + 1;
     grid.step();
     sleep(100);
-    clear();
 }

@@ -88,11 +88,29 @@ class Scanner
                 AddToken(Match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if (Match('/'))
+                if(Match('/'))
                 {
-                    while (Peek() != '\n' && !IsAtEnd())
+                    while(Peek() != '\n' && !IsAtEnd())
                     {
                         Advance();
+                    }
+                }
+                else if(Match('*'))
+                {
+                    while(Peek() != '*' && ! IsAtEnd())
+                    {
+                        if(Peek() == '\n')
+                        {
+                            line++;
+                        }
+
+                        Advance();
+                    }
+                    // Consume '*'
+                    Advance();
+                    if(!Match('/'))
+                    {
+                        Lox.Error(line, "Expect '/' to terminate multiline comment.");
                     }
                 }
                 else
