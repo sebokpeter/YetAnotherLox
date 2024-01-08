@@ -19,3 +19,19 @@ print "But this will be";
 // print "So this won't be printed either";
 
 print "But after that, this will be.";
+
+/*
+    /*
+        This
+        is
+    */
+    A
+    /*
+        Nested
+        Multiline
+    */
+    Comment
+    // Regular comment in multiline comment.
+*/
+
+print "After nested multiline comment";

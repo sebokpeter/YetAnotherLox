@@ -1,6 +1,4 @@
-﻿#define RUN_FILE
-
-using System.Diagnostics;
+﻿//#define RUN_FILE
 using Generated;
 using LoxConsole;
 using LoxConsole.Interpreter;

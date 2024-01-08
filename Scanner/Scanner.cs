@@ -34,7 +34,7 @@ class Scanner
         {"break", BREAK},
         {"continue", CONTINUE},
         {"static", STATIC}};
-    
+
     }
 
     public Scanner(string source)
@@ -90,30 +90,16 @@ class Scanner
                 AddToken(Match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if(Match('/'))
+                if (Match('/'))
                 {
-                    while(Peek() != '\n' && !IsAtEnd())
+                    while (Peek() != '\n' && !IsAtEnd())
                     {
                         Advance();
                     }
                 }
-                else if(Match('*'))
+                else if (Match('*'))
                 {
-                    while(Peek() != '*' && ! IsAtEnd())
-                    {
-                        if(Peek() == '\n')
-                        {
-                            line++;
-                        }
-
-                        Advance();
-                    }
-                    // Consume '*'
-                    Advance();
-                    if(!Match('/'))
-                    {
-                        Lox.Error(line, "Expect '/' to terminate multiline comment.");
-                    }
+                    HandleMultilineComment();
                 }
                 else
                 {
@@ -145,6 +131,33 @@ class Scanner
                     Lox.Error(line, $"Unexpected character! ({c})");
                 }
                 break;
+        }
+    }
+
+    private void HandleMultilineComment()
+    {
+        while (Peek() != '*' && !IsAtEnd()) 
+        {
+            if (Peek() == '\n')
+            {
+                line++;
+            }
+
+            if (Match('/'))
+            {
+                if(Match('*')) // Handle nested multiline comment
+                {
+                    HandleMultilineComment();
+                }
+            }
+
+            Advance();
+        }
+        // Consume '*'
+        Advance();
+        if (!Match('/'))
+        {
+            Lox.Error(line, "Expect '/' to terminate multiline comment.");
         }
     }
 
@@ -185,7 +198,7 @@ class Scanner
 
         if (Peek() == '.' && IsDigit(PeekNext()))
         {
-            Advance(); // Consume the .
+            Advance(); // Consume the '.'
 
             while (IsDigit(Peek()))
             {
