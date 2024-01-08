@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Generated;
 using static LoxConsole.TokenType;
 
@@ -88,7 +87,7 @@ internal class Parser
         {
             isStatic = true;
             _inStaticMethod = true;
-            Advance();
+            Advance(); // Consume 'static' keyword.
         }
 
         Token name = Consume(IDENTIFIER, $"Expect {kindStr} name.");
@@ -113,8 +112,14 @@ internal class Parser
         Consume(LEFT_BRACE, $"Expect '{{' before {kindStr} body");
         List<Stmt> body = Block();
 
-        _inStaticMethod = false;
-        return new Stmt.Function(name, parameters, body, isStatic);
+        try
+        {
+            return new Stmt.Function(name, parameters, body, isStatic);
+        }
+        finally
+        {
+            _inStaticMethod = false;
+        }
     }
 
     private Stmt.Var VarDeclaration()

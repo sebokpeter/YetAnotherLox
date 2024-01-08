@@ -1,25 +1,8 @@
-// If a cell is alive, print "*", otherwise print " " (space).
-fun printCells(cells) {
-    for(var i = 0; i < len(cells); i = i + 1) {
-        var current = cells[i];
-        if(current == 1) {
-            write("*");
-        } else {
-            write(" ");
-        }
-    }
-    print "";
-}
-
 class CA {
     init(width) {
         this.width = width;
-        this.cells = [];
+        this.cells = [0; width];
         this.ruleset = [0,1,0,1,1,0,1,0];
-
-        for(var i = 0; i < width; i = i + 1) {
-            this.cells[i] = 0;
-        }
 
         var middle = int(len(this.cells)/2);
 
@@ -38,6 +21,17 @@ class CA {
         this.cells = nextGen;
     }
 
+    display() {
+        for(var i = 0; i < len(this.cells); i = i + 1) {
+            if(this.cells[i] == 1) {
+                write("*");
+            } else {
+                write(" ");
+            }
+        }
+        print "";
+    }
+
     rules(left, middle, right) {
         if(left == 1 and middle == 1 and right == 1) return this.ruleset[0];
         if(left == 1 and middle == 1 and right == 0) return this.ruleset[1];
@@ -50,10 +44,9 @@ class CA {
     }
 }
 
-var ca = CA(200);
+var ca = CA(225);
 
-printCells(ca.cells);
 for(var i = 0; i < 200; i = i + 1) {
+    ca.display();
     ca.generate();
-    printCells(ca.cells);
 }

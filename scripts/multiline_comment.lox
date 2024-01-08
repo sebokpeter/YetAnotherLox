@@ -1,3 +1,15 @@
+/* // */
+
+/*
+    FA
+    FA
+    FA
+    FA
+    FA
+*/
+
+print "F";
+
 /*
     This
     is
@@ -35,3 +47,5 @@ print "But after that, this will be.";
 */
 
 print "After nested multiline comment";
+
+/* // Hello */

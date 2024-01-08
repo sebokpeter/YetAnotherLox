@@ -16,7 +16,7 @@ internal class Lox
     private static void Main(string[] args)
     {
         #if RUN_FILE
-            RunFile("scripts/static.lox");
+            RunFile("scripts/multiline_comment.lox");
             return;
         #endif
 

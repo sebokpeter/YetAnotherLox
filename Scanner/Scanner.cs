@@ -6,7 +6,7 @@ class Scanner
 {
     private readonly string _source;
     private readonly List<Token> tokens = [];
-    private int current = 0;
+    private int _current = 0;
     private int start = 0;
     private int line = 1;
 
@@ -46,7 +46,7 @@ class Scanner
     {
         while (!IsAtEnd())
         {
-            start = current;
+            start = _current;
             ScanToken();
         }
 
@@ -56,7 +56,7 @@ class Scanner
 
     private bool IsAtEnd()
     {
-        return current >= _source.Length;
+        return _current >= _source.Length;
     }
 
     private void ScanToken()
@@ -136,28 +136,42 @@ class Scanner
 
     private void HandleMultilineComment()
     {
-        while (Peek() != '*' && !IsAtEnd()) 
+
+        int nestingLevel = 1;
+
+        // This will try to consume all '/*' '*/' pairs. If it gets to the end, and the nesting level is greater than 0, then there is 
+        // at least one opening '/*' that is not matched.
+        // However, if there is extra closing '*/'s, they will not be matched, and the parser will report an error at a later stage,
+        // when it tries to parse them
+
+        while(nestingLevel > 0 && !IsAtEnd())
         {
-            if (Peek() == '\n')
+            if(Peek() == '\n')
             {
                 line++;
+                Advance();
             }
-
-            if (Match('/'))
+            else if(Peek() == '/' && PeekNext() == '*')
             {
-                if(Match('*')) // Handle nested multiline comment
-                {
-                    HandleMultilineComment();
-                }
+                nestingLevel++;
+                Advance();
+                Advance();
             }
-
-            Advance();
+            else if(Peek() == '*' && PeekNext() == '/')
+            {
+                nestingLevel--;
+                Advance();
+                Advance();
+            }
+            else 
+            {
+                Advance();
+            }
         }
-        // Consume '*'
-        Advance();
-        if (!Match('/'))
+
+        if(nestingLevel > 0)
         {
-            Lox.Error(line, "Expect '/' to terminate multiline comment.");
+            Lox.Error(line, "Unterminated multiline comment.");
         }
     }
 
@@ -168,7 +182,7 @@ class Scanner
             Advance();
         }
 
-        string text = _source[start..current];
+        string text = _source[start.._current];
         if (keywords.TryGetValue(text, out TokenType type))
         {
             AddToken(type);
@@ -206,16 +220,16 @@ class Scanner
             }
         }
 
-        AddToken(NUMBER, double.Parse(_source.Substring(start, current - start)));
+        AddToken(NUMBER, double.Parse(_source.Substring(start, _current - start)));
     }
 
     private char PeekNext()
     {
-        if (current + 1 >= _source.Length)
+        if (_current + 1 >= _source.Length)
         {
             return '\0';
         }
-        return _source[current + 1];
+        return _source[_current + 1];
     }
 
     private static bool IsDigit(char c)
@@ -243,7 +257,7 @@ class Scanner
         // Closing '"'
         Advance();
 
-        string value = _source.Substring(start + 1, current - start - 2);
+        string value = _source.Substring(start + 1, _current - start - 2);
         AddToken(STRING, value);
     }
 
@@ -253,7 +267,7 @@ class Scanner
         {
             return '\n';
         }
-        return _source[current];
+        return _source[_current];
     }
 
     private bool Match(char expected)
@@ -262,18 +276,19 @@ class Scanner
         {
             return false;
         }
-        if (_source[current] != expected)
+        if (_source[_current] != expected)
         {
             return false;
         }
-        current++;
+        _current++;
         return true;
     }
 
     private char Advance()
     {
-        return _source[current++];
+        return _source[_current++];
     }
+
 
     private void AddToken(TokenType type)
     {
@@ -282,7 +297,7 @@ class Scanner
 
     private void AddToken(TokenType type, object? literal)
     {
-        string text = _source[start..current];
+        string text = _source[start.._current];
         tokens.Add(new Token(type, text, literal, line));
     }
 }
