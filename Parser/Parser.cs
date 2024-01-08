@@ -438,27 +438,12 @@ internal class Parser
             return new Expr.Unary(oper, expr);
         }
 
-        return ArrayAccess();
-    }
-
-    private Expr ArrayAccess()
-    {
-        Expr expr = Call();
-
-        while(Match(LEFT_SQUARE))
-        {
-            Token brace = Previous();
-            Expr element = Expression();
-            Consume(RIGHT_SQUARE, "Expect closing ']' after array access.");
-            expr = new Expr.ArrayAccess(expr, brace, element);
-        }
-
-        return expr;
+        return Call();
     }
 
     private Expr Call()
     {
-        Expr expr = Primary();
+        Expr expr = ArrayAccess();
 
         while (true)
         {
@@ -471,10 +456,31 @@ internal class Parser
                 Token name = Consume(IDENTIFIER, "Expect property name after '.'.");
                 expr = new Expr.Get(expr, name);
             }
+            else if(Match(LEFT_SQUARE)) 
+            {
+                Token bracket = Previous();
+                expr = new Expr.ArrayAccess(expr, bracket, Expression());
+                Consume(RIGHT_SQUARE, "Expect closing ']'.");
+            }
             else
             {
                 break;
             }
+        }
+
+        return expr;
+    }
+
+    private Expr ArrayAccess()
+    {
+        Expr expr = Primary();
+
+        while(Match(LEFT_SQUARE))
+        {
+            Token brace = Previous();
+            Expr element = Expression();
+            Consume(RIGHT_SQUARE, "Expect closing ']' after array access.");
+            expr = new Expr.ArrayAccess(expr, brace, element);
         }
 
         return expr;
@@ -554,21 +560,37 @@ internal class Parser
                 Expr defaultValueCount = Expression();
                 Consume(RIGHT_SQUARE, "Expect closing ']'.");
                 return new Expr.Array(leftSquare, null, first, defaultValueCount);
-            } 
-            else if(Match(COMMA))
+            }
+            else 
             {
                 List<Expr> initializers = [first];
-                do
+                while (Match(COMMA) && !IsAtEnd())
                 {
                     initializers.Add(Expression());
-                } while (Match(COMMA));
+                    // Consume(COMMA, "Expect ',' after array member.");
+                }
+
                 Consume(RIGHT_SQUARE, "Expect closing ']'.");
                 return new Expr.Array(leftSquare, initializers, null, null);
             }
-            else
-            {
-                Error(Peek(), "Expected ',' or ';'.");
-            }
+
+            // else if(Match(COMMA))
+            // {
+            //     List<Expr> initializers = [first];
+            //     do
+            //     {
+            //         initializers.Add(Expression());
+            //     } while (Match(COMMA));
+            //     Consume(RIGHT_SQUARE, "Expect closing ']'.");
+            //     return new Expr.Array(leftSquare, initializers, null, null);
+            // }
+            // else
+            // {
+            //     //Error(Peek(), "Expected ',' or ';'.");
+            //     List<Expr> initializers = [first];
+            //     Consume(RIGHT_SQUARE, "Expect closing ']'.");
+            //     return new Expr.Array(leftSquare, initializers, null, null);        
+            // }
 
         }
 

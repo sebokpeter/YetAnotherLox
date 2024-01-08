@@ -1,0 +1,29 @@
+class E {
+    init() {
+        this.v = random(4);
+    }
+
+    rand() {
+        return random(10);
+    }
+}
+
+var array = [E(), E(), E(), E()];
+array[0].v = 12;
+array[1] = [];
+array[1][0] = E();
+
+print array[0].v;
+print array[1][0].v;
+array[1][0].v = 43;
+print array[1][0].v;
+print array[1][0].rand();
+
+fun makeArray() {
+    return [[1,2,3], ["Hello ", "Word"]];
+}
+
+print makeArray()[1][0] + makeArray()[1][1];
+
+var arrayF = [makeArray];
+print arrayF[0]()[1][0];

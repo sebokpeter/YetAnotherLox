@@ -1,4 +1,4 @@
-﻿#define RUN_FILE
+﻿//#define RUN_FILE
 
 using Generated;
 using LoxConsole;
@@ -17,7 +17,7 @@ internal class Lox
     private static void Main(string[] args)
     {
         #if RUN_FILE
-            RunFile("scripts/game_of_life_2.lox");
+            RunFile("scripts/2d_array_2.lox");
             return;
         #endif
 

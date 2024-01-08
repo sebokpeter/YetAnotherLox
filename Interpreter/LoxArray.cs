@@ -31,4 +31,6 @@ internal class LoxArray
 
         return _values[targetLocation];
     }
+
+    public override string ToString() => $"<array {_values.Count}>";
 }
