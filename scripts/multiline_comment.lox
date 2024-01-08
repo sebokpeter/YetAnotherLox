@@ -1,0 +1,21 @@
+/*
+    This
+    is
+    a 
+    multiline
+    comment 
+*/
+
+print "After multiline comment";
+
+/*
+    print "This will not be printed";
+    print "Because it is in a multiline comment";
+*/
+
+print "But this will be";
+
+// Singe line comments should still work
+// print "So this won't be printed either";
+
+print "But after that, this will be.";
