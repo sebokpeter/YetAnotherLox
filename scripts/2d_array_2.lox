@@ -27,3 +27,12 @@ print makeArray()[1][0] + makeArray()[1][1];
 
 var arrayF = [makeArray];
 print arrayF[0]()[1][0];
+
+
+var longArrays = [[[[[];3];3];3];3];
+print longArrays;
+
+for(var i = 0; i < 4; i = i + 1) {
+    print longArrays[0][0][0];
+}
+

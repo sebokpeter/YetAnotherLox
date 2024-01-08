@@ -443,7 +443,7 @@ internal class Parser
 
     private Expr Call()
     {
-        Expr expr = ArrayAccess();
+        Expr expr = Primary();
 
         while (true)
         {
@@ -466,21 +466,6 @@ internal class Parser
             {
                 break;
             }
-        }
-
-        return expr;
-    }
-
-    private Expr ArrayAccess()
-    {
-        Expr expr = Primary();
-
-        while(Match(LEFT_SQUARE))
-        {
-            Token brace = Previous();
-            Expr element = Expression();
-            Consume(RIGHT_SQUARE, "Expect closing ']' after array access.");
-            expr = new Expr.ArrayAccess(expr, brace, element);
         }
 
         return expr;
