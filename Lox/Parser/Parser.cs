@@ -86,7 +86,7 @@ internal class Parser
 
             if(isStatic && !method.IsStatic)
             {
-                Error(name, "A static class may only contain static methods.");
+                Error(method.Name, "A static class may only contain static methods.");
             }
 
             if(isStatic && method.Name.Lexeme == "init")

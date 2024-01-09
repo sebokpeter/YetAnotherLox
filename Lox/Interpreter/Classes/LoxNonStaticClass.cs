@@ -2,14 +2,15 @@
 
 namespace Lox.Interpreter;
 
-internal class LoxClass : ILoxCallable
+/// <summary>
+/// Represents a non-static class (one that can be instantiated).
+/// A non-static class may contain static and non-static methods (incl. a constructor), and properties (set in the constructor using the 'this' keyword)
+/// </summary>
+internal class LoxNonStaticClass : LoxClass, ILoxCallable
 {
-    private readonly string _name;
-    private readonly LoxClass? _superclass;
-    private readonly Dictionary<string, LoxFunction> _methods;
+    private readonly LoxNonStaticClass? _superclass;
     private readonly bool _isStatic;
 
-    internal string Name => _name;
     internal bool IsStatic => _isStatic;
 
     public int Arity
@@ -25,26 +26,15 @@ internal class LoxClass : ILoxCallable
         }
     }
 
-    public LoxClass(string lexeme, LoxClass? superclass, Dictionary<string, LoxFunction> methods, bool isStatic)
+    public LoxNonStaticClass(string lexeme, LoxNonStaticClass? superclass, Dictionary<string, LoxFunction> methods) : base(lexeme, methods)
     {
-        _name = lexeme;
         _superclass = superclass;
-        _methods = methods;
-        _isStatic = isStatic;
     }
 
     public override string ToString() => $"<class {Name}>";
 
-    public object Call(Interpreter interpreter, List<object> arguments)
+    public object? Call(Interpreter interpreter, List<object> arguments)
     {
-        // Static classes cannot be instantiated. 
-        // This means that this ILoxCallable is no longer really callable.
-        // TODO: Separate representation of static and non-static classes?
-        if(_isStatic)
-        {
-            throw new Exception("Can not instantiate a static class.");
-        }
-
         LoxInstance instance = new(this);
         LoxFunction? initializer = FindMethod("init");
         initializer?.Bind(instance).Call(interpreter, arguments);
@@ -52,7 +42,7 @@ internal class LoxClass : ILoxCallable
         return instance;
     }
 
-    internal LoxFunction? FindMethod(string name)
+    internal override LoxFunction? FindMethod(string name)
     {
         if (_methods.TryGetValue(name, out LoxFunction? method))
         {

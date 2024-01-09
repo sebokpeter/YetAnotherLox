@@ -16,5 +16,5 @@ internal interface ILoxCallable
     /// <param name="interpreter">An interpreter, used to execute this callable.</param>
     /// <param name="arguments">The arguments provided to this callable.</param>
     /// <returns>The result of the call, or <see langword="null"/> if the call produces no value.</returns>
-    object Call(Interpreter interpreter, List<object> arguments);
+    object? Call(Interpreter interpreter, List<object> arguments);
 }

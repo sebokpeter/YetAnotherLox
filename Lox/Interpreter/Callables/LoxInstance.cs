@@ -1,12 +1,11 @@
-
 namespace Lox.Interpreter;
 
 internal class LoxInstance
 {
-    private readonly LoxClass _loxClass;
+    private readonly LoxNonStaticClass _loxClass;
     private readonly Dictionary<string, object> _fields = [];
 
-    internal LoxInstance(LoxClass loxClass)
+    internal LoxInstance(LoxNonStaticClass loxClass)
     {
         _loxClass = loxClass;
     }

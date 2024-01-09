@@ -14,6 +14,14 @@ static class Math {
         }
         return b;
     }
+
+    // Causes a compile-time (parsing-time?) error
+    
+    /*
+    add(a, b) {
+        return a + b;
+    }
+    */
 }
 
 print Math.add(5, 3);
@@ -22,4 +30,41 @@ print Math.div(10, 3);
 
 print Math.pow(5, 3);
 
-var math = Math();
+// This causes a runtime error
+//var math = Math(); 
+
+// Non-static classes still work.
+class NonStatic {
+    init(a, b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    add() {
+        return this.a + this.b;
+    }
+
+    div() {
+        return this.a / this.b;
+    }
+}
+
+var ns = NonStatic(10, 5);
+print ns.add();
+print ns.div();
+
+class Derived < NonStatic {
+    init(a, b, c) { 
+        super.init(a, b);
+        this.c = c;
+    }
+
+    addThree() {
+        return super.add() + this.c;
+    }
+}
+
+var d = Derived(10, 20, 30);
+print d.addThree();
+print d.add();
+print d.div();

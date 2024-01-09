@@ -352,19 +352,24 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         List<object> arguments = expr.Arguments.Select(Evaluate).ToList();
 
-        if (callee is not ILoxCallable function)
+        if(callee is LoxStaticClass staticClass)
+        {
+            throw new RuntimeException(expr.Paren, "Static classes can not be instantiated.");
+        }
+
+        if(callee is not ILoxCallable function)
         {
             throw new RuntimeException(expr.Paren, "Can only call functions and classes");
         }
 
-        if (arguments.Count != function.Arity)
+        if(arguments.Count != function.Arity)
         {
             throw new RuntimeException(expr.Paren, $"Expected {function.Arity} arguments, but got {arguments.Count}.");
         }
 
         try
         {
-            return function.Call(this, arguments);
+            return function.Call(this, arguments)!;
         }
         catch (RuntimeException)
         {
@@ -400,9 +405,9 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         if (stmt.Superclass is not null)
         {
             superclass = Evaluate(stmt.Superclass);
-            if (superclass is not LoxClass)
+            if (superclass is not LoxNonStaticClass)
             {
-                throw new RuntimeException(stmt.Superclass.Name, "Superclass must be a class.");
+                throw new RuntimeException(stmt.Superclass.Name, "Superclass must be a (non-static) class.");
             }
         }
 
@@ -422,7 +427,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             methods.Add(method.Name.Lexeme, function);
         }
 
-        LoxClass @class = new(stmt.Name.Lexeme, (LoxClass?)superclass, methods, stmt.IsStatic);
+        LoxClass @class = stmt.IsStatic? new LoxStaticClass(stmt.Name.Lexeme, methods) : new LoxNonStaticClass(stmt.Name.Lexeme, (LoxNonStaticClass?)superclass, methods);
 
         if (superclass is not null)
         {
@@ -477,7 +482,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitSuperExpr(Expr.Super expr)
     {
         int distance = _locals[expr];
-        LoxClass superclass = (LoxClass)_environment.GetAt(distance, "super");
+        LoxNonStaticClass superclass = (LoxNonStaticClass)_environment.GetAt(distance, "super");
         LoxInstance obj = (LoxInstance)_environment.GetAt(distance - 1, "this");
 
         LoxFunction? method = superclass.FindMethod(expr.Method.Lexeme) ?? throw new RuntimeException(expr.Method, $"Undefined property '{expr.Method.Lexeme}'.");
