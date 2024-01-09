@@ -1,4 +1,4 @@
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 /// <summary>
 /// Represents a callable object, such as a function, method, or class.

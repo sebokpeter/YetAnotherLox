@@ -1,6 +1,4 @@
-
-
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 /// <summary>
 /// Runtime representation of a lox array.

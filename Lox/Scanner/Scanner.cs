@@ -1,6 +1,6 @@
-using static LoxConsole.TokenType;
+using static Lox.TokenType;
 
-namespace LoxConsole.Scanner;
+namespace Lox.Scanner;
 
 class Scanner
 {

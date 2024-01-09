@@ -1,6 +1,5 @@
-namespace LoxConsole.Parser;
+namespace Lox.Parser;
 
-[Serializable]
 internal class ParseException : Exception
 {
     public ParseException()

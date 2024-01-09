@@ -1,7 +1,6 @@
-using System.Diagnostics;
 using Generated;
 
-namespace LoxConsole.Resolver;
+namespace Lox.Resolver;
 
 internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 {

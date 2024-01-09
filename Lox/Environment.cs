@@ -1,4 +1,5 @@
-using LoxConsole.Interpreter;
+using Lox.Interpreter;
+using Lox;
 
 internal class Environment
 {

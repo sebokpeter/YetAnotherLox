@@ -1,15 +1,15 @@
-Assign      : Token name, Expr value
-Binary      : Expr left, Token operator, Expr right
-Call        : Expr callee, Token paren, List<Expr> arguments
-Get         : Expr obj, Token name
+Assign      : Lox.Token name, Expr value
+Binary      : Expr left, Lox.Token operator, Expr right
+Call        : Expr callee, Lox.Token paren, List<Expr> arguments
+Get         : Expr obj, Lox.Token name
 Grouping    : Expr expression
 Literal     : object? value
-Logical     : Expr left, Token oper, Expr right
-Set         : Expr obj, Token name, Expr value
-Super       : Token keyword, Token method
-This        : Token keyword
-Unary       : Token operator, Expr right
-Variable    : Token name
-Array       : Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
-ArrayAccess : Expr target, Token bracket, Expr location
-ArrayAssign : Expr target, Token bracket, Expr location, Expr value
+Logical     : Expr left, Lox.Token oper, Expr right
+Set         : Expr obj, Lox.Token name, Expr value
+Super       : Lox.Token keyword, Lox.Token method
+This        : Lox.Token keyword
+Unary       : Lox.Token operator, Expr right
+Variable    : Lox.Token name
+Array       : Lox.Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
+ArrayAccess : Expr target, Lox.Token bracket, Expr location
+ArrayAssign : Expr target, Lox.Token bracket, Expr location, Expr value

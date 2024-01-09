@@ -1,7 +1,7 @@
 using Generated;
-using static LoxConsole.TokenType;
+using static Lox.TokenType;
 
-namespace LoxConsole.Parser;
+namespace Lox.Parser;
 
 internal class Parser
 {

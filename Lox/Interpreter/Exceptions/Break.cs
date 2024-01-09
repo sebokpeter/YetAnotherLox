@@ -1,4 +1,4 @@
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 internal class Break : Exception
 {

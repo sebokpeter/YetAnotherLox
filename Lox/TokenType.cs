@@ -1,4 +1,4 @@
-namespace LoxConsole
+namespace Lox
 {
     public enum TokenType
     {

@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Generated;
 
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 internal class LoxFunction : ILoxCallable
 {

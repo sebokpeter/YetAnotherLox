@@ -1,4 +1,4 @@
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 [Serializable]
 internal class Return : Exception

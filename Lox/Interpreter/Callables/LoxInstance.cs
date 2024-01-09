@@ -1,5 +1,5 @@
 
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 internal class LoxInstance
 {

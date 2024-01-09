@@ -1,4 +1,4 @@
-using LoxConsole;
+namespace Lox;
 
 public class Token {
     readonly TokenType _type;

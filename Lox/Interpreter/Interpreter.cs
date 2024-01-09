@@ -1,7 +1,7 @@
 using Generated;
-using static LoxConsole.TokenType;
+using static Lox.TokenType;
 
-namespace LoxConsole.Interpreter;
+namespace Lox.Interpreter;
 
 internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 {

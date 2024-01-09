@@ -9,14 +9,19 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <AssemblyName>cslox</AssemblyName>
+</PropertyGroup>
+
+
+  <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="../../AstGenerator/src/AstGenerator/AstGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+    <AdditionalFiles Include="ast/*.txt" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <AdditionalFiles Include="ast/*.txt"/>
+    <ProjectReference Include="..\AstGenerator\AstGenerator.csproj" OutputItemType="Analyzer"/>
   </ItemGroup>
 </Project>
