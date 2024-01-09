@@ -8,8 +8,8 @@ internal class Parser
     private readonly List<Token> _tokens;
     private int _current = 0;
 
-    private int _loopDepth = 0;
-    private bool _inStaticMethod = false;
+    private int _loopDepth = 0; // Keep track of loop depth, so we can report an error if the code tries to use 'break' or 'continue' outside of a loop
+    private bool _inStaticMethod = false; // Keep track if we are in a static method, so we can report an error, if the code tries to use 'this' inside of a static method.  
 
     public Parser(List<Token> tokens)
     {
@@ -30,7 +30,7 @@ internal class Parser
     {
         try
         {
-            if(Match(CLASS))
+            if(Match(STATIC, CLASS))
             {
                 return ClassDeclaration();
             }
@@ -54,12 +54,25 @@ internal class Parser
 
     private Stmt.Class ClassDeclaration()
     {
+        Token classOrStaticKeyword = Previous();
+
+        bool isStatic = classOrStaticKeyword.Type == STATIC;
+
+        if(isStatic)
+        {
+            Consume(CLASS, "Expect 'class' keyword.");
+        }
+
         Token name = Consume(IDENTIFIER, "Expect class name.");
 
         Expr.Variable? superclass = null;
         if(Match(LESS))
         {
-            Consume(IDENTIFIER, "Expect superclass name.");
+            Token superclassName = Consume(IDENTIFIER, "Expect superclass name.");
+            if (isStatic)
+            {
+                Error(superclassName, "A static class my not inherit from another class.");
+            }
             superclass = new Expr.Variable(Previous());
         }
 
@@ -69,12 +82,24 @@ internal class Parser
 
         while(!Check(RIGHT_BRACE) && !IsAtEnd()) 
         {
-            methods.Add(Function(CallableKind.METHOD));
+            Stmt.Function method = Function(CallableKind.METHOD);
+
+            if(isStatic && !method.IsStatic)
+            {
+                Error(name, "A static class may only contain static methods.");
+            }
+
+            if(isStatic && method.Name.Lexeme == "init")
+            {
+                Error(method.Name, "A static class my not contain an initializer.");
+            }
+
+            methods.Add(method);
         }
 
         Consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class(name, superclass, methods);
+        return new Stmt.Class(name, superclass, methods, isStatic);
     }
 
     private Stmt.Function Function(CallableKind kind)
@@ -180,7 +205,7 @@ internal class Parser
 
         if(_loopDepth == 0) 
         {
-            Lox.Error(keyword, "Must be inside a loop to use 'continue'");
+            throw Error(keyword, "Must be inside a loop to use 'continue'");
         }
 
         Consume(SEMICOLON, "Expect ';' after 'continue'.");
@@ -195,7 +220,7 @@ internal class Parser
 
         if(_loopDepth == 0) 
         {
-            Lox.Error(keyword, "Must be inside a loop to use 'break'");
+            throw Error(keyword, "Must be inside a loop to use 'break'");
         }
 
         Consume(SEMICOLON, "Expect ';' after 'break'.");
@@ -498,7 +523,7 @@ internal class Parser
             {
                 if (arguments.Count > 255)
                 {
-                    Error(Peek(), "Can't have more than 255 arguments.");
+                   throw Error(Peek(), "Can't have more than 255 arguments.");
                 }
                 arguments.Add(Expression());
             } while (Match(COMMA));
@@ -540,7 +565,7 @@ internal class Parser
         {
             if(_inStaticMethod)
             {
-                throw Error(Previous(), "Cannot access 'this' in static method.");
+                Error(Previous(), "Cannot access 'this' in static method.");
             }
             return new Expr.This(Previous());
         }
@@ -680,12 +705,5 @@ internal class Parser
     {
         FUNCTION,
         METHOD
-    }
-
-    internal enum LoopType
-    {
-        NONE,
-        WHILE,
-        FOR
     }
 }

@@ -1,0 +1,25 @@
+static class Math {
+    static add(a, b) {
+        return a + b;
+    }
+
+    static div(a, b) {
+        return a / b;
+    }
+
+    static pow(base, exponent) {
+        var b = base;
+        for(var i = 1; i < exponent; i = i + 1) {
+            b = b * b;
+        }
+        return b;
+    }
+}
+
+print Math.add(5, 3);
+print Math.div(10, 2);
+print Math.div(10, 3);
+
+print Math.pow(5, 3);
+
+var math = Math();

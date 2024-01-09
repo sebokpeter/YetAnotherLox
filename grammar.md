@@ -14,7 +14,7 @@ returnStmt  -> "return" expression? ";" ;
 breakStmt   -> "break" ";" ;
 contStmt    -> "continue" ";" ;
 
-classDecl   -> "class" IDENTIFIER ("<" IDENTIFIER)? "{" ( "static"? function)* "}" ;
+classDecl   -> "static"? "class" IDENTIFIER ("<" IDENTIFIER)? "{" ( "static"? function)* "}" ;
 funDecl     -> "fun" function;
 function    -> IDENTIFIER "(" parameters? ")" block ;
 parameters  -> IDENTIFIER ( "," IDENTIFIER )* ;

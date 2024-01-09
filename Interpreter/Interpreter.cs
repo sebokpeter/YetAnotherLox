@@ -422,7 +422,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             methods.Add(method.Name.Lexeme, function);
         }
 
-        LoxClass @class = new(stmt.Name.Lexeme, (LoxClass?)superclass, methods);
+        LoxClass @class = new(stmt.Name.Lexeme, (LoxClass?)superclass, methods, stmt.IsStatic);
 
         if (superclass is not null)
         {

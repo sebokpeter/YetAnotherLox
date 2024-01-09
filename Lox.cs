@@ -1,4 +1,4 @@
-﻿//#define RUN_FILE
+﻿#define RUN_FILE
 using Generated;
 using LoxConsole;
 using LoxConsole.Interpreter;
@@ -16,7 +16,7 @@ internal class Lox
     private static void Main(string[] args)
     {
         #if RUN_FILE
-            RunFile("scripts/multiline_comment.lox");
+            RunFile("scripts/static_class.lox");
             return;
         #endif
 
