@@ -19,4 +19,6 @@ class LoxStaticClass : LoxClass
 
         return null;
     }
+
+    public override string ToString() => $"<static class {Name}>";
 }

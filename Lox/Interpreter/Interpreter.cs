@@ -504,15 +504,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             object defValCount = Evaluate(expr.DefaultValueCount);
 
-            if(defValCount is not double d)
-            {
-                throw new RuntimeException(expr.Bracket, "Default value count must be a number.");
-            }
-
-            if(d % 1 != 0)
+            if(defValCount is not double d || d % 1 != 0)
             {
                 throw new RuntimeException(expr.Bracket, "Default value count must be an integer.");
-            } 
+            }
 
             int defaultValueCount = Convert.ToInt32(d);
 

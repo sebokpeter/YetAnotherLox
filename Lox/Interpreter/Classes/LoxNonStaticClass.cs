@@ -9,9 +9,6 @@ namespace Lox.Interpreter;
 internal class LoxNonStaticClass : LoxClass, ILoxCallable
 {
     private readonly LoxNonStaticClass? _superclass;
-    private readonly bool _isStatic;
-
-    internal bool IsStatic => _isStatic;
 
     public int Arity
     {

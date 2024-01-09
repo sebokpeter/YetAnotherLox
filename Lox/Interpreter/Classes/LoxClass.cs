@@ -15,4 +15,6 @@ internal abstract class LoxClass
     } 
 
     internal abstract LoxFunction? FindMethod(string name);
+
+    public abstract override string ToString();
 }
