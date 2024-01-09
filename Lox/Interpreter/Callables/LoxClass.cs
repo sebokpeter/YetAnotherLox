@@ -37,6 +37,9 @@ internal class LoxClass : ILoxCallable
 
     public object Call(Interpreter interpreter, List<object> arguments)
     {
+        // Static classes cannot be instantiated. 
+        // This means that this ILoxCallable is no longer really callable.
+        // TODO: Separate representation of static and non-static classes?
         if(_isStatic)
         {
             throw new Exception("Can not instantiate a static class.");

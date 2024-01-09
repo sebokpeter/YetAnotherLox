@@ -1,4 +1,4 @@
-﻿#define RUN_FILE
+﻿//#define RUN_FILE
 using Generated;
 using LoxConsole;
 using LoxConsole.Interpreter;

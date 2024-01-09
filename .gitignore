@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 /bin
 /obj
 /.vscode
+
+*/bin
+*/obj
