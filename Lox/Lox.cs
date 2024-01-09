@@ -1,6 +1,9 @@
 ﻿//#define RUN_FILE
 using Lox.Interpreter;
 using Generated;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("LoxTest")]
 
 namespace Lox;
 
@@ -11,7 +14,7 @@ public class Lox
     static bool _hadError = false;
     static bool _hadRuntimeError = false;
 
-    private static void Main(string[] args)
+    protected internal static void Main(string[] args)
     {
 #if RUN_FILE
         RunFile("scripts/static_class.lox");
