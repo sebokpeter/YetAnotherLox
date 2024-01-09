@@ -1,0 +1,4 @@
+print Math.pow(3, 4);
+print Math.sqrt(1024);
+print Math.pi();
+print Math.sin(120);

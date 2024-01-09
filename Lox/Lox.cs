@@ -17,7 +17,7 @@ public class Lox
     protected internal static void Main(string[] args)
     {
 #if RUN_FILE
-        RunFile("scripts/static_class.lox");
+        RunFile("scripts/classes.lox");
         return;
 #endif
 

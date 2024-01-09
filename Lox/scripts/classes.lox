@@ -1,0 +1,54 @@
+class Person {
+    init(firstName, lastName, age) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+
+        this.age = age;
+    }
+
+    getGreeting() {
+        return "Welcome, " + this.getFullName() + "!";
+    }
+
+    getFullName() {
+        return this.firstName + " " + this.lastName;
+    }
+}
+
+class Employee < Person {
+    init(firstName, lastName, age, tenure) {
+        super.init(firstName, lastName, age);
+        
+        this.tenure = tenure;
+    }
+
+    getGreeting() {
+        if(this.tenure < 5) {
+            return super.getGreeting();
+        } else if (this.tenure < 10) {
+            return "Welcome, loyal employee, " + super.getFullName() + "!";
+        } else {
+            return "Welcome, super-loyal employee, " + super.getFullName() + "!";
+        }
+    }
+
+    calculateSalary() {
+        return Math.pow(1.5, (this.age - this.tenure)*1.47);
+    }
+}
+
+var person = Person("John", "Doe", 30);
+
+print person.getGreeting();
+print person.age;
+
+var employee = Employee("Jane", "Doe", 30, 5);
+print employee.getGreeting();
+print "Your salary: " + int(employee.calculateSalary());
+
+var lEmployee = Employee("Joe", "Doe", 35, 12);
+print lEmployee.getGreeting();
+print "Your salary: " + int(lEmployee.calculateSalary());
+
+
+

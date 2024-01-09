@@ -24,6 +24,12 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     private void DefineGlobals()
     {
         DefineGlobalFunctions();
+        DefineGlobalClasses();
+    }
+
+    private void DefineGlobalClasses()
+    {
+        _globals.Define("Math", new StaticNativeClasses.LoxMath());
     }
 
     private void DefineGlobalFunctions()

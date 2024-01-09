@@ -1,5 +1,7 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
+using Generated;
 using Lox.Interpreter;
 
 internal class NativeFunction
@@ -10,13 +12,13 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            int ms = ToNum<int>(arguments[0]);
+            int ms = InterpreterUtils.ToNum<int>(arguments[0]);
             Thread.Sleep(ms);
 
             return null!;
         }
 
-        public override string ToString() => $"<native fn sleep{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn sleep{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Clock() : ILoxCallable
@@ -33,11 +35,11 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            int max = ToNum<int>(arguments[0]);
+            int max = InterpreterUtils.ToNum<int>(arguments[0]);
             return (double)Random.Shared.Next(max);
         }
 
-        public override string ToString() => $"<native fn random{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn random{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Stringify : ILoxCallable
@@ -53,16 +55,16 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => _strFunc(arguments[0]);
 
-        public override string ToString() => $"<native fn stringify{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn stringify{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Num : ILoxCallable
     {
         public int Arity => 1;
 
-        public object Call(Interpreter interpreter, List<object> arguments) => ToNum<double>(arguments[0]);
+        public object Call(Interpreter interpreter, List<object> arguments) => InterpreterUtils.ToNum<double>(arguments[0]);
 
-        public override string ToString() => $"<native fn num{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn num{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Input : ILoxCallable
@@ -80,7 +82,7 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => File.ReadAllText((string)arguments[0]);
 
-        public override string ToString() => $"<native fn readFile{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn readFile{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Len : ILoxCallable
@@ -103,7 +105,7 @@ internal class NativeFunction
             throw new Exception("Can only get the length of arrays and strings.");
         }
 
-        public override string ToString() => $"<native fn len{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn len{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Write : ILoxCallable
@@ -122,7 +124,7 @@ internal class NativeFunction
             Console.Write(_strFunc(arguments[0]));
             return null!;
         }
-        public override string ToString() => $"<native fn write{GetVariableString(Arity)}>";
+        public override string ToString() => $"<native fn write{InterpreterUtils.GetVariableString(this)}>";
     }
 
     internal class Clear : ILoxCallable
@@ -144,50 +146,10 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) 
         {
-            double val = ToNum<double>(arguments[0]);
+            double val = InterpreterUtils.ToNum<double>(arguments[0]);
             return Math.Round(val); // The runtime representation is still a double, but this removes the fractional part.
         }
 
-        public override string ToString() => $"<native fn int{GetVariableString(Arity)}>";
-    }
-
-    private static T ToNum<T>(object p) where T: INumber<T> 
-    {
-        static T TryParseString(string s)
-        {
-            if (!T.TryParse(s, null, out T? res))
-            {
-                throw new Exception($"Can't convert '{s}' to number!");
-            }
-            return res;
-        }
-
-        if (p is T num)
-        {
-            return num;
-        }
-
-        if(p is string s)
-        {
-            return TryParseString(s);
-        }
-
-        string? str = p.ToString();
-
-        if(str is not null)
-        {
-            return TryParseString(str);
-        }
-
-        throw new Exception($"Can't convert '{p}' to number!");
-    }
-
-    private static string GetVariableString(int arity)
-    {
-        StringBuilder varBuilder = new();
-        varBuilder.Append('(');
-        varBuilder.Append(String.Join(", ", Enumerable.Repeat("var", arity)));
-        varBuilder.Append(')');
-        return varBuilder.ToString();
+        public override string ToString() => $"<native fn int{InterpreterUtils.GetVariableString(this)}>";
     }
 }

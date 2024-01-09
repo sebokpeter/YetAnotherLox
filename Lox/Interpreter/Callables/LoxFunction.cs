@@ -10,8 +10,8 @@ internal class LoxFunction : ILoxCallable
     private readonly Environment _closure;
     private readonly bool _isInitializer;
 
-    public int Arity => _declaration.Params.Count; 
-    public bool IsStatic => _declaration.IsStatic;
+    public virtual int Arity => _declaration.Params.Count; 
+    public virtual bool IsStatic => _declaration.IsStatic;
 
     public LoxFunction(Stmt.Function declaration, Environment closure, bool isInitializer)
     {
@@ -20,7 +20,7 @@ internal class LoxFunction : ILoxCallable
         _isInitializer = isInitializer;
     }
 
-    public object Call(Interpreter interpreter, List<object> arguments)
+    public virtual object Call(Interpreter interpreter, List<object> arguments)
     {
         Environment environment = new(_closure);
         for(int i = 0; i < _declaration.Params.Count; i++) 
