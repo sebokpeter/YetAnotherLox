@@ -1,5 +1,4 @@
-﻿//#define RUN_FILE
-using Lox.Interpreter;
+﻿using Lox.Interpreter;
 using Generated;
 using System.Runtime.CompilerServices;
 
@@ -16,11 +15,6 @@ public class Lox
 
     protected internal static void Main(string[] args)
     {
-#if RUN_FILE
-        RunFile("scripts/classes.lox");
-        return;
-#endif
-
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: cslox [script]");
