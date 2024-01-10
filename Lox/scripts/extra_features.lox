@@ -1,0 +1,251 @@
+/*
+    This 
+    is
+    a 
+    multiline 
+    comment
+    /*
+        With
+        Nesting
+    */
+    //And regular comments
+*/
+
+
+/*
+
+// Auto string coercion
+print "The answer is: " + 42;
+
+// Modulo
+print 10 % 2; // Prints 0
+print 10 % 3; // Prints 1
+print 12345 % 321; // Prints 147
+
+
+// Break and continue
+for(var i = 0; i < 10; i = i + 1) {
+    if(i % 2 == 0) {
+        continue; // Skip even numbers 
+    }
+
+    print i + " is an odd number";
+}
+
+print "Counting backwards: ";
+// No exit condition, will loop forever, unless 'break' is used in the body
+for(var i = 0; ; i = i - 1) {
+    print i;
+
+    if(i == -10) { // Break out from the loop
+        break;
+    }
+}
+
+// Also works with while loops
+var minimum = 10;
+var maximum = 100;
+var counter = 0;
+while(true) {   
+    counter = counter + 1;
+
+    if(counter < minimum) continue;
+    if(counter == maximum) break;
+
+    var fizzbuz;
+
+    if(counter % 15 == 0) {
+        fizzbuz = "FizzBuzz";
+    } else if(counter % 3 == 0) {
+        fizzbuz = "Fizz";
+    } else if(counter % 5 == 0) {
+        fizzbuz = "Buzz";
+    } else {
+        fizzbuz = counter;
+    }
+
+    print fizzbuz;
+}
+
+
+class BaseClass {
+    init() {
+        this.description = "Hello from base class.";
+    }
+
+    printSelf() {
+        print this.description;
+    }
+
+    static printSuperStatic() {
+        print "Hello from super static method";
+    }
+}
+
+// Non-static class
+class ClassWithStaticMethods < BaseClass {
+    // Non-static initializer
+    init(a, b) {
+        super.init();
+        this.a = a;
+        this.b = b;
+    }
+
+    // Non-static method
+    printSelf() {
+        super.printSelf();
+        print "Hello from non-static method. My members are: a = " + this.a + ", b = " + this.b + ".";
+    }
+
+    // Static method
+    static printSelfStatic() {
+        // It is a compile-time error to try to use 'this' inside a static method
+        // print this.a; 
+
+        print "Hello from static method";
+    }
+}
+
+var c = ClassWithStaticMethods(1,2);
+c.printSelf();
+
+// Runtime error, static method cannot be called on an instance
+//c.printSelfStatic();
+//c.printSuperStatic();
+
+// But it can be called on the class
+ClassWithStaticMethods.printSelfStatic();
+ClassWithStaticMethods.printSuperStatic();
+
+// Runtime error, class has not static method named 'nonExistingStaticMethod'
+// ClassWithStaticMethods.nonExistingStaticMethod();
+
+class Base {}
+
+// Compile-time error, a static class cannot inherit from another class
+static class StaticClass < Base {} 
+
+static class StaticBaseClass {}
+// Compile-time error, a static class cannot be inherited from
+class Derived < StaticBaseClass {}
+
+
+static class StaticClass {
+    // Compile-time error, static classes may not contain an initializer
+    static init() {}
+
+    // Compile-time error, static class may not contain a non-static method
+    nonStaticMethod() {}
+
+    static staticMethod() {
+        // Compile-time error, cannot access 'this' in a static method.
+        print this.field;
+    }
+}
+
+static class StaticMath {
+    static add(a, b) {
+        return a + b;
+    }
+
+    static div(a, b) {
+        return a / b;
+    }
+
+    static pow(a, b) {
+        var res = a;
+        for(var i = 1; i < b; i = i + 1) {
+            res = res * a;
+        }
+
+        return res;
+    }
+}
+
+print "5 + 5 = " + StaticMath.add(5, 5);
+print "15 / 3 = " + StaticMath.div(15, 3);
+print "2^10 = " + StaticMath.pow(2, 10);
+
+// Empty array
+var array = [];
+
+printArray(array); // Does not print anything
+
+array[0] = "Hello";
+array[1] = "Array";
+
+printArray(array); // Prints "Hello Array"
+
+array[10] = "10th element"; // Values can be assigned 
+
+var array = [1, 2, 3, 4, 5]; // Will create an array with 5 elements;
+
+var array = ["Initialized"; 5];
+
+printArray(array);
+
+
+fun printArray(array) {
+    // len() is a native function that returns the number of elements in an array, or the length of a string
+    for(var i = 0; i < len(array); i = i + 1) {
+        write(array[i] + " "); // write() is another native functions that does not add a new line character
+    }
+    print "";
+}
+
+var array = [];
+array[0] = 0;
+array[1] = "String";
+array [2] = 42.42;
+
+printArray(array);
+
+fun displayGrid(grid) {
+    for(var i = 0; i < len(grid); i = i + 1) {
+        for(var j = 0; j < len(grid[i]); j = j + 1) {
+            write(grid[i][j] + " | ");
+        }
+        print "";
+    }
+}
+
+// Creates an array containing five other arrays
+// Each of those five arrays will contain five zeros.
+var grid = [[0;5];5];
+
+// Prints a 5x5 grid of '0's
+displayGrid(grid);
+
+var multiplicationTable = [];
+
+for(var i = 0; i <= 10; i = i + 1) {
+    multiplicationTable[i] = [];
+    for(var j = 0; j <= 10; j = j + 1) {
+        multiplicationTable[i][j] = i * j;
+    }
+}
+
+displayGrid(multiplicationTable);
+
+var array = ["first"];
+array[0] = "second";
+print array[0]; // Prints "second"
+
+
+array[10] = "Tenth"; // Before this line, the length of the array was 2
+print array[3]; // "nil"
+print array[10]; // "Tenth"
+
+
+var array = [1, 2];
+print array[0]; // Ok
+print array[1]; // Ok
+print array[2]; // Runtime error, index is out of bounds.
+
+
+var hello = "Hello";
+
+print hello[0]; // Prints "H"
+print hello[4]; // Prints "o"
+
+*/

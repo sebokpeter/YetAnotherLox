@@ -71,7 +71,7 @@ internal class Parser
             Token superclassName = Consume(IDENTIFIER, "Expect superclass name.");
             if (isStatic)
             {
-                Error(superclassName, "A static class my not inherit from another class.");
+                Error(superclassName, "A static class may not inherit from another class.");
             }
             superclass = new Expr.Variable(Previous());
         }

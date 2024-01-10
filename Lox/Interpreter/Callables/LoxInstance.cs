@@ -20,6 +20,11 @@ internal class LoxInstance
         LoxFunction? method = _loxClass.FindMethod(name.Lexeme);
         if(method is not null)
         {
+            if(method.IsStatic)
+            {
+                throw new RuntimeException(name, $"Static method '{name.Lexeme}' cannot be called on an instance.");
+            }
+
             return method.Bind(this);
         }
 

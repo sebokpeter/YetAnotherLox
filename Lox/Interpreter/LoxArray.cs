@@ -33,21 +33,21 @@ internal class LoxArray
     }
 
     /// <summary>
-    /// Get the value located at the index specified by <paramref name="targetLocation"/>.
-    /// If <paramref name="targetLocation"/> is larger than the size of the array, a <see cref="RuntimeException"> will be thrown.
+    /// Get the value located at the index specified by <paramref name="index"/>.
+    /// If <paramref name="index"/> is larger than the size of the array, a <see cref="RuntimeException"> will be thrown.
     /// </summary>
-    /// <param name="targetLocation">An index, indicating the location of the requested value.</param>
+    /// <param name="index">An index, indicating the location of the requested value.</param>
     /// <param name="bracket">A <see cref="Token"/> that marks the beginning of the array access. It is used to report the location of the array access, in case of an error.</param>
-    /// <returns>The element located at index <paramref name="targetLocation"/>.</returns>
-    /// <exception cref="RuntimeException">If the index (<paramref name="targetLocation"/>) is larger than the size of the array.</exception>
-    internal object Get(int targetLocation, Token bracket)
+    /// <returns>The element located at index <paramref name="index"/>.</returns>
+    /// <exception cref="RuntimeException">If the index (<paramref name="index"/>) is larger than the size of the array.</exception>
+    internal object Get(int index, Token bracket)
     {
-        if(targetLocation > _values.Count - 1) 
+        if(index > _values.Count - 1) 
         {
-            throw new RuntimeException(bracket, $"Position is out of range. Array size: {_values.Count}, requested position: {targetLocation}");
+            throw new RuntimeException(bracket, $"Index is out of bounds. Array size: {_values.Count}, index: {index}");
         }
 
-        return _values[targetLocation];
+        return _values[index];
     }
 
     public override string ToString() => $"<array {_values.Count}>";
