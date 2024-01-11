@@ -22,7 +22,7 @@ varDecl     -> "var" IDENTIFIER ( "=" expression ); ";" ;
 
 
 expression  -> assignment ;
-assignment  -> (call ".")? IDENTIFIER "=" assignment | logicOr ;
+assignment  -> (call ".")? IDENTIFIER ("+=" | "-=" | "*=" | "/=" | "%=" | "=") assignment | logicOr ;
 logicOr     -> logicAnd ( "or" logicAnd)* ;
 logicAnd    -> equality ( "and" equality )* ;
 equality    -> comparison ( ( "!=" | "=="   )  comparison )* ;

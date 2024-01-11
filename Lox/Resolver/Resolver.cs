@@ -307,7 +307,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitArrayAccessExpr(Expr.ArrayAccess expr)
     {
         Resolve(expr.Target);
-        Resolve(expr.Location);
+        Resolve(expr.Index);
 
         return null!;
     }
@@ -315,7 +315,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitArrayAssignExpr(Expr.ArrayAssign expr)
     {
         Resolve(expr.Target);
-        Resolve(expr.Location);
+        Resolve(expr.Index);
         Resolve(expr.Value);
 
         return null!;

@@ -540,7 +540,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             throw new RuntimeException(expr.Bracket, "Expected array or string.");
         }
 
-        object location = Evaluate(expr.Location);
+        object location = Evaluate(expr.Index);
 
         if (location is not double loc || loc % 1 != 0)
         {
@@ -572,7 +572,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             throw new RuntimeException(expr.Bracket, "Expected array.");
         }
 
-        object location = Evaluate(expr.Location);
+        object location = Evaluate(expr.Index);
 
         if (location is not double loc || loc % 1 != 0 )
         {

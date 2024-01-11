@@ -27,7 +27,12 @@ namespace Lox
         GREATER_EQUAL,
         LESS,
         LESS_EQUAL,
-
+        PLUS_EQUAL,
+        MINUS_EQUAL,
+        STAR_EQUAL,
+        SLASH_EQUAL,
+        MODULO_EQUAL, 
+        
         // Literals
         IDENTIFIER,
         STRING,

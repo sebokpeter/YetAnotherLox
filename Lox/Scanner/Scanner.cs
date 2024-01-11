@@ -72,11 +72,19 @@ class Scanner
             case ']': AddToken(RIGHT_SQUARE); break;
             case ',': AddToken(COMMA); break;
             case '.': AddToken(DOT); break;
-            case '-': AddToken(MINUS); break;
-            case '+': AddToken(PLUS); break;
             case ';': AddToken(SEMICOLON); break;
-            case '*': AddToken(STAR); break;
-            case '%': AddToken(MODULO); break;
+            case '-':
+                AddToken(Match('=')? MINUS_EQUAL : MINUS);
+                break;
+            case '+': 
+                AddToken(Match('=')? PLUS_EQUAL : PLUS);
+                break;
+            case '*': 
+                AddToken(Match('=')? STAR_EQUAL : STAR);
+                break;
+            case '%': 
+                AddToken(Match('=')? MODULO_EQUAL : MODULO);
+                break;
             case '!':
                 AddToken(Match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -90,16 +98,20 @@ class Scanner
                 AddToken(Match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if (Match('/'))
+                if(Match('/'))
                 {
                     while (Peek() != '\n' && !IsAtEnd())
                     {
                         Advance();
                     }
                 }
-                else if (Match('*'))
+                else if(Match('*'))
                 {
                     HandleMultilineComment();
+                }
+                else if(Match('='))
+                {
+                    AddToken(SLASH_EQUAL);
                 }
                 else
                 {

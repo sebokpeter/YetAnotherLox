@@ -11,5 +11,5 @@ This        : Lox.Token keyword
 Unary       : Lox.Token operator, Expr right
 Variable    : Lox.Token name
 Array       : Lox.Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
-ArrayAccess : Expr target, Lox.Token bracket, Expr location
-ArrayAssign : Expr target, Lox.Token bracket, Expr location, Expr value
+ArrayAccess : Expr target, Lox.Token bracket, Expr index
+ArrayAssign : Expr target, Lox.Token bracket, Expr index, Expr value

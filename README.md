@@ -1,6 +1,24 @@
 Yet another C# implementation of the Lox language from the Crafting Interpreters book (https://craftinginterpreters.com). It implements the tree-walk interpreter from the second chapter, 
 and also adds some additional features on top.
 
+
+- [AST Node Generation](#ast-node-generation)
+- [Additional features](#additional-features)
+  - [Multiline comments](#multiline-comments)
+  - [Automatic string coercion](#automatic-string-coercion)
+  - [Modulo](#modulo)
+  - [Break and Continue](#break-and-continue)
+  - [Static methods](#static-methods)
+  - [Static classes](#static-classes)
+  - [Arrays](#arrays)
+    - [Assigning to an index](#assigning-to-an-index)
+    - [Reading from an index](#reading-from-an-index)
+    - [Indexing into strings](#indexing-into-strings)
+  - [Compound assignment operators](#compound-assignment-operators)
+- [TODOS](#todos)
+
+
+
 # AST Node Generation
 
 The AstGenerator project is a simple C# source generator, that takes any additional .txt files passed to the compilation, and tries to create AST nodes from them. It is used
@@ -147,15 +165,15 @@ var c = ClassWithStaticMethods(1,2);
 c.printSelf();
 
 // Runtime error, static method cannot be called on an instance
-//c.printSelfStatic();
-//c.printSuperStatic();
+c.printSelfStatic();
+c.printSuperStatic();
 
 // But it can be called on the class
 ClassWithStaticMethods.printSelfStatic();
 ClassWithStaticMethods.printSuperStatic();
 
 // Runtime error, class has not static method named 'nonExistingStaticMethod'
-// ClassWithStaticMethods.nonExistingStaticMethod();
+ClassWithStaticMethods.nonExistingStaticMethod();
 ```
 
 ## Static classes
@@ -248,7 +266,7 @@ Arrays may contain any type, and they can be heterogeneous:
 var array = [];
 array[0] = 0;
 array[1] = "String";
-array [2] = 42.42;
+array[2] = 42.42;
 
 printArray(array);
 ```
@@ -258,11 +276,13 @@ Arrays can be created using one of the three approaches:
 1. Use `[]` to create an empty array.
 2. Specify the array elements on creation: `var array = [element_1, element_2, ..., element_n]` \
    E.g.: `var array = [1, 2, 3, 4, 5]; // Will create an array with 5 elements;`
-3. Use the array initializer syntax: `var array = [initial_element_expression; inital_count_expression]` \
+3. Use the array initializer syntax: `var array = [initial_element_expression; initial_count_expression]` \
    E.g: `var array = ["Initialized"; 5];` \
-   Here, there are two expression separated by a ';'. The first expression (`"Initialized"`) will be the initial element. The second expression is the number of times the value of the first expression is repeated.
+   Here, there are two expression separated by a ';'. The first expression (`"Initialized"`) can evaluate to any type.
+   The second expression must evaluate to a number, or a runtime error occurs. \
+   The value that the first expression evaluates to will be repeated by the amount that the second expression evaluates to.
    After executing this line, the variable `array` will contain five copies of the string `"Initialized"`. Thus, the above syntax is equivalent to: ```var array = ["Initialized", "Initialized", "Initialized", "Initialized", "Initialized"]```
-   The first expression (`initial_element_expression`) may evaluate to any type. The second expression (`inital_count_expression`) must evaluate to a number, otherwise a runtime error occurs.
+
 
 As arrays can contain any type, they can also contain arrays. This allows us to create jagged arrays:
 
@@ -336,8 +356,43 @@ print hello[0]; // Prints "H"
 print hello[4]; // Prints "o"
 ```
 
+## Compound assignment operators
+
+Added the following compound assignment operators: `+=`, `-=`, `*=`, `/=`, `%=`. 
+
+```
+var a = 0;
+
+a += 1;
+print a; // Prints 1
+
+a -= 11;
+print a; // Prints -10
+
+a *= -10;
+print a; // Prints 100
+
+a /= 5;
+print a; // Prints 20
+
+a %= 6;
+print a; // Prints 2
+```
+
+They can be used to simplify loop increments:
+
+```
+for(var i = 0; i < 20; i += 3) {
+    print i; // Print every third number.
+}
+
+// Multiply 'i' by 1.2 in each iteration
+for(var i = 1; i < 100; i *= 1.2) {
+    print i;
+}
+
+
 # TODOS
 
-- Compound assignment operators (+=, -=, ...)
 - Postfix operators (++, --)
 - foreach loop for looping through arrays

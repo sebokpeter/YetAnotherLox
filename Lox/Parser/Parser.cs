@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Generated;
 using static Lox.TokenType;
 
@@ -91,7 +92,7 @@ internal class Parser
 
             if(isStatic && method.Name.Lexeme == "init")
             {
-                Error(method.Name, "A static class my not contain an initializer.");
+                Error(method.Name, "A static class may not contain an initializer.");
             }
 
             methods.Add(method);
@@ -362,23 +363,37 @@ internal class Parser
     {
         Expr expr = Or();
 
-        if (Match(EQUAL))
+        if(Match(EQUAL, PLUS_EQUAL, MINUS_EQUAL, STAR_EQUAL, SLASH_EQUAL, MODULO_EQUAL))
         {
             Token equals = Previous();
-            Expr value = Assignment();
+            Expr right = Assignment();
 
-            if (expr is Expr.Variable var)
+            Token oper = equals.Type switch 
+            {
+                EQUAL           => equals,
+                PLUS_EQUAL      => new(PLUS, equals.Lexeme, equals.Literal, equals.Line),
+                MINUS_EQUAL     => new(MINUS, equals.Lexeme, equals.Literal, equals.Line),
+                STAR_EQUAL      => new(STAR, equals.Lexeme, equals.Literal, equals.Line),
+                SLASH_EQUAL     => new(SLASH, equals.Lexeme, equals.Literal, equals.Line),
+                MODULO_EQUAL    => new(MODULO, equals.Lexeme, equals.Literal, equals.Line),
+                _               => throw new UnreachableException()  
+            };
+
+            Expr value = equals.Type == EQUAL? right : new Expr.Binary(expr, oper, right);
+
+
+            if(expr is Expr.Variable var)
             {
                 Token name = var.Name;
                 return new Expr.Assign(name, value);
             } 
-            else if (expr is Expr.Get getExpr)
+            else if(expr is Expr.Get getExpr)
             {
                 return new Expr.Set(getExpr.Obj, getExpr.Name, value);
             }
-            else if (expr is Expr.ArrayAccess arrayAccessExpr)
+            else if(expr is Expr.ArrayAccess arrayAccessExpr)
             {
-                return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Location, value);
+                return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Index, value);
             }
 
             Error(equals, "Invalid assignment target");
@@ -449,6 +464,7 @@ internal class Parser
 
         while (Match(MINUS, PLUS))
         {
+
             Token oper = Previous();
             Expr right = Factor();
             expr = new Expr.Binary(expr, oper, right);
