@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Xml.Serialization;
 using Generated;
 using static Lox.TokenType;
 
@@ -55,9 +56,7 @@ internal class Parser
 
     private Stmt.Class ClassDeclaration()
     {
-        Token classOrStaticKeyword = Previous();
-
-        bool isStatic = classOrStaticKeyword.Type == STATIC;
+        bool isStatic = Previous().Type == STATIC;
 
         if(isStatic)
         {
@@ -368,14 +367,22 @@ internal class Parser
             Token equals = Previous();
             Expr right = Assignment();
 
+            // Copy the lexeme, and line from 'equals' into a new token
+            Token CreateNewToken(TokenType type) 
+            {
+                // Take the first character from the lexeme, so that we don't have a binary expression with a token that has a lexeme like "+="
+                string newLexeme = equals.Lexeme[0].ToString();
+                return new(type, newLexeme, equals.Literal, equals.Line);
+            }
+
             Token oper = equals.Type switch 
             {
                 EQUAL           => equals,
-                PLUS_EQUAL      => new(PLUS, equals.Lexeme, equals.Literal, equals.Line),
-                MINUS_EQUAL     => new(MINUS, equals.Lexeme, equals.Literal, equals.Line),
-                STAR_EQUAL      => new(STAR, equals.Lexeme, equals.Literal, equals.Line),
-                SLASH_EQUAL     => new(SLASH, equals.Lexeme, equals.Literal, equals.Line),
-                MODULO_EQUAL    => new(MODULO, equals.Lexeme, equals.Literal, equals.Line),
+                PLUS_EQUAL      => CreateNewToken(PLUS),
+                MINUS_EQUAL     => CreateNewToken(MINUS),
+                STAR_EQUAL      => CreateNewToken(STAR),
+                SLASH_EQUAL     => CreateNewToken(SLASH),
+                MODULO_EQUAL    => CreateNewToken(MODULO),
                 _               => throw new UnreachableException()  
             };
 
