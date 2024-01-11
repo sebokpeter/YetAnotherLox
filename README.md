@@ -21,8 +21,7 @@ and also adds some additional features on top.
 
 # AST Node Generation
 
-The AstGenerator project is a simple C# source generator, that takes any additional .txt files passed to the compilation, and tries to create AST nodes from them. It is used
-to automate the creation of repetitive code in the Expr and Stmt nodes.
+The AstGenerator project is a simple C# source generator, that takes any additional .txt files passed to the compilation, and tries to create AST nodes from them. It is used to automatically generate repetitive code for statement and expression nodes.
 
 # Additional features
 
@@ -30,7 +29,7 @@ There are some additional Lox features implemented in this interpreter.
 
 ## Multiline comments
 
-It is now possible to add nested multiline comments:
+It is possible to add (nested) multiline comments:
 
 ```
 /*
@@ -115,12 +114,13 @@ while(true) {
     print fizzbuz;
 }
 ```
+Trying to use ***break** or ****continue** outside of a loop will lead to a compiler error.
 
 To make **continue** easier to implement, the interpreter uses a dedicated Stmt.For node, instead of desugaring to a `while` loop. This way, the loop increment can easily be executed, even when the body is skipped.
 
 ## Static methods
 
-Methods declared with the **static** keyword are bound to the class they are declared in, not to a specific class instance. Regular classes may contain a mix of static and non-static methods. 
+Added static methods. Static methods are declared with the **static** keyword are bound to the class they are declared in, not to a specific class instance. Regular classes may contain a mix of static and non-static methods. 
 
 ```
 class BaseClass {
@@ -183,14 +183,14 @@ In addition to static methods, it is possible to mark an entire class as static.
 ```
 static class StaticClass {
     // Compile-time error, static classes may not contain an initializer
-    static init() {}
+    // static init() {}
 
     // Compile-time error, static class may not contain a non-static method
-    nonStaticMethod() {}
+    // nonStaticMethod() {}
 
     static staticMethod() {
         // Compile-time error, cannot access 'this' in a static method.
-        print this.field;
+        // print this.field;
     }
 }
 ```
@@ -274,9 +274,11 @@ printArray(array);
 Arrays can be created using one of the three approaches:
 
 1. Use `[]` to create an empty array.
-2. Specify the array elements on creation: `var array = [element_1, element_2, ..., element_n]` \
+2. Specify the array elements on creation: \
+   `var array = [element_1, element_2, ..., element_n]` \
    E.g.: `var array = [1, 2, 3, 4, 5]; // Will create an array with 5 elements;`
-3. Use the array initializer syntax: `var array = [initial_element_expression; initial_count_expression]` \
+3. Use the array initializer syntax: \
+   `var array = [initial_element_expression; initial_count_expression]` \
    E.g: `var array = ["Initialized"; 5];` \
    Here, there are two expression separated by a ';'. The first expression (`"Initialized"`) can evaluate to any type.
    The second expression must evaluate to a number, or a runtime error occurs. \
@@ -390,7 +392,7 @@ for(var i = 0; i < 20; i += 3) {
 for(var i = 1; i < 100; i *= 1.2) {
     print i;
 }
-
+```
 
 # TODOS
 
