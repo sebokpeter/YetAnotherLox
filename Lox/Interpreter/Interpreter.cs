@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Generated;
 using static Lox.TokenType;
 
@@ -155,14 +156,16 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object value = Evaluate(expr.Value);
 
-        if (_locals.TryGetValue(expr, out int distance))
-        {
-            _environment.AssignAt(distance, expr.Name, value);
-        }
-        else
-        {
-            _globals.Assign(expr.Name, value);
-        }
+        // if (_locals.TryGetValue(expr, out int distance))
+        // {
+        //     _environment.AssignAt(distance, expr.Name, value);
+        // }
+        // else
+        // {
+        //     _globals.Assign(expr.Name, value);
+        // }
+
+        AssignToVariable(expr, value);
 
         return value;
     }
@@ -188,10 +191,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     internal void ExecuteBlock(List<Stmt> statements, Environment environment)
     {
-        Environment previous = this._environment;
+        Environment previous = _environment;
         try
         {
-            this._environment = environment;
+            _environment = environment;
 
             foreach (Stmt stmt in statements)
             {
@@ -200,7 +203,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
         finally
         {
-            this._environment = previous;
+            _environment = previous;
         }
     }
 
@@ -589,7 +592,58 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitPostfixExpr(Expr.Postfix expr)
     {
-        throw new NotImplementedException();
+        double ApplyPostfix(double num)
+        {
+            return expr.Operator.Type == PLUS_PLUS? num + 1 : num - 1;
+        }
+
+        if(expr.Obj is Expr.Variable varExpr)
+        {
+            // Postfix expression is applied to a variable
+            // Get the current value and check if it is a number
+            object current = LookupVariable(varExpr.Name, varExpr);
+
+            if (current is not double doubleCurr)
+            {
+                throw new RuntimeException(varExpr.Name, "Can only apply postfix operator to a number.");
+            }
+
+            double newValue = ApplyPostfix(doubleCurr);
+
+            // Same as in VisitAssignExpr(), assign the new value to the variable
+            // But here the type of the Expr is Expr.Variable
+            AssignToVariable(varExpr, newValue);
+
+            // Return the old value to conform to postfix semantics
+            return doubleCurr;
+        }
+
+        return null!;
+    }
+
+
+    private void AssignToVariable(Expr.Assign expr, object newValue) 
+    {
+        if (_locals.TryGetValue(expr, out int distance))
+        {
+            _environment.AssignAt(distance, expr.Name, newValue);
+        }
+        else
+        {
+            _globals.Assign(expr.Name, newValue);
+        }
+    }
+
+    private void AssignToVariable(Expr.Variable expr, object newValue)
+    {
+        if (_locals.TryGetValue(expr, out int distance))
+        {
+            _environment.AssignAt(distance, expr.Name, newValue);
+        }
+        else
+        {
+            _globals.Assign(expr.Name, newValue);
+        }
     }
 
     private static void CheckNumberOperand(Token @operator, object operand)

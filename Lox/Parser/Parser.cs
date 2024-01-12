@@ -652,11 +652,11 @@ internal class Parser
 
         return literalToken.Type switch 
         {
-            TRUE            => new(true),
-            FALSE           => new(false),
-            NIL             => new(null),
-            NUMBER or STRING => new(literalToken.Literal),
-            _               => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
+            TRUE                => new(true),
+            FALSE               => new(false),
+            NIL                 => new(null),
+            NUMBER or STRING    => new(literalToken.Literal),
+            _                   => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
         };
     }
 

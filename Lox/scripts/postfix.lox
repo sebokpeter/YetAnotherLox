@@ -1,7 +1,33 @@
-/*var i = 0;
-i++;
-i--;
-*/
+var i = 0;
+print i++;
+print i--;
+print i;
+
+{
+    var i = 10;
+    i++;
+    i++;
+    print i;
+}
+
+print i;
+
+
+print "Looping...";
+for(var i = 0; i < 10; i++)
+{
+    print i;
+}
+
+var array = ["First", "Second", "Third"];
+
+print array[i++];
+print array[i++];
+print array[i++];
+
+print i;
+
+/*
 
 class T {
     init() {
@@ -18,3 +44,5 @@ var array = [0, 1, 2, 3];
 var j = 0;
 array[j++];
 array[j--];
+
+*/
