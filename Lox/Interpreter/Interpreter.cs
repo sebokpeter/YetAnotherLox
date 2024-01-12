@@ -597,28 +597,63 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             return expr.Operator.Type == PLUS_PLUS? num + 1 : num - 1;
         }
 
+        double CheckNumber(object? o, Token name)
+        {
+            if(o is null || o is not double d)
+            {
+                throw new RuntimeException(name, "Can only apply postfix operator to a number.");
+            }
+            return d;
+        }
+
         if(expr.Obj is Expr.Variable varExpr)
         {
             // Postfix expression is applied to a variable
             // Get the current value and check if it is a number
             object current = LookupVariable(varExpr.Name, varExpr);
 
-            if (current is not double doubleCurr)
-            {
-                throw new RuntimeException(varExpr.Name, "Can only apply postfix operator to a number.");
-            }
+            double currentDouble = CheckNumber(current, varExpr.Name);
 
-            double newValue = ApplyPostfix(doubleCurr);
+            double newValue = ApplyPostfix(currentDouble);
 
             // Same as in VisitAssignExpr(), assign the new value to the variable
             // But here the type of the Expr is Expr.Variable
             AssignToVariable(varExpr, newValue);
 
             // Return the old value to conform to postfix semantics
-            return doubleCurr;
-        }
+            return currentDouble;
+        } 
+        else if(expr.Obj is Expr.Get getExpr)
+        {
+            // Postfix expression is applied to a getter
+            object obj = Evaluate(getExpr.Obj);
 
-        return null!;
+            // Similar to VisitGetExpr();
+            if(obj is LoxInstance instance)
+            {
+                object? current = instance.Get(getExpr.Name);
+
+                double currentDouble = CheckNumber(current, getExpr.Name);
+
+                double newValue = ApplyPostfix(currentDouble);
+
+                // Set the new value in the instance
+                instance.Set(getExpr.Name, newValue);
+
+                // But still return the old value
+                return currentDouble;
+            } 
+            else 
+            {
+                // Parser should take care of this case
+                throw new RuntimeException(expr.Operator, "Can only apply postfix operator to a variable or getter.");
+            }
+        } 
+        else 
+        {
+            // Parser should also take care of this case
+            throw new RuntimeException(expr.Operator, "Can only apply postfix operator to a variable or getter.");
+        }
     }
 
 

@@ -27,22 +27,42 @@ print array[i++];
 
 print i;
 
-/*
+print "Getter...";
 
 class T {
     init() {
         this.val = 0;
     }
+
+    Test() {
+        return 1;
+    }
 }
 
 var t = T();
 print t.val++;
+print t.val;
 
 t.val--;
+print t.val;
 
-var array = [0, 1, 2, 3];
-var j = 0;
-array[j++];
-array[j--];
+t.val = 2;
 
-*/
+array = ["First", "Second", "Third"];
+
+print array[t.val--];
+print array[t.val--];
+print array[t.val--];
+
+print t.val;
+
+print "Backward...";
+
+for(var i = 10; i >= 0; i--) {
+    print i;
+}
+
+var k = 0.5;
+for(; k < 10; k++) {
+    print k;
+}
