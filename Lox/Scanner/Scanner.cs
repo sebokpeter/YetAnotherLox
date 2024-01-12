@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Lox.Parser;
 using static Lox.TokenType;
 
 namespace Lox.Scanner;
@@ -74,10 +76,10 @@ class Scanner
             case '.': AddToken(DOT); break;
             case ';': AddToken(SEMICOLON); break;
             case '-':
-                AddToken(Match('=')? MINUS_EQUAL : MINUS);
+                HandleToken(MINUS);
                 break;
             case '+': 
-                AddToken(Match('=')? PLUS_EQUAL : PLUS);
+                HandleToken(PLUS);
                 break;
             case '*': 
                 AddToken(Match('=')? STAR_EQUAL : STAR);
@@ -143,6 +145,29 @@ class Scanner
                     Lox.Error(line, $"Unexpected character! ({c})");
                 }
                 break;
+        }
+    }
+
+    private void HandleToken(TokenType type)
+    {
+        (TokenType postfixToken, TokenType compoundAssignmentToken) = type switch
+        {
+            MINUS   => (MINUS_MINUS, MINUS_EQUAL),
+            PLUS    => (PLUS_PLUS, PLUS_EQUAL),
+            _       => throw new UnreachableException()
+        };
+
+        if(Match('='))
+        {
+            AddToken(compoundAssignmentToken);
+        }
+        else if(Match('+') || Match('-'))
+        {
+            AddToken(postfixToken);
+        }
+        else 
+        {
+            AddToken(type);
         }
     }
 

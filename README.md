@@ -114,7 +114,7 @@ while(true) {
     print fizzbuz;
 }
 ```
-Trying to use ***break** or ****continue** outside of a loop will lead to a compiler error.
+Trying to use **break** or **continue** outside of a loop will lead to a compiler error.
 
 To make **continue** easier to implement, the interpreter uses a dedicated Stmt.For node, instead of desugaring to a `while` loop. This way, the loop increment can easily be executed, even when the body is skipped.
 

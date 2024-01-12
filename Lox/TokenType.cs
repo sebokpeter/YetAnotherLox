@@ -31,7 +31,9 @@ namespace Lox
         MINUS_EQUAL,
         STAR_EQUAL,
         SLASH_EQUAL,
-        MODULO_EQUAL, 
+        MODULO_EQUAL,
+        PLUS_PLUS,
+        MINUS_MINUS,
         
         // Literals
         IDENTIFIER,
