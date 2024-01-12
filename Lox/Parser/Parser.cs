@@ -369,38 +369,20 @@ internal class Parser
             Token equals = Previous();
             Expr right = Assignment();
 
-            // Copy the lexeme, and line from 'equals' into a new token
-            Token CreateNewToken(TokenType type) 
-            {
-                // Take the first character from the lexeme, so that we don't have a binary expression with a token that has a lexeme like "+="
-                string newLexeme = equals.Lexeme[0].ToString();
-                return new(type, newLexeme, equals.Literal, equals.Line);
-            }
+            Token oper = GetNewToken(equals);
 
-            Token oper = equals.Type switch 
-            {
-                EQUAL           => equals,
-                PLUS_EQUAL      => CreateNewToken(PLUS),
-                MINUS_EQUAL     => CreateNewToken(MINUS),
-                STAR_EQUAL      => CreateNewToken(STAR),
-                SLASH_EQUAL     => CreateNewToken(SLASH),
-                MODULO_EQUAL    => CreateNewToken(MODULO),
-                _               => throw new UnreachableException()  
-            };
+            Expr value = equals.Type == EQUAL ? right : new Expr.Binary(expr, oper, right);
 
-            Expr value = equals.Type == EQUAL? right : new Expr.Binary(expr, oper, right);
-
-
-            if(expr is Expr.Variable var)
+            if (expr is Expr.Variable var)
             {
                 Token name = var.Name;
                 return new Expr.Assign(name, value);
-            } 
-            else if(expr is Expr.Get getExpr)
+            }
+            else if (expr is Expr.Get getExpr)
             {
                 return new Expr.Set(getExpr.Obj, getExpr.Name, value);
             }
-            else if(expr is Expr.ArrayAccess arrayAccessExpr)
+            else if (expr is Expr.ArrayAccess arrayAccessExpr)
             {
                 return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Index, value);
             }
@@ -409,6 +391,37 @@ internal class Parser
         }
 
         return expr;
+    }
+
+
+    /// <summary>
+    /// Create a new token based on the type of <paramref name="equals"/>. 
+    /// Used to transform compound assignment operator tokens into their non-compound form (e.g. '+=' to '+'), so that a new <see cref="Expr.Binary"/> node can be constructed.
+    /// </summary>
+    /// <param name="equals">The original token</param>
+    /// <returns>A new token, with one of the following <see cref="TokenType"/>s: <see cref="PLUS"/>, <see cref="MINUS"/>, <see cref="STAR"/>, <see cref="SLASH"/>, <see cref="MODULO"/>.</returns>
+    /// <exception cref="UnreachableException"></exception>
+    private static Token GetNewToken(Token equals)
+    {
+        // Copy the lexeme, and line from 'equals' into a new token
+        Token CreateNewToken(TokenType type)
+        {
+            // Take the first character from the lexeme, so that we don't have a binary expression with a token that has a lexeme like "+="
+            string newLexeme = equals.Lexeme[0].ToString();
+            return new(type, newLexeme, equals.Literal, equals.Line);
+        }
+
+        Token oper = equals.Type switch
+        {
+            EQUAL => equals, // Not a compound operator, just assignment
+            PLUS_EQUAL => CreateNewToken(PLUS),
+            MINUS_EQUAL => CreateNewToken(MINUS),
+            STAR_EQUAL => CreateNewToken(STAR),
+            SLASH_EQUAL => CreateNewToken(SLASH),
+            MODULO_EQUAL => CreateNewToken(MODULO),
+            _ => throw new UnreachableException()
+        };
+        return oper;
     }
 
     private Expr Or()
@@ -642,8 +655,8 @@ internal class Parser
             TRUE            => new(true),
             FALSE           => new(false),
             NIL             => new(null),
-            NUMBER | STRING => new(literalToken.Literal),
-            _               => throw new UnreachableException()
+            NUMBER or STRING => new(literalToken.Literal),
+            _               => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
         };
     }
 
