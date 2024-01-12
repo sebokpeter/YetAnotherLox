@@ -7,14 +7,17 @@ print i;
     var i = 10;
     i++;
     i++;
-    print i;
+    print i; // Prints 12
+    i--;
+    i--;    
+    print i; // Prints 10
 }
 
 print i;
 
 
 print "Looping...";
-for(var i = 0; i < 10; i++)
+for(var i = 0; i <= 10; i++)
 {
     print i;
 }
@@ -29,17 +32,13 @@ print i;
 
 print "Getter...";
 
-class T {
+class Gettable {
     init() {
         this.val = 0;
     }
-
-    Test() {
-        return 1;
-    }
 }
 
-var t = T();
+var t = Gettable();
 print t.val++;
 print t.val;
 
@@ -66,3 +65,11 @@ var k = 0.5;
 for(; k < 10; k++) {
     print k;
 }
+
+var otherArray = ["A"; 10];
+
+for(var i = 0; i < len(otherArray); i++) {
+    write(otherArray[i] + " ");
+}
+
+print "";

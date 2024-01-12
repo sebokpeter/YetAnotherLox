@@ -15,6 +15,7 @@ and also adds some additional features on top.
     - [Reading from an index](#reading-from-an-index)
     - [Indexing into strings](#indexing-into-strings)
   - [Compound assignment operators](#compound-assignment-operators)
+  - [Postfix operators](#postfix-operators)
 - [TODOS](#todos)
 
 
@@ -381,20 +382,70 @@ a %= 6;
 print a; // Prints 2
 ```
 
-They can be used to simplify loop increments:
+## Postfix operators
+
+Added the postfix operator `++` and `--`. \
+They can be used on variables and getters.
 
 ```
-for(var i = 0; i < 20; i += 3) {
-    print i; // Print every third number.
+var i = 0;
+print i++; // Prints 0
+print i--; // Prints 1
+print i;   // Prints 0
+
+{
+    var i = 10;
+    i++;
+    i++;
+    print i; // Prints 12
+    i--;
+    i--;    
+    print i; // Prints 10
 }
 
-// Multiply 'i' by 1.2 in each iteration
-for(var i = 1; i < 100; i *= 1.2) {
+```
+
+```
+class Gettable {
+    init() {
+        this.val = 0;
+    }
+}
+
+var t = Gettable();
+print t.val++; // Prints 0
+print t.val;   // Prints 1
+
+t.val--;
+print t.val; // Prints 0
+```
+
+```
+var i = 0;
+
+var array = ["First", "Second", "Third"];
+
+print array[i++]; // Prints "First"
+print array[i++]; // Prints "Second"
+print array[i++]; // Prints "Third"
+
+print i; // Prints 3
+```
+
+Of course postfix operators can be used in for-loop increments:
+
+```
+// Prints the numbers from 0 to 10
+for(var i = 0; i <= 10; i++) {
+    print i;
+}
+
+// Prints the numbers from 10 to 0
+for(var i = 10; i >= 0; i--) {
     print i;
 }
 ```
 
 # TODOS
 
-- Postfix operators (++, --)
 - foreach loop for looping through arrays
