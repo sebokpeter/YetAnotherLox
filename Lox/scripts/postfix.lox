@@ -1,3 +1,20 @@
-var i = 0;
+/*var i = 0;
 i++;
 i--;
+*/
+
+class T {
+    init() {
+        this.val = 0;
+    }
+}
+
+var t = T();
+print t.val++;
+
+t.val--;
+
+var array = [0, 1, 2, 3];
+var j = 0;
+array[j++];
+array[j--];

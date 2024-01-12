@@ -13,3 +13,4 @@ Variable    : Lox.Token name
 Array       : Lox.Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
 ArrayAccess : Expr target, Lox.Token bracket, Expr index
 ArrayAssign : Expr target, Lox.Token bracket, Expr index, Expr value
+Postfix     : Expr obj, Lox.Token operator

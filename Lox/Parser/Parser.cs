@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
+using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using Generated;
 using static Lox.TokenType;
@@ -520,6 +522,14 @@ internal class Parser
             {
                 Token name = Consume(IDENTIFIER, "Expect property name after '.'.");
                 expr = new Expr.Get(expr, name);
+                
+                // TODO: this looks for postfix expressions after a getter has been invoked
+                // This means that now we are parsing postfix expressions in two places (here and in Primary())
+                // Try to unify them
+                if(Match(PLUS_PLUS, MINUS_MINUS)) 
+                {
+                    expr = new Expr.Postfix(expr, Previous());
+                }
             }
             else if(Match(LEFT_SQUARE)) 
             {
@@ -554,51 +564,87 @@ internal class Parser
 
         Token paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
+        if(Match(PLUS_PLUS, MINUS_MINUS))
+        {
+            Error(Previous(), "Cannot apply postfix expression to function or method call.");
+        }
+
         return new Expr.Call(callee, paren, arguments);
     }
 
     private Expr Primary()
     {
-        if(Match(FALSE)) return new Expr.Literal(false);
-        if(Match(TRUE)) return new Expr.Literal(true);
-        if(Match(NIL)) return new Expr.Literal(null);
-        if(Match(NUMBER, STRING)) return new Expr.Literal(Previous().Literal);
+        Expr expr = default!;
 
-        if(Match(SUPER))
+        if(Match(FALSE, TRUE, NIL, NUMBER, STRING)) // Check literals
         {
-            Token keyword = Previous();
-            Consume(DOT, "Expect '.' after 'super'.");
-            Token method = Consume(IDENTIFIER, "Expect superclass method name.");
-            return new Expr.Super(keyword, method);
+             expr = LiteralExpression();
+        }
+        else if(Match(SUPER))
+        {
+            expr = SuperExpression();
         } 
-
-        if(Match(LEFT_PAREN))
+        else if(Match(LEFT_PAREN))
         {
-            Expr expr = Expression();
+            Expr innerExpr = Expression();
             Consume(RIGHT_PAREN, "Expected ')' after expression.");
-            return new Expr.Grouping(expr);
+            expr = new Expr.Grouping(innerExpr);
         }
-
-        if(Match(LEFT_SQUARE))
+        else if(Match(LEFT_SQUARE))
         {
-            return ArrayCreation();
+            expr = ArrayCreation();
         }
-
-        if(Match(THIS))
+        else if(Match(THIS))
         {
             if(_inStaticMethod)
             {
                 Error(Previous(), "Cannot access 'this' in static method.");
             }
-            return new Expr.This(Previous());
+            expr = new Expr.This(Previous());
         }
-
-        if(Match(IDENTIFIER))
+        else if(Match(IDENTIFIER))
         {
-            return new Expr.Variable(Previous());
+            expr = new Expr.Variable(Previous());
         }
 
-        throw Error(Peek(), "Expected expression");
+        if(expr is null)
+        {
+            // None of the possible expression types matched. Report error, but keep going, so that we can possibly report additional errors later on
+            Error(Peek(), "Expected expression");
+        }
+        else if(Match(PLUS_PLUS, MINUS_MINUS)) // Check for postfix operators
+        {
+            if(expr is not Expr.Variable)
+            {
+                Error(Previous(), "Operand of a postfix operator must be a variable or a getter.");
+            }
+            expr = new Expr.Postfix(expr, Previous());
+        }
+
+        return expr!;
+    }
+
+    private Expr.Super SuperExpression()
+    {
+        Token keyword = Previous();
+        Consume(DOT, "Expect '.' after 'super'.");
+        Token method = Consume(IDENTIFIER, "Expect superclass method name.");    
+
+        return new Expr.Super(keyword, method);
+    }
+
+    private Expr.Literal LiteralExpression()
+    {
+        Token literalToken = Previous();
+
+        return literalToken.Type switch 
+        {
+            TRUE            => new(true),
+            FALSE           => new(false),
+            NIL             => new(null),
+            NUMBER | STRING => new(literalToken.Literal),
+            _               => throw new UnreachableException()
+        };
     }
 
     private Expr.Array ArrayCreation()
@@ -607,7 +653,6 @@ internal class Parser
        
         if(!Check(RIGHT_SQUARE) && !IsAtEnd()) 
         {
-
             // If the next token is a semicolon ";", this expr will be the length of the array (e.g. [10; "a"] -> array with ten 'a's)
             // If the next token is a comma ",", this expression is the first value in the list of array value initializers (e.g. [10,11,12] -> three element array, with elements 10, 11, and 12)
             Expr first = Expression(); 

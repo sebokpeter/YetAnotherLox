@@ -587,6 +587,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return null!;
     }
 
+    public object VisitPostfixExpr(Expr.Postfix expr)
+    {
+        throw new NotImplementedException();
+    }
 
     private static void CheckNumberOperand(Token @operator, object operand)
     {

@@ -321,6 +321,13 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return null!;
     }
 
+    public object VisitPostfixExpr(Expr.Postfix expr)
+    {
+        Resolve(expr.Obj);
+
+        return null!;
+    }
+
     private void ResolveLocal(Expr expr, Token name)
     {
         for (int i = 0; i < _scopes.Count; i++)
