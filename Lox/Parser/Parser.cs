@@ -201,6 +201,10 @@ internal class Parser
         {
             return ForStatement();
         }
+        if(Match(FOREACH))
+        {
+            return ForeachStatement();
+        }
         if(Match(IF))
         {
             return IfStatement();
@@ -231,6 +235,134 @@ internal class Parser
         }
 
         return ExpressionStatement();
+    }
+
+    private Stmt.For ForeachStatement()
+    {
+        Token paren = Consume(LEFT_PAREN, "Expect '(' after 'foreach'.");
+        Consume(VAR, "Expect 'var' after opening parenthesis.");
+
+        Token name = Consume(IDENTIFIER, "Expect identifier after 'var'.");
+
+        Consume(IN, "Expect 'in' after name");
+
+        Expr collectionExpr = Expression();
+
+        Consume(RIGHT_PAREN, "Expect ')'.");
+        Consume(LEFT_BRACE, "Expect '{' before foreach body.");
+
+        string loopName = $"@loop_{_loopDepth}";
+        (Stmt.Var initializer, Expr.Binary condition, Expr.Postfix increment) = DesugarForeach(paren, collectionExpr, loopName);
+
+        try
+        {
+            _loopDepth++;
+
+            List<Stmt> body = Block();
+
+            // Get the current element from the loop
+            // The name of the element is the name given in the foreach loop ('foreach(var name...)')
+            Stmt.Var access = new(new Token(name.Type, name.Lexeme, name.Literal, name.Line + 1), new Expr.ArrayAccess(CopyCollectionExpr(collectionExpr, paren.Line, paren), null!, new Expr.Variable(new Token(IDENTIFIER, loopName, null, paren.Line + 1))));
+
+            // Create a new block, with the array access as the first statement.
+            Stmt newBody = new Stmt.Block([access, .. body]);
+
+            var tmp = new Stmt.For(initializer, condition, increment, newBody);
+            return tmp;
+        }
+        finally
+        {
+            _loopDepth--;
+        }
+    }
+
+
+    /// <summary>
+    /// Desugar foreach loop to a for loop.
+    /// Example:
+    /// var array = [1, 2, 3];
+    /// 
+    /// foreach(var num in array) {
+    ///     print a;
+    /// }
+    /// 
+    /// // The foreach loop above will be desugared to this:
+    /// for(var @loop = 0; @loop < len(array), @loop++) {
+    ///     var num = array[@loop];
+    ///     {
+    ///         print a;
+    ///     }
+    /// }
+    /// </summary>
+    /// <param name="paren"></param>
+    /// <param name="collectionExpr"></param>
+    /// <param name="loopName"></param>
+    /// <returns></returns>
+    private (Stmt.Var, Expr.Binary, Expr.Postfix) DesugarForeach(Token paren, Expr collectionExpr, string loopName)
+    {
+        // Create a new variable, '@loop', that will be initialized in the for statement ('for(var @loop = 0; ...)')
+        // "@loop" is not a valid user-defined identifier name, so we can be sure that it will not crash with existing identifiers
+        // We need to create a new token every time we need to create or access the '@loop' variable, just as if it was parsed from source code.
+
+        // Initialize @loop to 0
+        Stmt.Var initializer = new(new(IDENTIFIER, loopName, null, paren.Line), new Expr.Literal(0d));
+
+        // Create a new binary operation, which will be the loop condition
+        Expr.Variable var = new(new(IDENTIFIER, loopName, null, paren.Line)); // Same '@loop' variable
+        Token oper = new(LESS, "<", null, paren.Line); // Less-than operator
+        Expr.Call right = new(new Expr.Variable(new Token(IDENTIFIER, "len", null, paren.Line)), paren, [CopyCollectionExpr(collectionExpr, paren.Line, paren)]); // A call to 'len', a built-in function that gets the length of an array or a string 
+        Expr.Binary condition = new(var, oper, right);
+
+        // Increment '@loop'
+        Expr.Postfix increment = new(new Expr.Variable(new(IDENTIFIER, loopName, null, paren.Line)), new Token(PLUS_PLUS, "++", null, paren.Line));
+
+        return (initializer, condition, increment);
+    }
+
+    /// <summary>
+    /// Must create a copy of the collection expression, because when we are resolving names, we need a unique instance.
+    /// Since record types have value equality, it is not enough to just create a new Expr, we need to change at least one value
+    /// We can, for example, change the Token that identifies the expression or a part of the expression (Depending on the concrete type of the expression).
+    /// Possible expression types are:
+    /// <see cref="Expr.Variable"/> - A variable can refer to an array or a string
+    /// <see cref="Expr.Literal"/> - A literal can be a string
+    /// <see cref="Expr.Array"/> - An array
+    /// <see cref="Expr.Call"/> - A function or method call can return a string or array
+    /// <see cref="Expr.ArrayAccess"/> - Arrays can have string or array members
+    /// </summary>
+    /// <param name="collection"></param>
+    /// <param name="line"></param>
+    /// <param name="pos">A token that is used when reporting an error.</param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+    private static Expr CopyCollectionExpr(Expr collection, int line, Token pos)
+    {
+        if(collection is Expr.Variable var)
+        {
+            return var with { Name = new(var.Name.Type, var.Name.Lexeme, var.Name.Literal, line) };
+        }
+        if(collection is Expr.Literal lit)
+        {
+            if(lit.Value is not string)
+            {
+                throw Error(pos, "'foreach' loop can not be used with a number");
+            }
+            return lit;
+        }
+        if(collection is Expr.Array arr)
+        {
+            return arr with { Bracket = new Token(arr.Bracket.Type, arr.Bracket.Lexeme, arr.Bracket.Literal, line) };
+        }
+        if(collection is Expr.Call call)
+        {
+            return call with { Paren = new Token(call.Paren.Type, call.Paren.Lexeme, call.Paren.Literal, line) };
+        }
+        if(collection is Expr.ArrayAccess arrAcc)
+        {
+            return arrAcc with { Bracket = new Token(arrAcc.Bracket.Type, arrAcc.Bracket.Lexeme, arrAcc.Bracket.Literal, line) };
+        }
+
+        throw Error(pos, "Invalid Expression type.");
     }
 
     private Stmt.Continue ContinueStatement()

@@ -1,5 +1,97 @@
 var array = [0, 1, 2, 3, 4];
 
+
 foreach(var a in array) {
     print a;
+}
+
+// Desugars to this:
+/*
+{
+    for(var @loop = 0; @loop < len(array); @loop++) {
+        var a = @loopCollection[@loop];
+        {
+            print a;
+        }
+    }
+}
+*/
+
+foreach(var char in "hello") {
+    print char;
+}
+
+fun getArray() {
+    return [1, 2, 3];
+}
+
+foreach(var a in getArray()) {
+    print a;
+}
+
+
+var nested = [["*"; 5]; 5];
+
+foreach(var inner in nested) {
+    foreach(var star in inner) {
+        write(star + "|");
+    }
+    print "";
+}
+
+var triple = [[[5;5]; 2]; 4];
+
+foreach(var outer in triple) {
+    foreach(var middle in outer) {
+        foreach(var inner in middle) {
+            write(inner + " ");
+        }
+        print "";
+    }
+    print "";
+}
+
+foreach(var inline in ["This", "is", "an", "array"]) {
+    write(inline + " ");
+}
+
+print "";
+
+class ArrayGetterClass {
+    init() {
+        this.nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+        this.strings = ["Hello", "foreach", "loops"];
+        this.nested = [[random(100); 10]; 4];
+    }
+
+    getNums() {
+        return this.nums;
+    }
+
+    getString() {
+        return this.strings;
+    }
+
+    getNested() {
+        return this.nested;
+    }
+}
+
+var agc = ArrayGetterClass();
+
+foreach(var num in agc.getNums()) {
+    print num;
+}
+
+var strings = agc.getString();
+foreach(var s in strings) {
+    write(s + " ");
+}
+print "";
+
+foreach(var outer in agc.getNested()) {
+    foreach(var val in outer) {
+        write(val + " ");
+    }
+    print "";
 }
