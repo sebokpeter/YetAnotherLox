@@ -34,8 +34,9 @@ class Scanner
         {"while", WHILE},
         {"break", BREAK},
         {"continue", CONTINUE},
-        {"static", STATIC}};
-
+        {"static", STATIC},
+        {"foreach", FOREACH},
+        {"in", IN}};
     }
 
     public Scanner(string source)

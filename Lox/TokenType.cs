@@ -60,7 +60,9 @@ namespace Lox
         BREAK,
         CONTINUE,
         STATIC,
-
+        FOREACH,
+        IN,
+        
         EOF
     }
 }
