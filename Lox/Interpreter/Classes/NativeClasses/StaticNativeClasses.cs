@@ -1,6 +1,3 @@
-
-using Generated;
-
 namespace Lox.Interpreter;
 
 

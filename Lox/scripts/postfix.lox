@@ -32,9 +32,20 @@ print i;
 
 print "Getter...";
 
-class Gettable {
+class First {
     init() {
+        this.num = 0;
+    }
+}
+
+class Gettable < First {
+    init() {
+        super.init();
         this.val = 0;
+    }
+
+    postfixSuper() {
+        return this.num++;
     }
 }
 
@@ -73,3 +84,31 @@ for(var i = 0; i < len(otherArray); i++) {
 }
 
 print "";
+
+print t.num;
+print t.postfixSuper();
+t.postfixSuper();
+t.postfixSuper();
+print t.num;
+
+
+class A {
+    init() {
+        this.val = 0;
+    }
+}
+
+class B < A {
+    init() {
+        super.init();
+    }
+
+    sup() {
+        return this.val++;
+    }
+}
+
+var b = B();
+print b.sup();
+print b.sup();
+print b.val;

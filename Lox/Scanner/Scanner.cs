@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Lox.Parser;
 using static Lox.TokenType;
 
 namespace Lox.Scanner;
@@ -257,7 +256,7 @@ class Scanner
             }
         }
 
-        AddToken(NUMBER, double.Parse(_source.Substring(start, _current - start)));
+        AddToken(NUMBER, double.Parse(_source[start.._current]));
     }
 
     private char PeekNext()

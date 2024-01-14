@@ -1,5 +1,3 @@
-
-using System.Runtime.CompilerServices;
 using Generated;
 
 namespace Lox.Interpreter;

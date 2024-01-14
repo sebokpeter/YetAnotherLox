@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Generated;
 using static Lox.TokenType;
 
@@ -52,12 +51,12 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         try
         {
-            foreach (Stmt stmt in statements)
+            foreach(Stmt stmt in statements)
             {
                 Execute(stmt);
             }
         }
-        catch (RuntimeException ex)
+        catch(RuntimeException ex)
         {
             Lox.RuntimeError(ex);
         }
@@ -70,14 +69,14 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private static string Stringify(object? value)
     {
-        if (value is null)
+        if(value is null)
         {
             return "nil";
         }
-        if (value is double d)
+        if(value is double d)
         {
             string text = d.ToString();
-            if (text.EndsWith(".0"))
+            if(text.EndsWith(".0"))
             {
                 text = text[..^2];
             }
@@ -103,7 +102,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitVarStmt(Stmt.Var stmt)
     {
         object value = null!;
-        if (stmt.Initializer is not null)
+        if(stmt.Initializer is not null)
         {
             value = Evaluate(stmt.Initializer);
         }
@@ -117,7 +116,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         object left = Evaluate(expr.Left);
         object right = Evaluate(expr.Right);
 
-        switch (expr.Operator.Type)
+        switch(expr.Operator.Type)
         {
             case MINUS:
                 CheckNumberOperands(expr.Operator, left, right);
@@ -156,15 +155,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object value = Evaluate(expr.Value);
 
-        // if (_locals.TryGetValue(expr, out int distance))
-        // {
-        //     _environment.AssignAt(distance, expr.Name, value);
-        // }
-        // else
-        // {
-        //     _globals.Assign(expr.Name, value);
-        // }
-
         AssignToVariable(expr, value);
 
         return value;
@@ -178,11 +168,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitIfStmt(Stmt.If stmt)
     {
-        if (IsTruthy(Evaluate(stmt.Condition)))
+        if(IsTruthy(Evaluate(stmt.Condition)))
         {
             Execute(stmt.ThenBranch);
         }
-        else if (stmt.ElseBranch is not null)
+        else if(stmt.ElseBranch is not null)
         {
             Execute(stmt.ElseBranch);
         }
@@ -196,7 +186,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             _environment = environment;
 
-            foreach (Stmt stmt in statements)
+            foreach(Stmt stmt in statements)
             {
                 Execute(stmt);
             }
@@ -209,11 +199,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private static bool IsEqual(object left, object right)
     {
-        if (left is null && right is null)
+        if(left is null && right is null)
         {
             return true;
         }
-        if (left is null)
+        if(left is null)
         {
             return false;
         }
@@ -223,7 +213,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private static object Plus(object left, object right)
     {
-        if (left is double l && right is double r)
+        if(left is double l && right is double r)
         {
             return l + r;
         }
@@ -248,7 +238,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object right = Evaluate(expr.Right);
 
-        switch (expr.Operator.Type)
+        switch(expr.Operator.Type)
         {
             case MINUS:
                 CheckNumberOperand(expr.Operator, right);
@@ -269,16 +259,16 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object left = Evaluate(expr.Left);
 
-        if (expr.Oper.Type == OR)
+        if(expr.Oper.Type == OR)
         {
-            if (IsTruthy(left))
+            if(IsTruthy(left))
             {
                 return left;
             }
         }
         else
         {
-            if (!IsTruthy(left))
+            if(!IsTruthy(left))
             {
                 return left;
             }
@@ -291,19 +281,19 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         try
         {
-            while (IsTruthy(Evaluate(stmt.Condition)))
+            while(IsTruthy(Evaluate(stmt.Condition)))
             {
                 try
                 {
                     Execute(stmt.Body);
                 }
-                catch (Continue)
+                catch(Continue)
                 {
                     continue;
                 }
             }
         }
-        catch (Break)
+        catch(Break)
         { }
 
 
@@ -322,7 +312,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         _environment = environment;
         try
         {
-            if (stmt.Initializer is not null)
+            if(stmt.Initializer is not null)
             {
                 Execute(stmt.Initializer);
             }
@@ -331,23 +321,23 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
             try
             {
-                while (IsTruthy(Evaluate(condition)))
+                while(IsTruthy(Evaluate(condition)))
                 {
                     try
                     {
                         Execute(stmt.Body);
                     }
-                    catch (Continue) { }
+                    catch(Continue) { }
                     finally
                     {
-                        if (stmt.Increment is not null)
+                        if(stmt.Increment is not null)
                         {
                             Evaluate(stmt.Increment);
                         }
                     }
                 }
             }
-            catch (Break) { }
+            catch(Break) { }
         }
         finally
         {
@@ -380,11 +370,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             return function.Call(this, arguments)!;
         }
-        catch (RuntimeException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch(Exception ex) when(ex is not RuntimeException)
         {
             throw new RuntimeException(expr.Paren, ex.Message);
         }
@@ -400,7 +386,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitReturnStmt(Stmt.Return stmt)
     {
         object value = null!;
-        if (stmt.Value is not null)
+        if(stmt.Value is not null)
         {
             value = Evaluate(stmt.Value);
         }
@@ -411,10 +397,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitClassStmt(Stmt.Class stmt)
     {
         object? superclass = null;
-        if (stmt.Superclass is not null)
+        if(stmt.Superclass is not null)
         {
             superclass = Evaluate(stmt.Superclass);
-            if (superclass is not LoxNonStaticClass)
+            if(superclass is not LoxNonStaticClass)
             {
                 throw new RuntimeException(stmt.Superclass.Name, "Superclass must be a (non-static) class.");
             }
@@ -422,7 +408,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         _environment.Define(stmt.Name.Lexeme, null!);
 
-        if (stmt.Superclass is not null)
+        if(stmt.Superclass is not null)
         {
             _environment = new(_environment);
             _environment.Define("super", superclass!);
@@ -430,15 +416,15 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         Dictionary<string, LoxFunction> methods = [];
 
-        foreach (Stmt.Function method in stmt.Methods)
+        foreach(Stmt.Function method in stmt.Methods)
         {
             LoxFunction function = new(method, _environment, method.Name.Lexeme.Equals("init"));
             methods.Add(method.Name.Lexeme, function);
         }
 
-        LoxClass @class = stmt.IsStatic? new LoxStaticClass(stmt.Name.Lexeme, methods) : new LoxNonStaticClass(stmt.Name.Lexeme, (LoxNonStaticClass?)superclass, methods);
+        LoxClass @class = stmt.IsStatic ? new LoxStaticClass(stmt.Name.Lexeme, methods) : new LoxNonStaticClass(stmt.Name.Lexeme, (LoxNonStaticClass?)superclass, methods);
 
-        if (superclass is not null)
+        if(superclass is not null)
         {
             _environment = _environment.Enclosing!;
         }
@@ -450,7 +436,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitGetExpr(Expr.Get expr)
     {
         object obj = Evaluate(expr.Obj);
-        if (obj is LoxInstance instance)
+        if(obj is LoxInstance instance)
         {
             return instance.Get(expr.Name)!;
         }
@@ -473,7 +459,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object obj = Evaluate(expr.Obj);
 
-        if (obj is not LoxInstance instance)
+        if(obj is not LoxInstance instance)
         {
             throw new RuntimeException(expr.Name, "Only instances have fields.");
         }
@@ -508,7 +494,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         if(expr.Initializers is not null)
         {
             values = expr.Initializers.Select(Evaluate).ToList();
-        } 
+        }
         else if(expr.DefaultValue is not null && expr.DefaultValueCount is not null)
         {
             object defValCount = Evaluate(expr.DefaultValueCount);
@@ -521,7 +507,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             int defaultValueCount = Convert.ToInt32(d);
 
             values = [];
-            for (int i = 0; i < defaultValueCount; i++)
+            for(int i = 0; i < defaultValueCount; i++)
             {
                 values.Add(Evaluate(expr.DefaultValue));
             }
@@ -545,7 +531,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         object location = Evaluate(expr.Index);
 
-        if (location is not double loc || loc % 1 != 0)
+        if(location is not double loc || loc % 1 != 0)
         {
             throw new RuntimeException(expr.Bracket, "Location must be an integer.");
         }
@@ -560,7 +546,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             }
             return str[targetLocation].ToString();
         }
-        else 
+        else
         {
             return ((LoxArray)target).Get(targetLocation, expr.Bracket);
         }
@@ -570,14 +556,14 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         object target = Evaluate(expr.Target);
 
-        if (target is not LoxArray array)
+        if(target is not LoxArray array)
         {
             throw new RuntimeException(expr.Bracket, "Expected array.");
         }
 
         object location = Evaluate(expr.Index);
 
-        if (location is not double loc || loc % 1 != 0 )
+        if(location is not double loc || loc % 1 != 0)
         {
             throw new RuntimeException(expr.Bracket, "Location must be an integer.");
         }
@@ -594,7 +580,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         double ApplyPostfix(double num)
         {
-            return expr.Operator.Type == PLUS_PLUS? num + 1 : num - 1;
+            return expr.Operator.Type == PLUS_PLUS ? num + 1 : num - 1;
         }
 
         double CheckNumber(object? o, Token name)
@@ -622,7 +608,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
             // Return the old value to conform to postfix semantics
             return currentDouble;
-        } 
+        }
         else if(expr.Obj is Expr.Get getExpr)
         {
             // Postfix expression is applied to a getter
@@ -642,14 +628,14 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
                 // But still return the old value
                 return currentDouble;
-            } 
-            else 
+            }
+            else
             {
                 // Parser should take care of this case
                 throw new RuntimeException(expr.Operator, "Can only apply postfix operator to a variable or getter.");
             }
-        } 
-        else 
+        }
+        else
         {
             // Parser should also take care of this case
             throw new RuntimeException(expr.Operator, "Can only apply postfix operator to a variable or getter.");
@@ -657,9 +643,9 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     }
 
 
-    private void AssignToVariable(Expr.Assign expr, object newValue) 
+    private void AssignToVariable(Expr.Assign expr, object newValue)
     {
-        if (_locals.TryGetValue(expr, out int distance))
+        if(_locals.TryGetValue(expr, out int distance))
         {
             _environment.AssignAt(distance, expr.Name, newValue);
         }
@@ -671,7 +657,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void AssignToVariable(Expr.Variable expr, object newValue)
     {
-        if (_locals.TryGetValue(expr, out int distance))
+        if(_locals.TryGetValue(expr, out int distance))
         {
             _environment.AssignAt(distance, expr.Name, newValue);
         }
@@ -683,23 +669,23 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private static void CheckNumberOperand(Token @operator, object operand)
     {
-        if (operand is double) return;
+        if(operand is double) return;
         throw new RuntimeException(@operator, "Operand must be a number.");
     }
 
     private static void CheckNumberOperands(Token @operator, object left, object right)
     {
-        if (left is double && right is double) return;
+        if(left is double && right is double) return;
         throw new RuntimeException(@operator, "Operands must be numbers");
     }
 
     private static bool IsTruthy(object obj)
     {
-        if (obj is null)
+        if(obj is null)
         {
             return false;
         }
-        if (obj is bool b)
+        if(obj is bool b)
         {
             return b;
         }
@@ -718,7 +704,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private object LookupVariable(Token name, Expr expr)
     {
-        if (_locals.TryGetValue(expr, out int distance))
+        if(_locals.TryGetValue(expr, out int distance))
         {
             return _environment.GetAt(distance, name.Lexeme);
         }

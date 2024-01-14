@@ -1,7 +1,3 @@
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using Generated;
 using Lox.Interpreter;
 
 internal class NativeFunction
