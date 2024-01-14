@@ -319,6 +319,7 @@ internal class Parser
         return (initializer, condition, increment);
     }
 
+    // TODO
     /// <summary>
     /// Must create a copy of the collection expression, because when we are resolving names, we need a unique instance.
     /// Since record types have value equality, it is not enough to just create a new Expr, we need to change at least one value
@@ -329,6 +330,8 @@ internal class Parser
     /// <see cref="Expr.Array"/> - An array
     /// <see cref="Expr.Call"/> - A function or method call can return a string or array
     /// <see cref="Expr.ArrayAccess"/> - Arrays can have string or array members
+    /// <see cref="Expr.This"/> - Can refer to an array or string
+    /// <see cref="Expr.Get"/> - Can return an array or string 
     /// </summary>
     /// <param name="collection"></param>
     /// <param name="line"></param>
@@ -361,6 +364,15 @@ internal class Parser
         {
             return arrAcc with { Bracket = new Token(arrAcc.Bracket.Type, arrAcc.Bracket.Lexeme, arrAcc.Bracket.Literal, line) };
         }
+        if(collection is Expr.This thisExpr) 
+        {
+            return thisExpr with { Keyword = new Token(thisExpr.Keyword.Type, thisExpr.Keyword.Lexeme, thisExpr.Keyword.Literal, line) };
+        }
+        if(collection is Expr.Get get)
+        {
+            return get with { Obj = CopyCollectionExpr(get.Obj, line, pos) };
+        }
+        
 
         throw Error(pos, "Invalid Expression type.");
     }

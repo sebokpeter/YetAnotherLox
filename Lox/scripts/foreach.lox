@@ -1,5 +1,5 @@
+/*
 var array = [0, 1, 2, 3, 4];
-
 
 foreach(var a in array) {
     print a;
@@ -95,3 +95,20 @@ foreach(var outer in agc.getNested()) {
     }
     print "";
 }
+
+*/
+
+class A {
+    init() {
+        this.nums = [1, 0, 0, 1, 1, 0];
+    }
+
+    iter() {
+        foreach(var num in this.nums) {
+            print num;
+        }
+    }
+}
+
+var a = A();
+a.iter();

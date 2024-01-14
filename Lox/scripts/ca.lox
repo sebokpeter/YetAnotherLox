@@ -22,8 +22,8 @@ class CA {
     }
 
     display() {
-        for(var i = 0; i < len(this.cells); i = i + 1) {
-            if(this.cells[i] == 1) {
+        foreach(var cell in this.cells) {
+            if(cell == 1) {
                 write("*");
             } else {
                 write(" ");

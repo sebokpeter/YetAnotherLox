@@ -50,7 +50,6 @@ class Grid {
     }
 
     step() {
-
         for(var r = 0; r < this.rows; r = r + 1) {
             for(var c = 0; c < this.cols; c = c + 1) {
                 var cell = this.grid[r][c];
@@ -95,8 +94,7 @@ class Grid {
                     nCol = 0;
                 }
 
-                var n = this.grid[nRow][nCol];
-                alive = alive + n.previous;
+                alive += this.grid[nRow][nCol].previous;
             }
         }
 
@@ -105,14 +103,14 @@ class Grid {
     }
 
     display() {
-        for(var r = 0; r < this.rows; r = r + 1) {
+        foreach(var row in this.grid) {
             var line = "";
-            for(var c = 0; c < this.cols; c = c + 1) {
-                var cell = this.grid[r][c];
-                line = line + cell.toString();
+            foreach(var cell in row) {
+                line += cell.toString();
             }
             print line;
         }
+
     }
 }
 
@@ -121,8 +119,7 @@ var generation = 0;
 while(true) {
     clear();
     grid.display();
-    print "Generation: " + generation;
-    generation = generation + 1;
+    print "Generation: " + generation++;
     grid.step();
     sleep(16);
 }
