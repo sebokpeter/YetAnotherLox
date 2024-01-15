@@ -6,19 +6,21 @@ foreach(a in array) {
 
 // Desugars to this:
 /*
-{
-    for(var @loop = 0; @loop < len(array); @loop++) {
-        var a = @loopCollection[@loop];
-        {
-            print a;
-        }
+// User-defined variables may not start with the character '@', so the '@loop' variable will not collide with existing variables.
+for(var @loop_0 = 0; @loop_0 < len(array); @loop_0++) {
+    var a = array[@loop_0];
+    {
+        print a;
     }
 }
+
 */
 
-foreach(char in "hello") {
-    print char;
+foreach(char in "HELLO") {
+    write(char + " "); //Prints "H E L L O" 
 }
+
+print "";
 
 fun getArray() {
     return [1, 2, 3];
@@ -33,7 +35,7 @@ var nested = [["*"; 5]; 5];
 
 foreach(inner in nested) {
     foreach(star in inner) {
-        write(star + "|");
+        write("|" + star + "|");
     }
     print "";
 }

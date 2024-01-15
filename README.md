@@ -16,6 +16,7 @@ and also adds some additional features on top.
     - [Indexing into strings](#indexing-into-strings)
   - [Compound assignment operators](#compound-assignment-operators)
   - [Postfix operators](#postfix-operators)
+  - [Foreach loops](#foreach-loops)
 - [TODOS](#todos)
 
 
@@ -446,6 +447,62 @@ for(var i = 10; i >= 0; i--) {
 }
 ```
 
+## Foreach loops
+
+`foreach` loops can be used to easily iterate over arrays and strings.
+
+```
+var array = [0, 1, 2, 3, 4];
+
+foreach(a in array) {
+    print a;
+}
+```
+
+And they can be used on nested arrays as well:
+
+```
+var nested = [["*"; 5]; 5];
+
+// Prints a 5x5 grid of stars.
+foreach(inner in nested) {
+    foreach(star in inner) {
+        write("|" + star + "|");
+    }
+    print "";
+}
+```
+
+And they can be used to iterate over strings:
+
+```
+foreach(char in "HELLO") {
+    write(char + " "); //Prints "H E L L O" 
+}
+```
+
+During parsing, `foreach` loops are converted into `for-loops`.
+
+```
+var array = [0, 1, 2, 3, 4];
+
+foreach(a in array) {
+    print a;
+}
+
+// Will be converted to this:
+/*
+// User-defined variables may not start with the character '@', so the '@loop' variable will not collide with existing variables.
+for(var @loop_0 = 0; @loop_0 < len(array); @loop_0++) {
+    var a = array[@loop_0];
+    {
+        print a;
+    }
+}
+*/
+```
+
+
 # TODOS
 
-- foreach loop for looping through arrays
+- Testing
