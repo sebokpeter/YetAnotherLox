@@ -240,9 +240,8 @@ internal class Parser
     private Stmt.For ForeachStatement()
     {
         Token paren = Consume(LEFT_PAREN, "Expect '(' after 'foreach'.");
-        Consume(VAR, "Expect 'var' after opening parenthesis.");
 
-        Token name = Consume(IDENTIFIER, "Expect identifier after 'var'.");
+        Token name = Consume(IDENTIFIER, "Expect identifier.");
 
         Consume(IN, "Expect 'in' after name");
 

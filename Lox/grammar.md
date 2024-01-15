@@ -4,7 +4,7 @@ declaration -> classDecl | funDecl | statement | varDecl ;
 
 statement   -> exprStmt | forStmt | foreachStmt | ifStmt | printStmt | returnStmt | breakStmt | contStmt | whileStmt | block ;
 
-foreachStmt -> "foreach" "(" varDecl "in" expression ")" statement ;
+foreachStmt -> "foreach" "(" IDENTIFIER "in" expression ")" statement ;
 forStmt     -> "for" "(" (varDecl | exprStmt | ";") expression? ";" expression? ";" ")" statement ;
 whileStmt   -> "while" "(" expression ")" statement ;
 ifStmt      -> "if" "(" expression ")" statement ("else" statement )? ;

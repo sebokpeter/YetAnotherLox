@@ -1,7 +1,6 @@
-/*
 var array = [0, 1, 2, 3, 4];
 
-foreach(var a in array) {
+foreach(a in array) {
     print a;
 }
 
@@ -17,7 +16,7 @@ foreach(var a in array) {
 }
 */
 
-foreach(var char in "hello") {
+foreach(char in "hello") {
     print char;
 }
 
@@ -25,15 +24,15 @@ fun getArray() {
     return [1, 2, 3];
 }
 
-foreach(var a in getArray()) {
+foreach(a in getArray()) {
     print a;
 }
 
 
 var nested = [["*"; 5]; 5];
 
-foreach(var inner in nested) {
-    foreach(var star in inner) {
+foreach(inner in nested) {
+    foreach(star in inner) {
         write(star + "|");
     }
     print "";
@@ -41,9 +40,9 @@ foreach(var inner in nested) {
 
 var triple = [[[5;5]; 2]; 4];
 
-foreach(var outer in triple) {
-    foreach(var middle in outer) {
-        foreach(var inner in middle) {
+foreach(outer in triple) {
+    foreach(middle in outer) {
+        foreach(inner in middle) {
             write(inner + " ");
         }
         print "";
@@ -51,7 +50,7 @@ foreach(var outer in triple) {
     print "";
 }
 
-foreach(var inline in ["This", "is", "an", "array"]) {
+foreach(inline in ["This", "is", "an", "array"]) {
     write(inline + " ");
 }
 
@@ -79,24 +78,23 @@ class ArrayGetterClass {
 
 var agc = ArrayGetterClass();
 
-foreach(var num in agc.getNums()) {
+foreach(num in agc.getNums()) {
     print num;
 }
 
 var strings = agc.getString();
-foreach(var s in strings) {
+foreach(s in strings) {
     write(s + " ");
 }
 print "";
 
-foreach(var outer in agc.getNested()) {
-    foreach(var val in outer) {
+foreach(outer in agc.getNested()) {
+    foreach(val in outer) {
         write(val + " ");
     }
     print "";
 }
 
-*/
 
 class A {
     init() {
@@ -104,7 +102,7 @@ class A {
     }
 
     iter() {
-        foreach(var num in this.nums) {
+        foreach(num in this.nums) {
             print num;
         }
     }
