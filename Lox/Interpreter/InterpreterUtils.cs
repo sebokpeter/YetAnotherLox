@@ -51,11 +51,9 @@ internal static class InterpreterUtils
     /// Create a string that shows how many arguments does a given <see cref="ILoxCallable"/> takes.
     /// The string will be in the format '(var, var, ..., var)', where the number of 'var's is equal to the arity of the function.
     /// </summary>
-    /// <param name="function">A <see cref="LoxFunction"/>.</param>
-    /// <returns>A string, showing the number of arguments <paramref name="function"/> takes.</returns>
-    internal static string GetVariableString(ILoxCallable function)
+    /// <returns>A string, showing the number of arguments a callable takes.</returns>
+    internal static string GetVariableString(int arity)
     {
-        int arity = function.Arity;
         StringBuilder varBuilder = new();
         varBuilder.Append('(');
         varBuilder.Append(String.Join(", ", Enumerable.Repeat("var", arity)));

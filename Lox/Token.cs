@@ -8,19 +8,19 @@ public class Token {
 
     public Token(TokenType type, string lexeme, object? literal, int line)
     {
-        this._type = type;
-        this._lexeme = lexeme;
-        this._literal = literal;
-        this._line = line;
+        _type = type;
+        _lexeme = lexeme;
+        _literal = literal;
+        _line = line;
     }
 
-    public string Lexeme => this._lexeme;
-    public TokenType Type => this._type;
-    public object? Literal => this._literal;
-    public int Line => this._line;
+    public string Lexeme => _lexeme;
+    public TokenType Type => _type;
+    public object? Literal => _literal;
+    public int Line => _line;
 
     public override string ToString()
     {
-        return $"{this._type} {this._lexeme} {this._literal}";
+        return $"{_type} {_lexeme} {_literal}";
     }
 }

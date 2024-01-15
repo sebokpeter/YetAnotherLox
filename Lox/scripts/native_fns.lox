@@ -27,8 +27,6 @@ var ms = num(input());
 print "Sleeping for an extra " + stringify(ms) + " milliseconds";
 sleep(ms);
 
-print "The source of this program is: ";
-print readFile("scripts/native_fns.lox");
 
 print "Native functions: ";
 print sleep;
@@ -38,3 +36,5 @@ print num;
 print readFile;
 print random;
 print stringify;
+print int;
+print clear;

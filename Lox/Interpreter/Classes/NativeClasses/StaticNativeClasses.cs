@@ -30,7 +30,7 @@ internal class StaticNativeClasses
 
         public abstract override object Call(Interpreter interpreter, List<object> arguments);
 
-        public override string ToString() => GetToString(_name, this);
+        public override string ToString() => GetToString(_name, Arity);
     }
 
     internal class LoxMath : LoxStaticClass
@@ -49,6 +49,6 @@ internal class StaticNativeClasses
     }
 
 
-    private static string GetToString(string name, LoxFunction function) => $"<native fn {name}{InterpreterUtils.GetVariableString(function)}>";
+    private static string GetToString(string name, int arity) => $"<native fn {name}{InterpreterUtils.GetVariableString(arity)}>";
 
 }

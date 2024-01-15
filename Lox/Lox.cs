@@ -1,8 +1,5 @@
 ﻿using Lox.Interpreter;
 using Generated;
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("LoxTest")]
 
 namespace Lox;
 
@@ -10,11 +7,12 @@ public class Lox
 {
     private static readonly Interpreter.Interpreter _interpreter = new();
 
-    static bool _hadError = false;
-    static bool _hadRuntimeError = false;
+    private static bool _hadError = false;
+    private static bool _hadRuntimeError = false;
 
     protected internal static void Main(string[] args)
     {
+
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: cslox [script]");
@@ -68,7 +66,7 @@ public class Lox
         _interpreter.Interpret(statements);
     }
 
-    public static void Error(int line, string msg)
+    internal static void Error(int line, string msg)
     {
         Report(line, "", msg);
     }
@@ -96,6 +94,4 @@ public class Lox
         Console.Error.WriteLine($"[line {line}] Error{where}: {msg}");
         _hadError = true;
     }
-
-
 }

@@ -14,7 +14,7 @@ internal class NativeFunction
             return null!;
         }
 
-        public override string ToString() => $"<native fn sleep{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("sleep", Arity);
     }
 
     internal class Clock() : ILoxCallable
@@ -22,7 +22,7 @@ internal class NativeFunction
         public int Arity => 0;
 
         public object Call(Interpreter interpreter, List<object> arguments) => DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000.0;
-        public override string ToString() => "<native fn clock>";
+        public override string ToString() => GetToString("clock", Arity);
     }
 
     internal class LoxRandom() : ILoxCallable
@@ -35,7 +35,7 @@ internal class NativeFunction
             return (double)Random.Shared.Next(max);
         }
 
-        public override string ToString() => $"<native fn random{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("random", Arity);
     }
 
     internal class Stringify : ILoxCallable
@@ -51,7 +51,7 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => _strFunc(arguments[0]);
 
-        public override string ToString() => $"<native fn stringify{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("stringify", Arity);
     }
 
     internal class Num : ILoxCallable
@@ -60,7 +60,7 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => InterpreterUtils.ToNum<double>(arguments[0]);
 
-        public override string ToString() => $"<native fn num{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("num", Arity);
     }
 
     internal class Input : ILoxCallable
@@ -69,7 +69,7 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => Console.ReadLine()!;
 
-        public override string ToString() => $"<native fn input>";
+        public override string ToString() => GetToString("input", Arity);
     }
 
     internal class ReadFile : ILoxCallable
@@ -78,7 +78,7 @@ internal class NativeFunction
 
         public object Call(Interpreter interpreter, List<object> arguments) => File.ReadAllText((string)arguments[0]);
 
-        public override string ToString() => $"<native fn readFile{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("readFile", Arity);
     }
 
     internal class Len : ILoxCallable
@@ -101,7 +101,7 @@ internal class NativeFunction
             throw new Exception("Can only get the length of arrays and strings.");
         }
 
-        public override string ToString() => $"<native fn len{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("len", Arity);
     }
 
     internal class Write : ILoxCallable
@@ -120,7 +120,7 @@ internal class NativeFunction
             Console.Write(_strFunc(arguments[0]));
             return null!;
         }
-        public override string ToString() => $"<native fn write{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("write", Arity);
     }
 
     internal class Clear : ILoxCallable
@@ -133,7 +133,7 @@ internal class NativeFunction
             return null!;
         }
 
-        public override string ToString() => $"<native fn clear>";
+        public override string ToString() =>  GetToString("clear", Arity);
     }
 
     internal class Int : ILoxCallable
@@ -146,6 +146,8 @@ internal class NativeFunction
             return Math.Round(val); // The runtime representation is still a double, but this removes the fractional part.
         }
 
-        public override string ToString() => $"<native fn int{InterpreterUtils.GetVariableString(this)}>";
+        public override string ToString() => GetToString("int", Arity);
     }
+
+    private static string GetToString(string name, int arity) => $"<native fn {name}{InterpreterUtils.GetVariableString(arity)}>";
 }

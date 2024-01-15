@@ -28,7 +28,7 @@ internal class LoxNonStaticClass : LoxClass, ILoxCallable
         _superclass = superclass;
     }
 
-    public override string ToString() => $"<class {Name}>";
+    public override string ToString() => $"<class {Name}{InterpreterUtils.GetVariableString(Arity)}>";
 
     public object? Call(Interpreter interpreter, List<object> arguments)
     {

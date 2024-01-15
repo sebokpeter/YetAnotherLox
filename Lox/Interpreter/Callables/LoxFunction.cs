@@ -54,5 +54,5 @@ internal class LoxFunction : ILoxCallable
         return new LoxFunction(_declaration, environment, _isInitializer);  
     }
 
-    public override string ToString() => $"<fn {_declaration.Name.Lexeme}>";
+    public override string ToString() => $"<fn {_declaration.Name.Lexeme}{InterpreterUtils.GetVariableString(Arity)}>";
 }

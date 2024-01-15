@@ -27,6 +27,8 @@ internal class Parser
         return statements;
     }
 
+    #region Declarations
+
     private Stmt Declaration()
     {
         try
@@ -195,6 +197,10 @@ internal class Parser
         return new Stmt.Var(name, initializer);
     }
 
+    #endregion
+
+    #region Statements
+
     private Stmt Statement()
     {
         if(Match(FOR))
@@ -236,6 +242,74 @@ internal class Parser
 
         return ExpressionStatement();
     }
+
+    private Stmt.For ForStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'for'");
+
+        Stmt initializer;
+        if(Match(SEMICOLON))
+        {
+            initializer = null!;
+        }
+        else if(Match(VAR))
+        {
+            initializer = VarDeclaration();
+        }
+        else
+        {
+            initializer = ExpressionStatement();
+        }
+
+        Expr condition = null!;
+        if(!Check(SEMICOLON))
+        {
+            condition = Expression();
+        }
+        Consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr increment = null!;
+        if(!Check(RIGHT_PAREN))
+        {
+            increment = Expression();
+        }
+        Consume(RIGHT_PAREN, "Expect ')' after for clause.");
+
+        try
+        {
+            _loopDepth++;
+            Stmt body = Statement();
+
+            return new Stmt.For(initializer, condition, increment, body);
+        }
+        finally
+        {
+            _loopDepth--;
+        }
+    }
+
+
+    private Stmt.While WhileStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'while'");
+
+        Expr condition = Expression();
+
+        Consume(RIGHT_PAREN, "Expect ')' after condition");
+
+        try
+        {
+            _loopDepth++;
+            Stmt body = Statement();
+
+            return new Stmt.While(condition, body);
+        }
+        finally
+        {
+            _loopDepth--;
+        }
+    }
+
 
     private Stmt.For ForeachStatement()
     {
@@ -363,7 +437,7 @@ internal class Parser
         {
             return arrAcc with { Bracket = new Token(arrAcc.Bracket.Type, arrAcc.Bracket.Lexeme, arrAcc.Bracket.Literal, line) };
         }
-        if(collection is Expr.This thisExpr) 
+        if(collection is Expr.This thisExpr)
         {
             return thisExpr with { Keyword = new Token(thisExpr.Keyword.Type, thisExpr.Keyword.Lexeme, thisExpr.Keyword.Literal, line) };
         }
@@ -371,7 +445,7 @@ internal class Parser
         {
             return get with { Obj = CopyCollectionExpr(get.Obj, line, pos) };
         }
-        
+
 
         throw Error(pos, "Invalid Expression type.");
     }
@@ -419,73 +493,6 @@ internal class Parser
         return new Stmt.Return(keyword, value);
     }
 
-    private Stmt.For ForStatement()
-    {
-        Consume(LEFT_PAREN, "Expect '(' after 'for'");
-
-        Stmt initializer;
-        if(Match(SEMICOLON))
-        {
-            initializer = null!;
-        }
-        else if(Match(VAR))
-        {
-            initializer = VarDeclaration();
-        }
-        else
-        {
-            initializer = ExpressionStatement();
-        }
-
-        Expr condition = null!;
-        if(!Check(SEMICOLON))
-        {
-            condition = Expression();
-        }
-        Consume(SEMICOLON, "Expect ';' after loop condition.");
-
-        Expr increment = null!;
-        if(!Check(RIGHT_PAREN))
-        {
-            increment = Expression();
-        }
-        Consume(RIGHT_PAREN, "Expect ')' after for clause.");
-
-        try
-        {
-            _loopDepth++;
-            Stmt body = Statement();
-
-            return new Stmt.For(initializer, condition, increment, body);
-        }
-        finally
-        {
-            _loopDepth--;
-        }
-    }
-
-    private Stmt.While WhileStatement()
-    {
-        Consume(LEFT_PAREN, "Expect '(' after 'while'");
-
-        Expr condition = Expression();
-
-        Consume(RIGHT_PAREN, "Expect ')' after condition");
-
-        try
-        {
-            _loopDepth++;
-            Stmt body = Statement();
-
-            return new Stmt.While(condition, body);
-        }
-        finally
-        {
-            _loopDepth--;
-        }
-
-    }
-
     private Stmt.If IfStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'if'");
@@ -503,18 +510,6 @@ internal class Parser
         return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
-    private List<Stmt> Block()
-    {
-        List<Stmt> statements = [];
-
-        while(!Check(RIGHT_BRACE) && !IsAtEnd())
-        {
-            statements.Add(Declaration());
-        }
-
-        Consume(RIGHT_BRACE, "Expect '}' after block");
-        return statements;
-    }
 
     private Stmt.Expression ExpressionStatement()
     {
@@ -529,6 +524,23 @@ internal class Parser
         Consume(SEMICOLON, "Expect ';' after value");
         return new Stmt.Print(value);
     }
+
+    private List<Stmt> Block()
+    {
+        List<Stmt> statements = [];
+
+        while(!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            statements.Add(Declaration());
+        }
+
+        Consume(RIGHT_BRACE, "Expect '}' after block");
+        return statements;
+    }
+
+    #endregion
+
+    #region Expressions
 
     private Expr Expression()
     {
@@ -856,6 +868,10 @@ internal class Parser
         return new Expr.Array(leftSquare, [], null, null);
     }
 
+    #endregion
+
+    #region Utility 
+
     private Token Consume(TokenType type, string msg)
     {
         if(Check(type))
@@ -949,4 +965,6 @@ internal class Parser
         FUNCTION,
         METHOD
     }
+
+    #endregion
 }

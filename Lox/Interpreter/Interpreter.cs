@@ -62,29 +62,13 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
     }
 
+
     private void Execute(Stmt stmt)
     {
         stmt.Accept(this);
     }
 
-    private static string Stringify(object? value)
-    {
-        if(value is null)
-        {
-            return "nil";
-        }
-        if(value is double d)
-        {
-            string text = d.ToString();
-            if(text.EndsWith(".0"))
-            {
-                text = text[..^2];
-            }
-            return text;
-        }
-
-        return value.ToString()!;
-    }
+    #region Statements
 
     public object VisitExpressionStmt(Stmt.Expression stmt)
     {
@@ -109,55 +93,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         _environment.Define(stmt.Name.Lexeme, value);
         return null!;
-    }
-
-    public object VisitBinaryExpr(Expr.Binary expr)
-    {
-        object left = Evaluate(expr.Left);
-        object right = Evaluate(expr.Right);
-
-        switch(expr.Operator.Type)
-        {
-            case MINUS:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left - (double)right;
-            case SLASH:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left / (double)right;
-            case STAR:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left * (double)right;
-            case MODULO:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left % (double)right;
-            case GREATER:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left > (double)right;
-            case GREATER_EQUAL:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left >= (double)right;
-            case LESS:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left < (double)right;
-            case LESS_EQUAL:
-                CheckNumberOperands(expr.Operator, left, right);
-                return (double)left <= (double)right;
-            case EQUAL_EQUAL:
-                return IsEqual(left, right);
-            case PLUS:
-                return Plus(left, right);
-        }
-
-        return null!;
-    }
-
-    public object VisitAssignExpr(Expr.Assign expr)
-    {
-        object value = Evaluate(expr.Value);
-
-        AssignToVariable(expr, value);
-
-        return value;
     }
 
     public object VisitBlockStmt(Stmt.Block stmt)
@@ -224,59 +159,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return sLeft + sRight;
     }
 
-    public object VisitGroupingExpr(Expr.Grouping expr)
-    {
-        return Evaluate(expr.Expression);
-    }
-
-    public object VisitLiteralExpr(Expr.Literal expr)
-    {
-        return expr.Value!;
-    }
-
-    public object VisitUnaryExpr(Expr.Unary expr)
-    {
-        object right = Evaluate(expr.Right);
-
-        switch(expr.Operator.Type)
-        {
-            case MINUS:
-                CheckNumberOperand(expr.Operator, right);
-                return -(double)right;
-            case BANG:
-                return !IsTruthy(right);
-        }
-
-        return null!;
-    }
-
-    public object VisitVariableExpr(Expr.Variable expr)
-    {
-        return LookupVariable(expr.Name, expr);
-    }
-
-    public object VisitLogicalExpr(Expr.Logical expr)
-    {
-        object left = Evaluate(expr.Left);
-
-        if(expr.Oper.Type == OR)
-        {
-            if(IsTruthy(left))
-            {
-                return left;
-            }
-        }
-        else
-        {
-            if(!IsTruthy(left))
-            {
-                return left;
-            }
-        }
-
-        return Evaluate(expr.Right);
-    }
-
     public object VisitWhileStmt(Stmt.While stmt)
     {
         try
@@ -293,9 +175,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
                 }
             }
         }
-        catch(Break)
-        { }
-
+        catch(Break) { }
 
         return null!;
     }
@@ -345,36 +225,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
     }
 
-    public object VisitCallExpr(Expr.Call expr)
-    {
-        object callee = Evaluate(expr.Callee);
-
-        List<object> arguments = expr.Arguments.Select(Evaluate).ToList();
-
-        if(callee is LoxStaticClass staticClass)
-        {
-            throw new RuntimeException(expr.Paren, "Static classes can not be instantiated.");
-        }
-
-        if(callee is not ILoxCallable function)
-        {
-            throw new RuntimeException(expr.Paren, "Can only call functions and classes");
-        }
-
-        if(arguments.Count != function.Arity)
-        {
-            throw new RuntimeException(expr.Paren, $"Expected {function.Arity} arguments, but got {arguments.Count}.");
-        }
-
-        try
-        {
-            return function.Call(this, arguments)!;
-        }
-        catch(Exception ex) when(ex is not RuntimeException)
-        {
-            throw new RuntimeException(expr.Paren, ex.Message);
-        }
-    }
 
     public object VisitFunctionStmt(Stmt.Function stmt)
     {
@@ -433,6 +283,148 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return null!;
     }
 
+
+    public object VisitBreakStmt(Stmt.Break stmt) => throw new Break();
+
+    public object VisitContinueStmt(Stmt.Continue stmt) => throw new Continue();
+
+    #endregion 
+
+    #region Expressions
+
+    public object VisitBinaryExpr(Expr.Binary expr)
+    {
+        object left = Evaluate(expr.Left);
+        object right = Evaluate(expr.Right);
+
+        switch(expr.Operator.Type)
+        {
+            case MINUS:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left - (double)right;
+            case SLASH:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left / (double)right;
+            case STAR:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left * (double)right;
+            case MODULO:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left % (double)right;
+            case GREATER:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left > (double)right;
+            case GREATER_EQUAL:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left >= (double)right;
+            case LESS:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left < (double)right;
+            case LESS_EQUAL:
+                CheckNumberOperands(expr.Operator, left, right);
+                return (double)left <= (double)right;
+            case EQUAL_EQUAL:
+                return IsEqual(left, right);
+            case PLUS:
+                return Plus(left, right);
+        }
+
+        return null!;
+    }
+
+    public object VisitAssignExpr(Expr.Assign expr)
+    {
+        object value = Evaluate(expr.Value);
+
+        AssignToVariable(expr, value);
+
+        return value;
+    }
+
+    public object VisitGroupingExpr(Expr.Grouping expr)
+    {
+        return Evaluate(expr.Expression);
+    }
+
+    public object VisitLiteralExpr(Expr.Literal expr)
+    {
+        return expr.Value!;
+    }
+
+    public object VisitUnaryExpr(Expr.Unary expr)
+    {
+        object right = Evaluate(expr.Right);
+
+        switch(expr.Operator.Type)
+        {
+            case MINUS:
+                CheckNumberOperand(expr.Operator, right);
+                return -(double)right;
+            case BANG:
+                return !IsTruthy(right);
+        }
+
+        return null!;
+    }
+
+    public object VisitVariableExpr(Expr.Variable expr)
+    {
+        return LookupVariable(expr.Name, expr);
+    }
+
+    public object VisitLogicalExpr(Expr.Logical expr)
+    {
+        object left = Evaluate(expr.Left);
+
+        if(expr.Oper.Type == OR)
+        {
+            if(IsTruthy(left))
+            {
+                return left;
+            }
+        }
+        else
+        {
+            if(!IsTruthy(left))
+            {
+                return left;
+            }
+        }
+
+        return Evaluate(expr.Right);
+    }
+
+    public object VisitCallExpr(Expr.Call expr)
+    {
+        object callee = Evaluate(expr.Callee);
+
+        List<object> arguments = expr.Arguments.Select(Evaluate).ToList();
+
+        if(callee is LoxStaticClass staticClass)
+        {
+            throw new RuntimeException(expr.Paren, "Static classes can not be instantiated.");
+        }
+
+        if(callee is not ILoxCallable function)
+        {
+            throw new RuntimeException(expr.Paren, "Can only call functions and classes");
+        }
+
+        if(arguments.Count != function.Arity)
+        {
+            throw new RuntimeException(expr.Paren, $"Expected {function.Arity} arguments, but got {arguments.Count}.");
+        }
+
+        try
+        {
+            return function.Call(this, arguments)!;
+        }
+        catch(Exception ex) when(ex is not RuntimeException)
+        {
+            throw new RuntimeException(expr.Paren, ex.Message);
+        }
+    }
+
     public object VisitGetExpr(Expr.Get expr)
     {
         object obj = Evaluate(expr.Obj);
@@ -483,10 +475,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         LoxFunction? method = superclass.FindMethod(expr.Method.Lexeme) ?? throw new RuntimeException(expr.Method, $"Undefined property '{expr.Method.Lexeme}'.");
         return method.Bind(obj);
     }
-
-    public object VisitBreakStmt(Stmt.Break stmt) => throw new Break();
-
-    public object VisitContinueStmt(Stmt.Continue stmt) => throw new Continue();
 
     public object VisitArrayExpr(Expr.Array expr)
     {
@@ -642,6 +630,9 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
     }
 
+    #endregion
+
+    #region Utility
 
     private void AssignToVariable(Expr.Assign expr, object newValue)
     {
@@ -665,6 +656,25 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             _globals.Assign(expr.Name, newValue);
         }
+    }
+
+    private static string Stringify(object? value)
+    {
+        if(value is null)
+        {
+            return "nil";
+        }
+        if(value is double d)
+        {
+            string text = d.ToString();
+            if(text.EndsWith(".0"))
+            {
+                text = text[..^2];
+            }
+            return text;
+        }
+
+        return value.ToString()!;
     }
 
     private static void CheckNumberOperand(Token @operator, object operand)
@@ -713,4 +723,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
             return _globals.Get(name);
         }
     }
+
+    #endregion
 }
+

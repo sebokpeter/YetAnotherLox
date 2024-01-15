@@ -43,7 +43,6 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         ResolveLocal(expr, expr.Name);
         return null!;
-
     }
 
     public object VisitAssignExpr(Expr.Assign expr)
