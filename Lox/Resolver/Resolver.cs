@@ -1,3 +1,4 @@
+using Shared;
 using Generated;
 
 namespace Lox.Resolver;

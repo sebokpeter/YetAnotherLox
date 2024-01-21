@@ -1,3 +1,5 @@
+using Shared;
+
 namespace Lox.Interpreter;
 
 [Serializable]

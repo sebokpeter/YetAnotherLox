@@ -1,5 +1,7 @@
-﻿using Lox.Interpreter;
+﻿using Frontend.Scanner;
+using Lox.Interpreter;
 using Generated;
+using Shared;
 
 namespace Lox;
 
@@ -7,12 +9,11 @@ public class Lox
 {
     private static readonly Interpreter.Interpreter _interpreter = new();
 
-    private static bool _hadError = false;
-    private static bool _hadRuntimeError = false;
+    static bool _hadError = false;
+    static bool _hadRuntimeError = false;
 
     protected internal static void Main(string[] args)
     {
-
         if (args.Length > 1)
         {
             Console.Error.WriteLine("Usage: cslox [script]");
@@ -50,7 +51,7 @@ public class Lox
 
     private static void Run(string source)
     {
-        Scanner.Scanner scanner = new(source);
+        Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
 
         Parser.Parser parser = new(tokens);

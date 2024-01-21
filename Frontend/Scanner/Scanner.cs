@@ -1,15 +1,21 @@
 using System.Diagnostics;
-using static Lox.TokenType;
+using Shared;
+using static Shared.TokenType;
 
-namespace Lox.Scanner;
+namespace Frontend.Scanner;
 
-class Scanner
+public class Scanner
 {
+    public bool HadError => errors.Any(); 
+    public List<ScannerError> Errors => errors;
+
     private readonly string _source;
     private readonly List<Token> tokens = [];
-    private int _current = 0;
+    private int current = 0;
     private int start = 0;
     private int line = 1;
+
+    private readonly List<ScannerError> errors;
 
     private static readonly Dictionary<string, TokenType> keywords;
 
@@ -42,13 +48,14 @@ class Scanner
     public Scanner(string source)
     {
         _source = source;
+        errors = [];
     }
 
     public List<Token> ScanTokens()
     {
         while (!IsAtEnd())
         {
-            start = _current;
+            start = current;
             ScanToken();
         }
 
@@ -58,7 +65,7 @@ class Scanner
 
     private bool IsAtEnd()
     {
-        return _current >= _source.Length;
+        return current >= _source.Length;
     }
 
     private void ScanToken()
@@ -142,7 +149,7 @@ class Scanner
                 }
                 else
                 {
-                    Lox.Error(line, $"Unexpected character! ({c})");
+                    Error(line, $"Unexpected character! ({c})");
                 }
                 break;
         }
@@ -208,7 +215,7 @@ class Scanner
 
         if(nestingLevel > 0)
         {
-            Lox.Error(line, "Unterminated multiline comment.");
+            Error(line, "Unterminated multiline comment.");
         }
     }
 
@@ -219,7 +226,7 @@ class Scanner
             Advance();
         }
 
-        string text = _source[start.._current];
+        string text = _source[start..current];
         if (keywords.TryGetValue(text, out TokenType type))
         {
             AddToken(type);
@@ -257,16 +264,16 @@ class Scanner
             }
         }
 
-        AddToken(NUMBER, double.Parse(_source[start.._current]));
+        AddToken(NUMBER, double.Parse(_source[start..current]));
     }
 
     private char PeekNext()
     {
-        if (_current + 1 >= _source.Length)
+        if (current + 1 >= _source.Length)
         {
             return '\0';
         }
-        return _source[_current + 1];
+        return _source[current + 1];
     }
 
     private static bool IsDigit(char c)
@@ -287,14 +294,14 @@ class Scanner
 
         if (IsAtEnd())
         {
-            Lox.Error(line, "Unterminated string");
+            Error(line, "Unterminated string");
             return;
         }
 
         // Closing '"'
         Advance();
 
-        string value = _source.Substring(start + 1, _current - start - 2);
+        string value = _source.Substring(start + 1, current - start - 2);
         AddToken(STRING, value);
     }
 
@@ -304,7 +311,7 @@ class Scanner
         {
             return '\n';
         }
-        return _source[_current];
+        return _source[current];
     }
 
     private bool Match(char expected)
@@ -313,28 +320,24 @@ class Scanner
         {
             return false;
         }
-        if (_source[_current] != expected)
+        if (_source[current] != expected)
         {
             return false;
         }
-        _current++;
+        current++;
         return true;
     }
 
-    private char Advance()
-    {
-        return _source[_current++];
-    }
+    private char Advance() => _source[current++];
 
 
-    private void AddToken(TokenType type)
-    {
-        AddToken(type, null);
-    }
+    private void AddToken(TokenType type) => AddToken(type, null);
 
     private void AddToken(TokenType type, object? literal)
     {
-        string text = _source[start.._current];
+        string text = _source[start..current];
         tokens.Add(new Token(type, text, literal, line));
     }
+
+    private void Error(int line, string msg) => errors.Add(new(line, msg));
 }

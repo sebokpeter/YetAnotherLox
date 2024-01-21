@@ -22,7 +22,7 @@ class CA {
     }
 
     display() {
-        foreach(var cell in this.cells) {
+        foreach(cell in this.cells) {
             if(cell == 1) {
                 write("*");
             } else {

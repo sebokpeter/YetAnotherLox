@@ -103,9 +103,9 @@ class Grid {
     }
 
     display() {
-        foreach(var row in this.grid) {
+        foreach(row in this.grid) {
             var line = "";
-            foreach(var cell in row) {
+            foreach(cell in row) {
                 line += cell.toString();
             }
             print line;

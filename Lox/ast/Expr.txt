@@ -1,16 +1,16 @@
-Assign      : Lox.Token name, Expr value
-Binary      : Expr left, Lox.Token operator, Expr right
-Call        : Expr callee, Lox.Token paren, List<Expr> arguments
-Get         : Expr obj, Lox.Token name
+Assign      : Shared.Token name, Expr value
+Binary      : Expr left, Shared.Token operator, Expr right
+Call        : Expr callee, Shared.Token paren, List<Expr> arguments
+Get         : Expr obj, Shared.Token name
 Grouping    : Expr expression
 Literal     : object? value
-Logical     : Expr left, Lox.Token oper, Expr right
-Set         : Expr obj, Lox.Token name, Expr value
-Super       : Lox.Token keyword, Lox.Token method
-This        : Lox.Token keyword
-Unary       : Lox.Token operator, Expr right
-Variable    : Lox.Token name
-Array       : Lox.Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
-ArrayAccess : Expr target, Lox.Token bracket, Expr index
-ArrayAssign : Expr target, Lox.Token bracket, Expr index, Expr value
-Postfix     : Expr obj, Lox.Token operator
+Logical     : Expr left, Shared.Token oper, Expr right
+Set         : Expr obj, Shared.Token name, Expr value
+Super       : Shared.Token keyword, Shared.Token method
+This        : Shared.Token keyword
+Unary       : Shared.Token operator, Expr right
+Variable    : Shared.Token name
+Array       : Shared.Token bracket, List<Expr>? initializers, Expr? defaultValue, Expr? defaultValueCount
+ArrayAccess : Expr target, Shared.Token bracket, Expr index
+ArrayAssign : Expr target, Shared.Token bracket, Expr index, Expr value
+Postfix     : Expr obj, Shared.Token operator

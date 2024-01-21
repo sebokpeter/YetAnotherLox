@@ -22,6 +22,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\AstGenerator\AstGenerator.csproj" OutputItemType="Analyzer"/>
+    <ProjectReference Include="..\AstGenerator\AstGenerator.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Frontend\Frontend.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-namespace Lox;
+namespace Shared;
 
 public class Token {
     readonly TokenType _type;

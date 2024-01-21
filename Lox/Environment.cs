@@ -1,5 +1,5 @@
+using Shared;
 using Lox.Interpreter;
-using Lox;
 
 internal class Environment
 {

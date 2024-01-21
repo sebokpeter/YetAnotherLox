@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lox", "Lox\Lox.csproj", "{A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstGenerator", "AstGenerator\AstGenerator.csproj", "{443071EC-26EA-4338-9828-C1903C2256A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend", "Frontend\Frontend.csproj", "{FD4423BF-FA11-4995-BED7-221A99AFD892}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{EE6DB1DE-46C8-4A03-A5A2-9943FC0AD58E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,5 +32,17 @@ Global
 		{443071EC-26EA-4338-9828-C1903C2256A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{443071EC-26EA-4338-9828-C1903C2256A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{443071EC-26EA-4338-9828-C1903C2256A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6A1261E-1343-43AF-941F-417425DF118F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6A1261E-1343-43AF-941F-417425DF118F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6A1261E-1343-43AF-941F-417425DF118F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6A1261E-1343-43AF-941F-417425DF118F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD4423BF-FA11-4995-BED7-221A99AFD892}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD4423BF-FA11-4995-BED7-221A99AFD892}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD4423BF-FA11-4995-BED7-221A99AFD892}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD4423BF-FA11-4995-BED7-221A99AFD892}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE6DB1DE-46C8-4A03-A5A2-9943FC0AD58E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE6DB1DE-46C8-4A03-A5A2-9943FC0AD58E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE6DB1DE-46C8-4A03-A5A2-9943FC0AD58E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE6DB1DE-46C8-4A03-A5A2-9943FC0AD58E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,6 @@
 using Generated;
-using static Lox.TokenType;
+using Shared;
+using static Shared.TokenType;
 
 namespace Lox.Interpreter;
 

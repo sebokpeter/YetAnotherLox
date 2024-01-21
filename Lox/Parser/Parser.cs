@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Generated;
-using static Lox.TokenType;
+using Shared;
+using static Shared.TokenType;
 
 namespace Lox.Parser;
 
