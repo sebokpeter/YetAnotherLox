@@ -14,12 +14,12 @@ public class Lox
 
     protected internal static void Main(string[] args)
     {
-        if (args.Length > 1)
+        if(args.Length > 1)
         {
             Console.Error.WriteLine("Usage: cslox [script]");
             System.Environment.Exit(64);
         }
-        else if (args.Length == 1)
+        else if(args.Length == 1)
         {
             RunFile(args[0]);
         }
@@ -31,11 +31,11 @@ public class Lox
 
     private static void RunPrompt()
     {
-        while (true)
+        while(true)
         {
             Console.Write("> ");
             string? line = Console.ReadLine();
-            if (line is null) break;
+            if(line is null) break;
             Run(line);
             _hadError = false;
         }
@@ -45,8 +45,8 @@ public class Lox
     {
         string file = File.ReadAllText(filePath);
         Run(file);
-        if (_hadError) System.Environment.Exit(64);
-        if (_hadRuntimeError) System.Environment.Exit(70);
+        if(_hadError) System.Environment.Exit(64);
+        if(_hadRuntimeError) System.Environment.Exit(70);
     }
 
     private static void Run(string source)
@@ -54,15 +54,21 @@ public class Lox
         Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
 
+        if(scanner.HadError)
+        {
+            scanner.Errors.ForEach(err => Error(err.Line, err.Message));
+            return;
+        }
+
         Parser.Parser parser = new(tokens);
         List<Stmt> statements = parser.Parse();
 
-        if (_hadError) return;
+        if(_hadError) return;
 
         Resolver.Resolver resolver = new(_interpreter);
         resolver.Resolve(statements);
 
-        if (_hadError) return;
+        if(_hadError) return;
 
         _interpreter.Interpret(statements);
     }
@@ -74,7 +80,7 @@ public class Lox
 
     internal static void Error(Token token, string msg)
     {
-        if (token.Type == TokenType.EOF)
+        if(token.Type == TokenType.EOF)
         {
             Report(token.Line, " at end", msg);
         }
