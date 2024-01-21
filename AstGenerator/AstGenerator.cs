@@ -10,8 +10,8 @@ public class AstGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {   
         // Could split each file into individual lines, which might help the caching
-        // But the generator should only be re-run if one of the .txt files are modified (new Expr or Stmt added), which should happen rarely enough for performance to not be a problem
-        IncrementalValuesProvider<AdditionalText> text = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
+        // But the generator should only be re-run if one of the .ast files are modified (new Expr or Stmt added), which should happen rarely enough for performance to not be a problem
+        IncrementalValuesProvider<AdditionalText> text = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".ast"));
         IncrementalValuesProvider<(string name, string content)> namesAndContents = text.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString().Trim()));
 
         context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) => {

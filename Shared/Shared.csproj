@@ -6,4 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+  
+  <ItemGroup>
+      <ProjectReference Include="..\AstGenerator\AstGenerator.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../ASTNodes/*.ast" />
+  </ItemGroup>
+
 </Project>

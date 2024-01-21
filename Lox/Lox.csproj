@@ -11,18 +11,8 @@
   <PropertyGroup>
     <AssemblyName>cslox</AssemblyName>
 </PropertyGroup>
-
-
-  <PropertyGroup>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-  </PropertyGroup>
   
   <ItemGroup>
-    <AdditionalFiles Include="ast/*.txt" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\AstGenerator\AstGenerator.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\Frontend\Frontend.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

@@ -1,7 +1,8 @@
 ﻿using Frontend.Scanner;
 using Lox.Interpreter;
-using Generated;
 using Shared;
+using Generated;
+using Frontend.Parser;
 
 namespace Lox;
 
@@ -51,17 +52,7 @@ public class Lox
 
     private static void Run(string source)
     {
-        Scanner scanner = new(source);
-        List<Token> tokens = scanner.ScanTokens();
-
-        if(scanner.HadError)
-        {
-            scanner.Errors.ForEach(err => Error(err.Line, err.Message));
-            return;
-        }
-
-        Parser.Parser parser = new(tokens);
-        List<Stmt> statements = parser.Parse();
+        List<Stmt> statements = ScanAndParse(source);
 
         if(_hadError) return;
 
@@ -71,6 +62,34 @@ public class Lox
         if(_hadError) return;
 
         _interpreter.Interpret(statements);
+    }
+
+    private static List<Stmt> ScanAndParse(string source)
+    {
+        // Keep scanning and parsing passes as separate, instead of combining them in the Frontend, so we can report an error after each step, and stop the compilation/execution.
+        Scanner scanner = new(source);
+        List<Token> tokens = scanner.ScanTokens();
+
+        if(scanner.HadError)
+        {
+            foreach(ScannerError scannerError in scanner.Errors) 
+            {
+                Error(scannerError.Line, scannerError.Message);
+            }
+        }
+
+        Parser parser = new(tokens);
+        List<Stmt> statements = parser.Parse();
+
+        if(parser.HadError)
+        {
+            foreach(ParseError parseError in parser.Errors)
+            {
+                Error(parseError.Token, parseError.Message);
+            }
+        }
+
+        return statements;
     }
 
     internal static void Error(int line, string msg)

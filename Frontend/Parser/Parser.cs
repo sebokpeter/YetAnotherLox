@@ -1,12 +1,16 @@
 using System.Diagnostics;
-using Generated;
 using Shared;
+using Generated;
 using static Shared.TokenType;
 
-namespace Lox.Parser;
+namespace Frontend.Parser;
 
-internal class Parser
+public class Parser
 {
+    public bool HadError => _errors.Count > 0;
+    public IEnumerable<ParseError> Errors => _errors; 
+
+    private readonly List<ParseError> _errors;
     private readonly List<Token> _tokens;
     private int _current = 0;
 
@@ -15,6 +19,7 @@ internal class Parser
 
     public Parser(List<Token> tokens)
     {
+        _errors = [];
         _tokens = tokens;
     }
 
@@ -412,7 +417,7 @@ internal class Parser
     /// <param name="pos">A token that is used when reporting an error.</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
-    private static Expr CopyCollectionExpr(Expr collection, int line, Token pos)
+    private Expr CopyCollectionExpr(Expr collection, int line, Token pos)
     {
         if(collection is Expr.Variable var)
         {
@@ -930,9 +935,9 @@ internal class Parser
         return _tokens[_current - 1];
     }
 
-    private static ParseException Error(Token token, string msg)
+    private ParseException Error(Token token, string msg)
     {
-        Lox.Error(token, msg);
+        _errors.Add(new(token, msg));
         return new ParseException();
     }
 

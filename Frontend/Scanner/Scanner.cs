@@ -6,8 +6,8 @@ namespace Frontend.Scanner;
 
 public class Scanner
 {
-    public bool HadError => errors.Any(); 
-    public List<ScannerError> Errors => errors;
+    public bool HadError => errors.Count != 0; 
+    public IEnumerable<ScannerError> Errors => errors;
 
     private readonly string _source;
     private readonly List<Token> tokens = [];

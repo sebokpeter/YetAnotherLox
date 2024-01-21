@@ -1,4 +1,4 @@
-namespace Lox.Parser;
+namespace Frontend.Parser;
 
 internal class ParseException : Exception
 {
