@@ -182,6 +182,7 @@ public class Scanner
     {
 
         int nestingLevel = 1;
+        int startLine = line;
 
         // This will try to consume all '/*' '*/' pairs. If it gets to the end, and the nesting level is greater than 0, then there is 
         // at least one opening '/*' that is not matched.
@@ -215,7 +216,7 @@ public class Scanner
 
         if(nestingLevel > 0)
         {
-            Error(line, "Unterminated multiline comment.");
+            Error(startLine, "Unterminated multiline comment.");
         }
     }
 
