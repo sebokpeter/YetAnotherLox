@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Shared;
 
-namespace Frontend.Test;
+namespace Frontend.Test.Scanner;
 
 /// <summary>
 /// Unit tests for the <see cref="Scanner">.
@@ -13,7 +13,7 @@ public class ScannerTests
     public void EmptyString_Returns_IEnumerable_Containing_EoFToken()
     {
         string source = String.Empty;
-        Scanner.Scanner scanner = new(source);
+        Frontend.Scanner.Scanner scanner = new(source);
 
         IEnumerable<Token> tokens = scanner.ScanTokens();
 

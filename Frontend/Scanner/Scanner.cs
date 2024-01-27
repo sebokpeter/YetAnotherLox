@@ -295,7 +295,7 @@ public class Scanner
 
         if (IsAtEnd())
         {
-            Error(line, "Unterminated string");
+            Error(line, "Unterminated string.");
             return;
         }
 
