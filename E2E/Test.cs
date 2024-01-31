@@ -16,14 +16,15 @@ namespace E2E;
 /// </summary>
 public sealed partial class Test // TODO: error messages
 {   
+    public bool Success => _errors.Count == 0;
+    public IEnumerable<string> Errors => _errors.AsEnumerable(); // Just use strings for now. TODO: Create an Error object for better reporting
+
     private const int TimeoutMS = 5000; // 5 seconds
 
+    private readonly List<string> _errors = [];
     private readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
-    
     private readonly string _testScriptPath;
-
-    // The sequence of strings that the test script should print to the console.
-    private readonly IEnumerable<string> _expectedResults;
+    private readonly IEnumerable<string> _expectedResults;     // The sequence of strings that the test script should print to the console.
 
     [GeneratedRegex("Expect: (?<expected>.*)$")]
     private static partial Regex ExpectedOutputRegex();
@@ -47,21 +48,41 @@ public sealed partial class Test // TODO: error messages
                                       .Select(line => ExpectedOutputRegex().Match(line).Groups["expected"].Value);
     }
 
-    public bool Run()
+    public void Run()
     {
         Process lox = GetLoxProcess();
- 
+
         lox.Start();
         bool exited = lox.WaitForExit(TimeoutMS); // Arbitrarily wait 5 seconds for the script to run 
 
-        if(!exited) 
+        if(!exited)
         {
-            return false;
+            _errors.Add($"Script did not finish in {TimeoutMS} milliseconds.");
+            return;
         }
 
         IEnumerable<string> resultLines = lox.StandardOutput.ReadToEnd().Split('\n').Where(line => !String.IsNullOrWhiteSpace(line));
+        
+        CheckErrors(resultLines);
+    }
 
-        return resultLines.SequenceEqual(_expectedResults);
+    private void CheckErrors(IEnumerable<string> resultLines)
+    {
+        if(resultLines.Count() != _expectedResults.Count())
+        {
+            _errors.Add($"Expected {_expectedResults.Count()} results but got {resultLines.Count()}.");
+            return;
+        }
+
+        int i = 1;
+        foreach(var (result, expected) in resultLines.Zip(_expectedResults))
+        {
+            if(result != expected)
+            {
+                _errors.Add($"Expected '{expected}' but got '{result}' (position {i}).");
+            }
+            i++;
+        }
     }
 
     private Process GetLoxProcess()

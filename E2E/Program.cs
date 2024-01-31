@@ -8,10 +8,16 @@ public class Program
 
         Test t = new("E2E/scripts/addition.lox");
 
-        if(!t.Run()) 
+        t.Run();
+
+        if(!t.Success) 
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine("Failure");
+            foreach (string error in t.Errors)
+            {
+                Console.WriteLine($" {error}");
+            }
             Console.ForegroundColor = defaultColor;
         } 
         else 
