@@ -4,8 +4,21 @@ public class Program
 {
     public static void Main()
     {
-        Test t = new();
+        ConsoleColor defaultColor = Console.ForegroundColor;
 
-        t.Run();
+        Test t = new("E2E/scripts/addition.lox");
+
+        if(!t.Run()) 
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine("Failure");
+            Console.ForegroundColor = defaultColor;
+        } 
+        else 
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Success");
+            Console.ForegroundColor = defaultColor;
+        };
     }
 }
