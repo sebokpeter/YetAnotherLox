@@ -23,16 +23,24 @@ public sealed partial class Test
     private const int TimeoutMS = 5000; // 5 seconds
 
     private readonly List<string> _errors = [];
+    private readonly List<string> _results = []; 
     private readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
     private readonly string _testScriptPath;
     private readonly string _scriptName;
     private readonly IEnumerable<string> _expectedResults;     // The sequence of strings that the test script should print to the console.
 
-    [GeneratedRegex("Expect: (?<expected>.*)$")]
+    [GeneratedRegex("Expect( runtime error)?: (?<expected>.*)$")]
     private static partial Regex ExpectedOutputRegex();
 
     /// <summary>
     /// Construct a new Test object.
+    /// This object is responsible for parsing the test script for the expected results, running the script, and verifying that the output of the script matches the expected results.
+    /// 
+    /// To indicate an expected value in the test script, use the following syntax: // Expect: expected_value
+    /// Any number of expected results can be indicated.
+    /// 
+    /// To indicate an expected runtime error in the test script, use the following syntax: // Expect runtime error: runtime_error_message
+    /// Since a runtime error terminates the script, only one runtime error should be expected.
     /// </summary>
     /// <param name="testScriptPath">The path of the .lox script that will be run by this <see cref="Test"/>.</param>
     public Test(string testScriptPath)
@@ -56,6 +64,9 @@ public sealed partial class Test
         Process lox = GetLoxProcess();
 
         lox.Start();
+        lox.BeginOutputReadLine();
+        lox.BeginErrorReadLine();
+
         bool exited = lox.WaitForExit(TimeoutMS); // Arbitrarily wait 5 seconds for the script to run 
 
         if(!exited)
@@ -64,9 +75,7 @@ public sealed partial class Test
             return;
         }
 
-        IEnumerable<string> resultLines = lox.StandardOutput.ReadToEnd().Split('\n').Where(line => !String.IsNullOrWhiteSpace(line));
-        
-        CheckErrors(resultLines);
+        CheckErrors(_results);
     }
 
     private void CheckErrors(IEnumerable<string> resultLines)
@@ -93,7 +102,25 @@ public sealed partial class Test
         Process lox = new();
 
         lox.StartInfo.RedirectStandardOutput = true;
+        lox.StartInfo.RedirectStandardError = true;
         lox.StartInfo.UseShellExecute = false;
+
+        // Use OutputDataReceived and ErrorDataReceived to save data written to the standard and error output streams. 
+        // This means that the list '_results' will contain the output of the process in order, making the comparison with the expected values easy.
+
+        lox.OutputDataReceived += new DataReceivedEventHandler((sender, e) => {
+            if(!String.IsNullOrWhiteSpace(e.Data))
+            {
+                _results.Add(e.Data);
+            }
+        });
+
+        lox.ErrorDataReceived += new DataReceivedEventHandler((sender, e) => {
+            if(!String.IsNullOrWhiteSpace(e.Data))
+            {
+                _results.Add(e.Data);
+            }
+        });
 
         lox.StartInfo.FileName = _interpreterPath;
         lox.StartInfo.ArgumentList.Add(_testScriptPath);

@@ -1,3 +1,4 @@
 print 10/2;  // Expect: 5
 print 100/2; // Expect: 50
 print 50/4;  // Expect: 12.5
+print 1/0;   // Expect runtime error: Attempted division by zero. [line 4]
