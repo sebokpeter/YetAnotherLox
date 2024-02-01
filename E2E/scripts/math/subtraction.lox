@@ -1,0 +1,3 @@
+print 0 - 0; // Expect: 0
+print 10 - 0; // Expect: 10
+print 10 - 100; // Expect: -90
