@@ -14,8 +14,9 @@ namespace E2E;
 /// - Retrieving the results of the run.
 /// - Ensuring that the results match the expected values.
 /// </summary>
-public sealed partial class Test // TODO: error messages
+public sealed partial class Test
 {   
+    public string Name => _scriptName;
     public bool Success => _errors.Count == 0;
     public IEnumerable<string> Errors => _errors.AsEnumerable(); // Just use strings for now. TODO: Create an Error object for better reporting
 
@@ -24,6 +25,7 @@ public sealed partial class Test // TODO: error messages
     private readonly List<string> _errors = [];
     private readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
     private readonly string _testScriptPath;
+    private readonly string _scriptName;
     private readonly IEnumerable<string> _expectedResults;     // The sequence of strings that the test script should print to the console.
 
     [GeneratedRegex("Expect: (?<expected>.*)$")]
@@ -41,6 +43,7 @@ public sealed partial class Test // TODO: error messages
         }
 
         _testScriptPath = testScriptPath;
+        _scriptName = Path.GetFileNameWithoutExtension(testScriptPath);
 
         string[] sourceLines = File.ReadAllLines(testScriptPath);
         
