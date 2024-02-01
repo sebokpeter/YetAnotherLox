@@ -305,6 +305,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
                 return (double)left - (double)right;
             case SLASH:
                 CheckNumberOperands(expr.Operator, left, right);
+                if((double)right == 0.0d || (double)right == double.NegativeZero)
+                {
+                    throw new RuntimeException(expr.Operator, "Attempted division by zero.");
+                }
                 return (double)left / (double)right;
             case STAR:
                 CheckNumberOperands(expr.Operator, left, right);
