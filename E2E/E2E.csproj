@@ -7,11 +7,9 @@
     
     <OutputType>exe</OutputType>
     <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Lox\Lox.csproj" />
   </ItemGroup>
-
 </Project>
