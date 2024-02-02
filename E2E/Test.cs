@@ -5,12 +5,25 @@ namespace E2E;
 
 abstract partial class Test
 {
+    /// <summary>
+    /// The name of the test case. Usually the name of the test .lox script (e.g. if the script is 'addition.lox', the <see cref="Name"/> will be 'addition')
+    /// </summary>
     public virtual string Name { get; private set; }
+
+    /// <summary>
+    /// True if all outputs match the expected values, false otherwise.
+    /// </summary>
     public virtual bool Success => _errors.Count == 0;
-    public virtual IEnumerable<string> Errors => _errors.AsEnumerable(); // Just use strings for now. TODO: Create an Error object for better reporting
+
+    /// <summary>
+    /// An <see cref="IEnumerable{string}"/>, containing the error encountered. 
+    /// Note that not it may not contain all errors, if, for example, one of the errors caused the test to return early (e.g. the script did not finish in <see cref="TimeoutMS"/> milliseconds);
+    /// TODO: Create an 'Error' class to better represent errors
+    /// </summary>
+    public virtual IEnumerable<string> Errors => _errors.AsEnumerable();
 
 
-    internal const int TimeoutMS = 5000;
+    internal const int TimeoutMS = 5000; // How long can an individual script/line run for.
 
     internal readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
 
@@ -35,7 +48,8 @@ abstract partial class Test
         Name = Path.GetFileNameWithoutExtension(scriptPath);
 
         _expectedResults = File.ReadAllLines(scriptPath).Where(line => ExpectedOutputRegex().IsMatch(line))
-                            .Select(line => ExpectedOutputRegex().Match(line).Groups["expected"].Value);
+                            .Select(line => ExpectedOutputRegex().Match(line).Groups["expected"].Value)
+                            .Select(expected => expected.Trim());
 
     }
 
@@ -73,12 +87,13 @@ abstract partial class Test
 
         // Use OutputDataReceived and ErrorDataReceived to save data written to the standard and error output streams. 
         // This means that the list '_results' will contain the output of the process in order, making the comparison with the expected values easy.
+        // Note, the string is trimmed before it is added to '_results', so whitespaces are disregarded. 
 
         lox.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
         {
             if(!String.IsNullOrWhiteSpace(e.Data))
             {
-                _results.Add(e.Data);
+                _results.Add(e.Data.Trim());
             }
         });
 
@@ -86,7 +101,7 @@ abstract partial class Test
         {
             if(!String.IsNullOrWhiteSpace(e.Data))
             {
-                _results.Add(e.Data);
+                _results.Add(e.Data.Trim());
             }
         });
 

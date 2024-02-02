@@ -39,9 +39,10 @@ sealed class LineTest : Test
         if(!exited)
         {
             _errors.Add($"Script ({Name}) did not finish in {TimeoutMS} milliseconds");
+            return;
         }
 
-        IEnumerable<string> trimmedResults = _results.Select(res => res.Replace("> ", "")).Where(res => !String.IsNullOrWhiteSpace(res));
+        IEnumerable<string> trimmedResults = _results.Select(res => res.Replace(">", "").Trim()).Where(res => !String.IsNullOrWhiteSpace(res));
 
         CheckErrors(trimmedResults);
     }

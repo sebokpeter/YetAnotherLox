@@ -6,12 +6,10 @@ public class Program
 {
     public static void Main()
     {
-        // TestSuite testSuite = new("E2E/scripts/math");
-        // testSuite.Run();
+        TestSuite math = new("E2E/scripts/math");
+        math.Run();
 
-        LineTest lineTest = new("E2E/scripts/math/addition.lox");
-        lineTest.Run();
-
-        Debugger.Break();
+        TestSuite str = new("E2E/scripts/string");
+        str.Run();
     }
 }
