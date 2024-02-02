@@ -8,7 +8,7 @@ namespace E2E;
 public class TestSuite
 {
     private readonly string _testSuitName;
-    private readonly List<Test> _tests;
+    private readonly List<ScriptTest> _tests;
 
     private readonly ConsoleColor _defaultForegroundColor;
 
@@ -24,7 +24,7 @@ public class TestSuite
 
         _testSuitName = Path.GetFileName(folder).TrimEnd(Path.DirectorySeparatorChar);
 
-        _tests = Directory.GetFiles(folder).Where(file => file.EndsWith(".lox")).Select(file => new Test(file)).ToList();
+        _tests = Directory.GetFiles(folder).Where(file => file.EndsWith(".lox")).Select(file => new ScriptTest(file)).ToList();
 
         _defaultForegroundColor = Console.ForegroundColor;
     }
@@ -32,7 +32,7 @@ public class TestSuite
     public void Run()
     {
         Console.WriteLine($"Running tests for '{_testSuitName}':");
-        foreach(Test test in _tests)
+        foreach(ScriptTest test in _tests)
         {
             test.Run();
             ReportTestResult(test);
@@ -40,7 +40,7 @@ public class TestSuite
         Console.WriteLine("-----------------------------");
     }
 
-    private void ReportTestResult(Test test)
+    private void ReportTestResult(ScriptTest test)
     {
         Console.Write($"\t{test.Name} - ");
 
