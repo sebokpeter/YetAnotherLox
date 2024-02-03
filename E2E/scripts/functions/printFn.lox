@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun foo() {}
+print foo; // Expect: <fn foo()>
+
+print clock; // Expect: <native fn clock()>
+
+fun bar(a, b) {} 
+print bar; // Expect: <fn bar(var, var)>
+
+print random; // Expect: <native fn random(var)>

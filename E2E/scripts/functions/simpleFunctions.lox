@@ -1,0 +1,15 @@
+fun add(a, b) {
+    return a + b;
+}
+
+fun div(a, b) {
+    return a / b;
+}
+
+print add(1, 2); // Expect: 3
+print div(10, 5); // Expect: 2
+
+print add(2, 2) == 2 + 2; // Expect: True
+print div(2, 2) == 2 / 2; // Expect: True
+
+print div(2, 0); // Expect runtime error: Attempted division by zero. [line 15]

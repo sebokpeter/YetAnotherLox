@@ -1,0 +1,13 @@
+// Test case is from the Crafting Interpreters book repo
+
+var f;
+
+fun foo(param) {
+  fun f_() {
+    print param;
+  }
+  f = f_;
+}
+foo("param");
+
+f(); // Expect: param

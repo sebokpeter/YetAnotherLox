@@ -1,0 +1,28 @@
+fun makeOtherFun() {
+    var internal = 0;
+
+    fun counter() {
+        internal = internal + 1;
+        return internal;
+    }
+
+    return counter;
+}
+
+var counter = makeOtherFun();
+
+print counter(); // Expect: 1
+print counter(); // Expect: 2
+
+counter();
+counter();
+print counter(); // Expect: 5
+
+counter = makeOtherFun();
+print counter(); // Expect: 1
+
+for(var i = 0; i < 100; i = i + 1) {
+    counter();
+}
+
+print counter(); // Expect: 102

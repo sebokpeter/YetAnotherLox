@@ -1,0 +1,15 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "global";
+
+{
+  fun assign() {
+    a = "assigned";
+  }
+
+  var a = "inner";
+  assign();
+  print a; // Expect: inner
+}
+
+print a; // Expect: assigned
