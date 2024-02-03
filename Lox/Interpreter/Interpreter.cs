@@ -424,7 +424,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             return function.Call(this, arguments)!;
         }
-        catch(Exception ex) when(ex is not RuntimeException)
+        catch(RuntimeException runtimeEx) // Catch (and rethrow and throw a new) RuntimeExceptions, so we can report the correct line number (the line where the failing function was called, not where it was declared)
+        {
+            throw new RuntimeException(expr.Paren, runtimeEx.Message);
+        }
+        catch(Exception ex)
         {
             throw new RuntimeException(expr.Paren, ex.Message);
         }
