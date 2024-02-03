@@ -6,10 +6,23 @@ public class Program
 {
     public static void Main()
     {
-        TestSuite math = new("E2E/scripts/math");
-        math.Run();
+        IEnumerable<TestSuite> tests = CreateTests("E2E/scripts");
 
-        TestSuite str = new("E2E/scripts/string");
-        str.Run();
+        foreach(TestSuite test in tests)
+        {
+            test.Run();
+        }
+    }
+
+    private static IEnumerable<TestSuite> CreateTests(string testFolder)
+    {
+        if(!Directory.Exists(testFolder))
+        {
+            throw new ArgumentException($"Directory {testFolder} does not exists!", nameof(testFolder));
+        }
+
+        string[] subDirectories = Directory.GetDirectories(testFolder);
+    
+        return subDirectories.Select(dir => new TestSuite(dir));
     }
 }
