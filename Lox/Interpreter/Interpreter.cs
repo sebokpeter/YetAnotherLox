@@ -330,6 +330,8 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
                 return (double)left <= (double)right;
             case EQUAL_EQUAL:
                 return IsEqual(left, right);
+            case BANG_EQUAL:
+                return !IsEqual(left, right);
             case PLUS:
                 return Plus(left, right);
         }
@@ -424,7 +426,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             return function.Call(this, arguments)!;
         }
-        catch(RuntimeException runtimeEx) // Catch (and rethrow and throw a new) RuntimeExceptions, so we can report the correct line number (the line where the failing function was called, not where it was declared)
+        catch(RuntimeException runtimeEx) // Catch (and throw a new) RuntimeExceptions, so we can report the correct line number (the line where the failing function was called, not where it was declared)
         {
             throw new RuntimeException(expr.Paren, runtimeEx.Message);
         }
