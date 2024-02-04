@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  Foo() {
+    this = "value"; // Expect: [line 5] Error at '=': Invalid assignment target.
+  }
+}
+
+Foo();

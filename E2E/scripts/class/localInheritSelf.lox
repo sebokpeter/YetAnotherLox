@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+{
+  class Foo < Foo {} // Expect: [line 4] Error at 'Foo': A class can't inherit from itself.
+}

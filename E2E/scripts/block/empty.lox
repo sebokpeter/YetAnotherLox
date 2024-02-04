@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+{} // By itself.
+
+// In a statement.
+if (true) {}
+if (false) {} else {}
+
+print "ok"; // Expect: ok

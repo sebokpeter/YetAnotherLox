@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+print !true;    // Expect: False
+print !false;   // Expect: True
+print !!true;   // Expect: True

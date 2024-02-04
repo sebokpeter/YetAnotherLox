@@ -1,0 +1,6 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "before";
+var c = a = "var";
+print a; // Expect: var
+print c; // Expect: var

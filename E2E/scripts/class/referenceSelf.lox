@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  returnSelf() {
+    return Foo;
+  }
+}
+
+print Foo().returnSelf(); // Expect: <class Foo()>

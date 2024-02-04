@@ -1,0 +1,24 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  inFoo() {
+    print "in foo";
+  }
+}
+
+class Bar < Foo {
+  inBar() {
+    print "in bar";
+  }
+}
+
+class Baz < Bar {
+  inBaz() {
+    print "in baz";
+  }
+}
+
+var baz = Baz();
+baz.inFoo(); // Expect: in foo
+baz.inBar(); // Expect: in bar
+baz.inBaz(); // Expect: in baz

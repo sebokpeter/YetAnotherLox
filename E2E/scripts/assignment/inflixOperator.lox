@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "a";
+var b = "b";
+a + b = "value"; // Expect: [line 5] Error at '=': Invalid assignment target.

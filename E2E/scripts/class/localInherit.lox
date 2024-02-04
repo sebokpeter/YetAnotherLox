@@ -1,0 +1,10 @@
+// Test case is from the Crafting Interpreters book repo
+
+class A {}
+
+fun f() {
+  class B < A {}
+  return B;
+}
+
+print f(); // Expect: <class B()> 

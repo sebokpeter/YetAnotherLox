@@ -1,0 +1,25 @@
+// Test case is from the Crafting Interpreters book repo
+
+print true == true;    // Expect: True
+print true == false;   // Expect: False
+print false == true;   // Expect: False
+print false == false;  // Expect: True
+
+// Not equal to other types.
+print true == 1;        // Expect: False
+print false == 0;       // Expect: False
+print true == "true";   // Expect: False
+print false == "false"; // Expect: False
+print false == "";      // Expect: False
+
+print true != true;    // Expect: False
+print true != false;   // Expect: True
+print false != true;   // Expect: True
+print false != false;  // Expect: False
+
+// Not equal to other types.
+print true != 1;        // Expect: True
+print false != 0;       // Expect: True
+print true != "true";   // Expect: True
+print false != "false"; // Expect: True
+print false != "";      // Expect: True

@@ -580,7 +580,7 @@ public class Parser
                 return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Index, value);
             }
 
-            Error(equals, "Invalid assignment target");
+            Error(equals, "Invalid assignment target.");
         }
 
         return expr;

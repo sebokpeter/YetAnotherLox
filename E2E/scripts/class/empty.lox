@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+
+print Foo; // Expect: <class Foo()>

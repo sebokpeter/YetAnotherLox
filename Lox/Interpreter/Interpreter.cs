@@ -414,7 +414,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         if(callee is not ILoxCallable function)
         {
-            throw new RuntimeException(expr.Paren, "Can only call functions and classes");
+            throw new RuntimeException(expr.Paren, "Can only call functions and classes.");
         }
 
         if(arguments.Count != function.Arity)

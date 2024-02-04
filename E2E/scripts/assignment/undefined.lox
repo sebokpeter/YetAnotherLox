@@ -1,0 +1,3 @@
+// Test case is from the Crafting Interpreters book repo
+
+unknown = "what"; // Expect runtime error: Undefined variable 'unknown'. [line 3]
