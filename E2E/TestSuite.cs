@@ -56,35 +56,37 @@ public class TestSuite
 
     public void Run()
     {
-        Console.WriteLine($"Running tests for '{_testSuitName}':");
         foreach(Test test in _tests)
         {
             test.Run();
-            ReportTestResult(test);
         }
-        Console.WriteLine("-----------------------------");
         _alreadyRun = true;
     }
 
-    private static void ReportTestResult(Test test)
+    public void ReportTestsResult()
     {
-        Console.Write($"\t{test.Name} - ");
+        Console.WriteLine("----------------------------------");
+        Console.WriteLine($"'{_testSuitName}' tests:");
 
-        if(test.Success)
+        foreach (Test test in _tests)
         {
-            Utilities.WriteToConsoleWithColor(SuccessColor, "Ok");
-        }
-        else
-        {
-            Utilities.WriteToConsoleWithColor(FailureColor, () =>
+            Console.Write($"\t{test.Name} - ");
+
+            if(test.Success)
             {
-                Console.WriteLine("Failed");
+                Utilities.WriteToConsoleWithColor(SuccessColor, "Ok");
+            }
+            else
+            {
+                Utilities.WriteToConsoleWithColor(FailureColor, () => {
+                    Console.WriteLine("Failed");
 
-                foreach(string err in test.Errors)
-                {
-                    Console.WriteLine($"\t\t{err}");
-                }
-            });
+                    foreach (string err in test.Errors)
+                    {
+                        Console.WriteLine($"\t\t{err}");
+                    }
+                });
+            }
         }
     }
 }

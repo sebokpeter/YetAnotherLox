@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace E2E;
@@ -13,14 +14,19 @@ public class Program
 
     private static void RunTest(IEnumerable<TestSuite> tests)
     {
-        TestSuite[] testSuites = tests.ToArray(); // Materialize the collection, so that when test suites run, their updated status is saved
+        ConcurrentBag<TestSuite> testSuites = new(tests);
 
         Stopwatch sw = Stopwatch.StartNew();
-        foreach(TestSuite test in testSuites)
-        {
+        Parallel.ForEach(testSuites, test => {
             test.Run();
+        });
+        sw.Stop();
+
+        foreach (TestSuite test in testSuites)
+        {
+            test.ReportTestsResult();
         }
-        sw.Stop(); // Not great, since also includes time spent Console IO
+
         Console.WriteLine($"\nTests took {sw.ElapsedMilliseconds} milliseconds.");
 
         DisplayOverallResult(testSuites);
@@ -36,6 +42,7 @@ public class Program
         } 
         else 
         {
+            // TODO: report individual failed tests, instead of test suites.
             IEnumerable<TestSuite> failed = tests.Where(t => !t.AllSuccessful);
 
             Utilities.WriteToConsoleWithColor(ConsoleColor.Red, () => {
