@@ -17,6 +17,7 @@ sealed class LineTest : Test
     public LineTest(string testScriptPath) : base(testScriptPath)
     {
         _lines = File.ReadAllLines(testScriptPath);
+        Name = Name.Replace(".line", "");
     }
 
     public override void Run()

@@ -8,7 +8,7 @@ abstract partial class Test
     /// <summary>
     /// The name of the test case. Usually the name of the test .lox script (e.g. if the script is 'addition.lox', the <see cref="Name"/> will be 'addition')
     /// </summary>
-    public virtual string Name { get; private set; }
+    public virtual string Name { get; protected set; }
 
     /// <summary>
     /// True if all outputs match the expected values, false otherwise.
