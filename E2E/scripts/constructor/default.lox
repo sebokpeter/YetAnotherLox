@@ -1,0 +1,6 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+
+var foo = Foo();
+print foo; // Expect: <Foo instance>

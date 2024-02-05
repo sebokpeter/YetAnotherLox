@@ -1,0 +1,7 @@
+static class Static {
+    static foo() {
+        print "Static foo";
+    }
+}
+
+Static.foo(); // Expect: Static foo

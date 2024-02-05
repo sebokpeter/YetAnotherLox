@@ -1,0 +1,18 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  init(arg) {
+    print "Foo.init(" + arg + ")";
+    this.field = "init";
+  }
+}
+
+
+var foo = Foo("one"); // Expect: Foo.init(one)
+foo.field = "field";
+
+var foo2 = foo.init("two"); // Expect: Foo.init(two)
+print foo2; // Expect: <Foo instance>
+
+// Make sure init() doesn't create a fresh instance.
+print foo.field; // Expect: init

@@ -1,0 +1,7 @@
+class ClassWithStaticMembers {
+    static foo() {
+        print "Static foo";
+    }
+}
+
+ClassWithStaticMembers.foo(); // Expect: Static foo

@@ -1,0 +1,5 @@
+static class Static {
+    foo() { // Expect: [line 2] Error at 'foo': A static class may only contain static methods.
+        print "Instance foo";
+    }
+}

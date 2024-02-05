@@ -1,0 +1,14 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  init(arg) {
+    print "Foo.init(" + arg + ")";
+    this.field = "init";
+  }
+}
+
+fun init() {
+  print "not initializer";
+}
+
+init(); // Expect: not initializer

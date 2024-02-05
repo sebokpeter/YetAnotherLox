@@ -1,0 +1,9 @@
+class ClassWithStaticMembers {
+    static foo() {
+        print "Static foo";
+    }
+}
+
+var c = ClassWithStaticMembers();
+
+c.foo(); // Expect runtime error: Static method 'foo' cannot be called on an instance. [line 9]

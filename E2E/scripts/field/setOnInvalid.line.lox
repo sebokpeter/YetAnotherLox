@@ -1,0 +1,7 @@
+// Test cases are from the Crafting Interpreters book repo
+
+true.foo = "value"; // Expect runtime error: Only instances have fields. [line 1]
+fun foo() {} foo.bar = "val"; // Expect runtime error: Only instances have fields. [line 1]
+nil.foo = "value"; // Expect runtime error: Only instances have fields. [line 1]
+123.foo = "value"; // Expect runtime error: Only instances have fields. [line 1]
+"str".foo = "value"; // Expect runtime error: Only instances have fields. [line 1]

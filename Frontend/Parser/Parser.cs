@@ -520,14 +520,14 @@ public class Parser
     private Stmt.Expression ExpressionStatement()
     {
         Expr value = Expression();
-        Consume(SEMICOLON, "Expect ';' after value");
+        Consume(SEMICOLON, "Expect ';' after expression.");
         return new Stmt.Expression(value);
     }
 
     private Stmt.Print PrintStatement()
     {
         Expr value = Expression();
-        Consume(SEMICOLON, "Expect ';' after value");
+        Consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
     }
 

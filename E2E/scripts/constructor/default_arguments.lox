@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+
+var foo = Foo(1, 2, 3); // Expect runtime error: Expected 0 arguments, but got 3. [line 5]

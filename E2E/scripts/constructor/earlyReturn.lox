@@ -1,0 +1,12 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  init() {
+    print "init";
+    return;
+    print "nope";
+  }
+}
+
+var foo = Foo(); // Expect: init
+print foo; // Expect: <Foo instance>

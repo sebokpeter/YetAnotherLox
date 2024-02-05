@@ -1,0 +1,10 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun f() {
+  for (;;) {
+    var i = "i";
+    return i;
+  }
+}
+
+print f(); // Expect: i

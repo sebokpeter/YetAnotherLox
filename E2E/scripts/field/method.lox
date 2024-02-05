@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  bar(arg) {
+    print arg;
+  }
+}
+
+var bar = Foo().bar;
+print "got method"; // Expect: got method
+bar("arg");          // Expect: arg

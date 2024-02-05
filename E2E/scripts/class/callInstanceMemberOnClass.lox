@@ -1,0 +1,7 @@
+class Class {
+    bar() {
+        print "Instance bar";
+    }
+}
+
+Class.bar(); // Expect runtime error: Class 'Class' has no static method named 'bar'. [line 7]

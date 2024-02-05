@@ -30,7 +30,7 @@ internal class LoxInstance
             return method.Bind(this);
         }
 
-        throw new RuntimeException(name, $"Undefined property: {name.Lexeme}.");
+        throw new RuntimeException(name, $"Undefined property: '{name.Lexeme}'.");
 
     }
 

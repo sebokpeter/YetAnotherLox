@@ -1,0 +1,10 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  init(a, b) {
+    this.a = a;
+    this.b = b;
+  }
+}
+
+var foo = Foo(1, 2, 3, 4); // Expect runtime error: Expected 2 arguments, but got 4. [line 10]

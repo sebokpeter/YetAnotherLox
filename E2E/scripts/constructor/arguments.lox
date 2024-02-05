@@ -1,0 +1,13 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  init(a, b) {
+    print "init"; // Expect: init
+    this.a = a;
+    this.b = b;
+  }
+}
+
+var foo = Foo(1, 2);
+print foo.a; // Expect: 1
+print foo.b; // Expect: 2
