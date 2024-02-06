@@ -177,12 +177,12 @@ public class Parser
         {
             do
             {
-                if(parameters.Count > 255)
+                if(parameters.Count >= 255)
                 {
-                    Error(Peek(), "Can't have more than 255 parameters");
+                    Error(Peek(), "Can't have more than 255 parameters.");
                 }
 
-                parameters.Add(Consume(IDENTIFIER, "Expect parameter name"));
+                parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
             } while(Match(COMMA));
         }
 
@@ -191,7 +191,7 @@ public class Parser
 
     private Stmt.Var VarDeclaration()
     {
-        Token name = Consume(IDENTIFIER, "Expect variable name");
+        Token name = Consume(IDENTIFIER, "Expect variable name.");
         Expr? initializer = null;
 
         if(Match(EQUAL))
@@ -199,7 +199,7 @@ public class Parser
             initializer = Expression();
         }
 
-        Consume(SEMICOLON, "Expect ';' after variable declaration");
+        Consume(SEMICOLON, "Expect ';' after variable declaration.");
         return new Stmt.Var(name, initializer);
     }
 
@@ -251,7 +251,7 @@ public class Parser
 
     private Stmt.For ForStatement()
     {
-        Consume(LEFT_PAREN, "Expect '(' after 'for'");
+        Consume(LEFT_PAREN, "Expect '(' after 'for'.");
 
         Stmt initializer;
         if(Match(SEMICOLON))
@@ -297,11 +297,11 @@ public class Parser
 
     private Stmt.While WhileStatement()
     {
-        Consume(LEFT_PAREN, "Expect '(' after 'while'");
+        Consume(LEFT_PAREN, "Expect '(' after 'while'.");
 
         Expr condition = Expression();
 
-        Consume(RIGHT_PAREN, "Expect ')' after condition");
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
 
         try
         {
@@ -323,7 +323,7 @@ public class Parser
 
         Token name = Consume(IDENTIFIER, "Expect identifier.");
 
-        Consume(IN, "Expect 'in' after name");
+        Consume(IN, "Expect 'in' after name.");
 
         Expr collectionExpr = Expression();
 
@@ -477,7 +477,7 @@ public class Parser
 
         if(_loopDepth == 0)
         {
-            throw Error(keyword, "Must be inside a loop to use 'break'");
+            throw Error(keyword, "Must be inside a loop to use 'break'.");
         }
 
         Consume(SEMICOLON, "Expect ';' after 'break'.");
@@ -495,15 +495,15 @@ public class Parser
             value = Expression();
         }
 
-        Consume(SEMICOLON, "Expect ';' after return value");
+        Consume(SEMICOLON, "Expect ';' after return value.");
         return new Stmt.Return(keyword, value);
     }
 
     private Stmt.If IfStatement()
     {
-        Consume(LEFT_PAREN, "Expect '(' after 'if'");
+        Consume(LEFT_PAREN, "Expect '(' after 'if'.");
         Expr condition = Expression();
-        Consume(RIGHT_PAREN, "Expect ')' after condition");
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
 
         Stmt thenBranch = Statement();
         Stmt elseBranch = null!;
@@ -540,7 +540,7 @@ public class Parser
             statements.Add(Declaration());
         }
 
-        Consume(RIGHT_BRACE, "Expect '}' after block");
+        Consume(RIGHT_BRACE, "Expect '}' after block.");
         return statements;
     }
 
@@ -756,7 +756,7 @@ public class Parser
         {
             do
             {
-                if(arguments.Count > 255)
+                if(arguments.Count >= 255)
                 {
                     throw Error(Peek(), "Can't have more than 255 arguments.");
                 }
