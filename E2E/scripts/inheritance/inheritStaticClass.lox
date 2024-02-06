@@ -1,0 +1,3 @@
+static class Static {}
+
+class NonStatic < Static {} // Expect: Superclass must be a (non-static) class. [line 3]

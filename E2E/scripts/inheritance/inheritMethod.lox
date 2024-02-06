@@ -1,0 +1,16 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  methodOnFoo() { print "foo"; }
+  override() { print "foo"; }
+}
+
+class Bar < Foo {
+  methodOnBar() { print "bar"; }
+  override() { print "bar"; }
+}
+
+var bar = Bar();
+bar.methodOnFoo(); // Expect: foo
+bar.methodOnBar(); // Expect: bar
+bar.override(); // Expect: bar

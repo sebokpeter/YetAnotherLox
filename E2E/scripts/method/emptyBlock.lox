@@ -1,0 +1,7 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  bar() {}
+}
+
+print Foo().bar(); // Expect: nil

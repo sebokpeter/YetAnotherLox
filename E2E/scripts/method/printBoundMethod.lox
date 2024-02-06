@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  method() { }
+  bar(a, b) {}
+}
+var foo = Foo();
+print foo.method; // Expect: <fn method()>
+print foo.bar; // Expect: <fn bar(var, var)>

@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+
+Foo().unknown(); // Expect runtime error: Undefined property: 'unknown'. [line 5]

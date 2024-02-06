@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+
+class Bar < (Foo) {} // Expect: [line 5] Error at '(': Expect superclass name.

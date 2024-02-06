@@ -1,0 +1,21 @@
+// Test case is from the Crafting Interpreters book repo
+
+// Note: These tests implicitly depend on ints being truthy.
+
+// Return the first true argument.
+print 1 or true; // Expect: 1
+print false or 1; // Expect: 1
+print false or false or true; // Expect: True
+
+// Return the last argument if all are false.
+print false or false; // Expect: False
+print false or false or false; // Expect: False
+
+// Short-circuit at the first true argument.
+var a = "before";
+var b = "before";
+(a = false) or
+    (b = true) or
+    (a = "bad");
+print a; // Expect: False
+print b; // Expect: True

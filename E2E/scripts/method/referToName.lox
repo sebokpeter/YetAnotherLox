@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  method() {
+    print method; 
+  }
+}
+
+Foo().method(); // Expect runtime error: Undefined variable 'method'. [line 9]

@@ -1,0 +1,10 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  method(a, b) {
+    print a;
+    print b;
+  }
+}
+
+Foo().method(1, 2, 3, 4); // Expect runtime error: Expected 2 arguments, but got 4. [line 10]

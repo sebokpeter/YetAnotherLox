@@ -34,7 +34,6 @@ sealed class LineTest : Test
                 inputWriter.WriteLine(line);
             }
         }
-
         try
         {
             await lox.WaitForExitAsync(_cts.Token);
