@@ -5,24 +5,25 @@ namespace E2E;
 
 public class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
         IEnumerable<TestSuite> tests = CreateTests("E2E/scripts");
 
-        RunTest(tests);
+        await RunTest(tests);
     }
 
-    private static void RunTest(IEnumerable<TestSuite> tests)
+    private static async Task RunTest(IEnumerable<TestSuite> tests)
     {
         ConcurrentBag<TestSuite> testSuites = new(tests);
 
         Stopwatch sw = Stopwatch.StartNew();
-        Parallel.ForEach(testSuites, test => {
-            test.Run();
+        await Parallel.ForEachAsync(testSuites, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (testSuite, token) =>
+        {
+            await testSuite.Run();
         });
         sw.Stop();
 
-        foreach (TestSuite test in testSuites)
+        foreach(TestSuite test in testSuites)
         {
             test.ReportTestsResult();
         }
@@ -39,21 +40,22 @@ public class Program
         if(tests.All(t => t.AllSuccessful))
         {
             Utilities.WriteToConsoleWithColor(ConsoleColor.Green, $"{testCount}/{testCount} ok");
-        } 
-        else 
+        }
+        else
         {
             // TODO: report individual failed tests, instead of test suites.
             IEnumerable<TestSuite> failed = tests.Where(t => !t.AllSuccessful);
 
-            Utilities.WriteToConsoleWithColor(ConsoleColor.Red, () => {
+            Utilities.WriteToConsoleWithColor(ConsoleColor.Red, () =>
+            {
                 Console.WriteLine($"{failed.Count()}/{testCount} failed: \n");
 
-                foreach (TestSuite f in failed)
+                foreach(TestSuite f in failed)
                 {
                     Console.WriteLine($"{f.Name}");
                 }
             });
-        } 
+        }
 
         Console.WriteLine();
     }
@@ -66,7 +68,7 @@ public class Program
         }
 
         string[] subDirectories = Directory.GetDirectories(testFolder);
-    
+
         return subDirectories.Select(dir => new TestSuite(dir));
     }
 }

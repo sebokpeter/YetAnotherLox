@@ -23,8 +23,6 @@ abstract partial class Test
     public virtual IEnumerable<string> Errors => _errors.AsEnumerable();
 
 
-    internal const int TimeoutMS = 5000; // How long can an individual script/line run for.
-
     internal readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
 
     internal readonly List<string> _results = [];
@@ -32,11 +30,14 @@ abstract partial class Test
 
     internal readonly IEnumerable<string> _expectedResults;
 
+    internal const int TimeoutMS = 5000; // How long can an individual script/line run for.
+    internal readonly CancellationTokenSource _cts = new(TimeoutMS);
+
 
     [GeneratedRegex("Expect( runtime error)?: (?<expected>.*)$")]
     internal static partial Regex ExpectedOutputRegex();
 
-    public abstract void Run();
+    public abstract Task Run();
 
     public Test(string scriptPath)
     {

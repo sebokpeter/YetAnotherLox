@@ -15,7 +15,7 @@ namespace E2E;
 /// - Ensuring that the results match the expected values.
 /// </summary>
 sealed class ScriptTest : Test
-{   
+{
     private readonly string _testScriptPath;
 
     /// <summary>
@@ -34,7 +34,7 @@ sealed class ScriptTest : Test
         _testScriptPath = testScriptPath;
     }
 
-    public override void Run()
+    public override async Task Run()
     {
         Process lox = GetLoxProcess();
 
@@ -42,11 +42,13 @@ sealed class ScriptTest : Test
         lox.BeginOutputReadLine();
         lox.BeginErrorReadLine();
 
-        bool exited = lox.WaitForExit(TimeoutMS); // Arbitrarily wait 5 seconds for the script to run 
-
-        if(!exited)
+        try
         {
-            _errors.Add($"Script did not finish in {TimeoutMS} milliseconds.");
+            await lox.WaitForExitAsync(_cts.Token);
+        }
+        catch(OperationCanceledException)
+        {
+            _errors.Add($"Script ({Name}) did not finish in {TimeoutMS} milliseconds");
             return;
         }
 

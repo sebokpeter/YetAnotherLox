@@ -7,9 +7,6 @@ namespace E2E;
 /// </summary>
 public class TestSuite
 {
-
-    public string AAA = "";
-
     /// <summary>
     /// <para/>Reports if all the <see cref="Test"/>s in this <see cref="TestSuite"/> have been successfully executed. 
     /// <para/>Reports false if either: 
@@ -51,14 +48,14 @@ public class TestSuite
             {
                 return new ScriptTest(file);
             }
-        });
+        }).ToArray();
     }
 
-    public void Run()
+    public async Task Run()
     {
         foreach(Test test in _tests)
         {
-            test.Run();
+            await test.Run();
         }
         _alreadyRun = true;
     }

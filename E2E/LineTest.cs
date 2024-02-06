@@ -20,7 +20,7 @@ sealed class LineTest : Test
         Name = Name.Replace(".line", "");
     }
 
-    public override void Run()
+    public override async Task Run()
     {
         Process lox = GetLoxProcess();
         lox.Start();
@@ -35,9 +35,11 @@ sealed class LineTest : Test
             }
         }
 
-        bool exited = lox.WaitForExit(TimeoutMS);
-
-        if(!exited)
+        try
+        {
+            await lox.WaitForExitAsync(_cts.Token);
+        }
+        catch (OperationCanceledException)
         {
             _errors.Add($"Script ({Name}) did not finish in {TimeoutMS} milliseconds");
             return;
