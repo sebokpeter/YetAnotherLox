@@ -697,7 +697,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     private static void CheckNumberOperands(Token @operator, object left, object right)
     {
         if(left is double && right is double) return;
-        throw new RuntimeException(@operator, "Operands must be numbers");
+        throw new RuntimeException(@operator, "Operands must be numbers.");
     }
 
     private static bool IsTruthy(object obj)

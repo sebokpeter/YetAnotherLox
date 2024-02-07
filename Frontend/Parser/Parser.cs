@@ -151,9 +151,9 @@ public class Parser
         Consume(LEFT_PAREN, $"Expect '(' after {kindStr} name.");
         List<Token> parameters = ParseParameters();
 
-        Consume(RIGHT_PAREN, "Expect ')' after parameters");
+        Consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
-        Consume(LEFT_BRACE, $"Expect '{{' before {kindStr} body");
+        Consume(LEFT_BRACE, $"Expect '{{' before {kindStr} body.");
         List<Stmt> body = Block();
 
         try
@@ -427,7 +427,7 @@ public class Parser
         {
             if(lit.Value is not string)
             {
-                throw Error(pos, "'foreach' loop can not be used with a number");
+                throw Error(pos, "'foreach' loop can not be used with a number.");
             }
             return lit;
         }
@@ -462,7 +462,7 @@ public class Parser
 
         if(_loopDepth == 0)
         {
-            throw Error(keyword, "Must be inside a loop to use 'continue'");
+            throw Error(keyword, "Must be inside a loop to use 'continue'.");
         }
 
         Consume(SEMICOLON, "Expect ';' after 'continue'.");
@@ -806,7 +806,7 @@ public class Parser
         }
         else
         {
-            throw Error(Peek(), "Expected expression");
+            throw Error(Peek(), "Expected expression.");
         }
     }
 

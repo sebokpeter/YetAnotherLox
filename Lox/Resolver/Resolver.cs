@@ -266,7 +266,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         if(_currentClass is ClassType.NONE)
         {
-            Lox.Error(expr.Keyword, "Can't use 'super' outside of class.");
+            Lox.Error(expr.Keyword, "Can't use 'super' outside of a class.");
         } 
         else if(_currentClass is not ClassType.SUBCLASS)
         {
