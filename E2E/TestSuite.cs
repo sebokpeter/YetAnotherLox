@@ -20,6 +20,40 @@ public class TestSuite
     /// </summary>
     public string Name => _testSuitName;
 
+    /// <summary>
+    /// The number of tests in this test suite.
+    /// </summary>
+    public int TestCount => _tests.Count();
+
+    public int failedTestCount 
+    {
+        get
+        {
+            if(!_alreadyRun)
+            {
+                return 0;
+            }
+
+            return _tests.Count(t => !t.Success);
+        }
+    }
+
+    /// <summary>
+    /// Return an <see cref="IEnumerable{String}"/>, containing the names of the failed tests
+    /// </summary>
+    public IEnumerable<string> FailedTestNames
+    {
+        get
+        {
+            if(!_alreadyRun)
+            {
+                return [];
+            }
+
+            return _tests.Where(t => !t.Success).Select(t => t.Name);
+        }
+    }
+
     private readonly string _testSuitName;
     private readonly IEnumerable<Test> _tests;
 
@@ -65,7 +99,7 @@ public class TestSuite
         Console.WriteLine("----------------------------------");
         Console.WriteLine($"'{_testSuitName}' tests:");
 
-        foreach (Test test in _tests)
+        foreach(Test test in _tests)
         {
             Console.Write($"\t{test.Name} - ");
 
@@ -75,10 +109,11 @@ public class TestSuite
             }
             else
             {
-                Utilities.WriteToConsoleWithColor(FailureColor, () => {
+                Utilities.WriteToConsoleWithColor(FailureColor, () =>
+                {
                     Console.WriteLine("Failed");
 
-                    foreach (string err in test.Errors)
+                    foreach(string err in test.Errors)
                     {
                         Console.WriteLine($"\t\t{err}");
                     }

@@ -33,26 +33,32 @@ public class Program
         DisplayOverallResult(testSuites);
     }
 
-    private static void DisplayOverallResult(IEnumerable<TestSuite> tests)
+    private static void DisplayOverallResult(IEnumerable<TestSuite> testSuites)
     {
-        int testCount = tests.Count();
+        int testSuiteCount = testSuites.Count();
+        int totalTestCount = testSuites.Sum(t => t.TestCount);
 
-        if(tests.All(t => t.AllSuccessful))
+        if(testSuites.All(t => t.AllSuccessful))
         {
-            Utilities.WriteToConsoleWithColor(ConsoleColor.Green, $"{testCount}/{testCount} ok");
+            Utilities.WriteToConsoleWithColor(ConsoleColor.Green, $"{testSuiteCount}/{testSuiteCount} test suites ok\n{totalTestCount}/{totalTestCount} tests ok");
         }
         else
         {
-            // TODO: report individual failed tests, instead of test suites.
-            IEnumerable<TestSuite> failed = tests.Where(t => !t.AllSuccessful);
+            IEnumerable<TestSuite> failed = testSuites.Where(t => !t.AllSuccessful);
+            int failedTestCount = failed.Sum(f => f.failedTestCount);
 
             Utilities.WriteToConsoleWithColor(ConsoleColor.Red, () =>
             {
-                Console.WriteLine($"{failed.Count()}/{testCount} failed: \n");
+                Console.WriteLine($"{failed.Count()}/{testSuiteCount} test suites failed\n{failedTestCount}/{totalTestCount} tests failed\n");
 
                 foreach(TestSuite f in failed)
                 {
                     Console.WriteLine($"{f.Name}");
+
+                    foreach(string failedTestName in f.FailedTestNames)
+                    {
+                        Console.WriteLine($"\t - {failedTestName}");
+                    }
                 }
             });
         }
