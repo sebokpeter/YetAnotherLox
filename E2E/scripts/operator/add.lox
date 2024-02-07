@@ -1,0 +1,4 @@
+// Test case is from the Crafting Interpreters book repo
+
+print 123 + 456; // Expect: 579
+print "str" + "ing"; // Expect: string

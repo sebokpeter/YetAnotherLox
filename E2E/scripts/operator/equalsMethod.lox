@@ -1,0 +1,15 @@
+// Test case is from the Crafting Interpreters book repo
+
+// Bound methods have identity equality.
+class Foo {
+  method() {}
+}
+
+var foo = Foo();
+var fooMethod = foo.method;
+
+// Same bound method.
+print fooMethod == fooMethod; // Expect: True
+
+// Different closurizations.
+print foo.method == foo.method; // Expect: False

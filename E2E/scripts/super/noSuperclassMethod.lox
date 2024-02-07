@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Base {}
+
+class Derived < Base {
+  foo() {
+    super.doesNotExist(1); 
+  }
+}
+
+Derived().foo(); // Expect runtime error: Undefined property 'doesNotExist'. [line 11]

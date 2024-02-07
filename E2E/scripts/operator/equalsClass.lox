@@ -1,0 +1,14 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {}
+class Bar {}
+
+print Foo == Foo; // Expect: True
+print Foo == Bar; // Expect: False
+print Bar == Foo; // Expect: False
+print Bar == Bar; // Expect: True
+
+print Foo == "Foo"; // Expect: False
+print Foo == nil;   // Expect: False
+print Foo == 123;   // Expect: False
+print Foo == true;  // Expect: False

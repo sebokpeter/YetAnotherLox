@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+print -(3); // Expect: -3
+// print --(3);    // '--' is interpreted as a postfix operator
+// print ---(3);   // '--' is interpreted as a postfix operator

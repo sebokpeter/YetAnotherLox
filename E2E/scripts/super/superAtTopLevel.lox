@@ -1,0 +1,4 @@
+// Test case is from the Crafting Interpreters book repo
+
+super.foo("bar"); // Expect: [line 3] Error at 'super': Can't use 'super' outside of a class.
+super.foo; // Expect: [line 4] Error at 'super': Can't use 'super' outside of a class.

@@ -1,0 +1,8 @@
+// Test cases are from the Crafting Interpreters book repo
+
+// If the operands of the binary plus operator are not numbers, they are automatically converted to strings, and concatenated
+
+print true + nil; // Expect: Truenil 
+print true + 123; // Expect: True123
+print nil + nil; // Expect: nilnil
+print 1 + nil; // Expect: 1nil

@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Base {
+  foo() {
+    super.doesNotExist; // Expect: [line 5] Error at 'super': Can't use 'super' in a class with no superclass.
+  }
+}
+
+Base().foo();

@@ -1,0 +1,21 @@
+// Test case is from the Crafting Interpreters book repo
+
+class A {
+  method(arg) {
+    print "A.method(" + arg + ")";
+  }
+}
+
+class B < A {
+  getClosure() {
+    return super.method;
+  }
+
+  method(arg) {
+    print "B.method(" + arg + ")";
+  }
+}
+
+
+var closure = B().getClosure();
+closure("arg"); // Expect: A.method(arg)

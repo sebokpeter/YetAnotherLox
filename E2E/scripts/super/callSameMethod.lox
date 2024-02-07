@@ -1,0 +1,18 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Base {
+  foo() {
+    print "Base.foo()";
+  }
+}
+
+class Derived < Base {
+  foo() {
+    print "Derived.foo()";
+    super.foo();
+  }
+}
+
+Derived().foo();
+// Expect: Derived.foo()
+// Expect: Base.foo()

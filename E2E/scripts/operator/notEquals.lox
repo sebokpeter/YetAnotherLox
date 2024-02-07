@@ -1,0 +1,16 @@
+// Test case is from the Crafting Interpreters book repo
+
+print nil != nil; // Expect: False
+
+print true != true; // Expect: False
+print true != false; // Expect: True
+
+print 1 != 1; // Expect: False
+print 1 != 2; // Expect: True
+
+print "str" != "str"; // Expect: False
+print "str" != "ing"; // Expect: True
+
+print nil != false; // Expect: True
+print false != 0; // Expect: True
+print 0 != "0"; // Expect: True

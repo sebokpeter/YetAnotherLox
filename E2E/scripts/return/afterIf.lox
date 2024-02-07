@@ -1,0 +1,7 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun f() {
+  if (true) return "ok";
+}
+
+print f(); // Expect: ok

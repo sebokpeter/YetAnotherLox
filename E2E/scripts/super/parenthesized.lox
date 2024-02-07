@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+class A {
+  method() {}
+}
+
+class B < A {
+  method() {
+    (super).method(); // Expect: [line 9] Error at ')': Expect '.' after 'super'.
+  }
+}

@@ -1,0 +1,3 @@
+// Test case is from the Crafting Interpreters book repo
+
+print; // Expect: [line 3] Error at ';': Expected expression.

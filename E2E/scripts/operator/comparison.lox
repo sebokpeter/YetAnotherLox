@@ -1,0 +1,27 @@
+// Test case is from the Crafting Interpreters book repo
+
+print 1 < 2;    // Expect: True
+print 2 < 2;    // Expect: False
+print 2 < 1;    // Expect: False
+
+print 1 <= 2;    // Expect: True
+print 2 <= 2;    // Expect: True
+print 2 <= 1;    // Expect: False
+
+print 1 > 2;    // Expect: False
+print 2 > 2;    // Expect: False
+print 2 > 1;    // Expect: True
+
+print 1 >= 2;    // Expect: False
+print 2 >= 2;    // Expect: True
+print 2 >= 1;    // Expect: True
+
+// Zero and negative zero compare the same.
+print 0 < -0; // Expect: False
+print -0 < 0; // Expect: False
+print 0 > -0; // Expect: False
+print -0 > 0; // Expect: False
+print 0 <= -0; // Expect: True
+print -0 <= 0; // Expect: True
+print 0 >= -0; // Expect: True
+print -0 >= 0; // Expect: True

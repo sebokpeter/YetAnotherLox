@@ -1,0 +1,3 @@
+// Test case is from the Crafting Interpreters book repo
+
+return "wat"; // Expect: [line 3] Error at 'return': Can't return from top-level code.

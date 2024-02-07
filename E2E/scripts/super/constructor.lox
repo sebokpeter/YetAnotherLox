@@ -1,0 +1,18 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Base {
+  init(a, b) {
+    print "Base.init(" + a + ", " + b + ")";
+  }
+}
+
+class Derived < Base {
+  init() {
+    print "Derived.init()";
+    super.init("a", "b");
+  }
+}
+
+Derived();
+// Expect: Derived.init()
+// Expect: Base.init(a, b)

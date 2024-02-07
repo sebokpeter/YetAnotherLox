@@ -1,0 +1,8 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun f() {
+  return;
+  print "bad";
+}
+
+print f(); // Expect: nil

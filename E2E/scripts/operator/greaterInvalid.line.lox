@@ -1,0 +1,4 @@
+// Test cases are from the Crafting Interpreters book repo
+
+"1" > 1; // Expect runtime error: Operands must be numbers. [line 1]
+1 > "1"; // Expect runtime error: Operands must be numbers. [line 1]

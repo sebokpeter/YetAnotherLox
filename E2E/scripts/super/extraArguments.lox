@@ -1,0 +1,16 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Base {
+  foo(a, b) {
+    print "Base.foo(" + a + ", " + b + ")";
+  }
+}
+
+class Derived < Base {
+  foo() {
+    print "Derived.foo()"; // Expect: Derived.foo()
+    super.foo("a", "b", "c", "d"); 
+  }
+}
+
+Derived().foo(); // Expect runtime error: Expected 2 arguments, but got 4. [line 16]

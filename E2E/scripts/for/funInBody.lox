@@ -1,3 +1,3 @@
 // Test case is from the Crafting Interpreters book repo
 
-for (;;) fun foo() {} // Expect: [line 3] Error at 'fun': Expected expression
+for (;;) fun foo() {} // Expect: [line 3] Error at 'fun': Expected expression.

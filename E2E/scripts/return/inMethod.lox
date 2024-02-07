@@ -1,0 +1,10 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  method() {
+    return "ok";
+    print "bad";
+  }
+}
+
+print Foo().method(); // Expect: ok

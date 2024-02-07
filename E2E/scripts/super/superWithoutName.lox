@@ -1,0 +1,9 @@
+// Test case is from the Crafting Interpreters book repo
+
+class A {}
+
+class B < A {
+  method() {
+    super.; // Expect: [line 7] Error at ';': Expect superclass method name.
+  }
+}

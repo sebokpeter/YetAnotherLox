@@ -1,4 +1,4 @@
 print "Hello World!"; // Expect: Hello World!
 print "Hello" + " " + "World" + "!"; // Expect: Hello World!
 print "Hello " + 10 + "!"; // Expect: Hello 10!
-print "Hello " * 10; // Expect runtime error: Operands must be numbers [line 1]
+print "Hello " * 10; // Expect runtime error: Operands must be numbers. [line 1]

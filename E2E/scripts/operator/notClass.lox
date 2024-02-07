@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Bar {}
+print !Bar;      // Expect: False
+print !Bar();    // Expect: False

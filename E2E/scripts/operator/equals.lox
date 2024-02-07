@@ -1,0 +1,14 @@
+// Test case is from the Crafting Interpreters book repo
+
+print true == true; // Expect: True
+print true == false; // Expect: False
+
+print 1 == 1; // Expect: True
+print 1 == 2; // Expect: False
+
+print "str" == "str"; // Expect: True
+print "str" == "ing"; // Expect: False
+
+print nil == false; // Expect: False
+print false == 0; // Expect: False
+print 0 == "0"; // Expect: False

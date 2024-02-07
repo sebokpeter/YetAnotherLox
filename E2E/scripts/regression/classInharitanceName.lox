@@ -1,0 +1,7 @@
+// Test case is from the Crafting Interpreters book repo
+
+{
+  class A {}
+  class B < A {}
+  print B; // Expect: <class B()>
+}
