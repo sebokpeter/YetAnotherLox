@@ -331,7 +331,6 @@ public class Scanner
 
     private char Advance() => _source[current++];
 
-
     private void AddToken(TokenType type) => AddToken(type, null);
 
     private void AddToken(TokenType type, object? literal)

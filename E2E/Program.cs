@@ -45,7 +45,7 @@ public class Program
         else
         {
             IEnumerable<TestSuite> failed = testSuites.Where(t => !t.AllSuccessful);
-            int failedTestCount = failed.Sum(f => f.failedTestCount);
+            int failedTestCount = failed.Sum(f => f.FailedTestCount);
 
             Utilities.WriteToConsoleWithColor(ConsoleColor.Red, () =>
             {

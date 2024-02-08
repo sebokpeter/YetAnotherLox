@@ -25,7 +25,10 @@ public class TestSuite
     /// </summary>
     public int TestCount => _tests.Count();
 
-    public int failedTestCount 
+    /// <summary>
+    /// Return the number of failed tests.
+    /// </summary>
+    public int FailedTestCount 
     {
         get
         {
