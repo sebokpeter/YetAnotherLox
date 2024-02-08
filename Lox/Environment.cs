@@ -54,7 +54,7 @@ internal class Environment
 
     internal void Define(string name, object value)
     {
-        _values.Add(name, value);
+        _values[name] = value;
     }
 
     internal object Get(Token name)

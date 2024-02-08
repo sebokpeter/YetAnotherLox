@@ -39,7 +39,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         if (_scopes.Count != 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool found) && !found)
         {
-            Lox.Error(expr.Name, "Can't read local variable in  its own initializer.");
+            Lox.Error(expr.Name, "Can't read local variable in its own initializer.");
         }
 
         ResolveLocal(expr, expr.Name);
@@ -367,7 +367,8 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         Dictionary<string, bool> scope = _scopes.Peek();
         if (scope.ContainsKey(name.Lexeme))
         {
-            Lox.Error(name, "Already a variable with this name in this scope");
+            Lox.Error(name, "Already a variable with this name in this scope.");
+            return;
         }
         scope.Add(name.Lexeme, false);
     }
