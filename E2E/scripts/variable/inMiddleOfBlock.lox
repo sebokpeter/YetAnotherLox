@@ -1,0 +1,12 @@
+// Test case is from the Crafting Interpreters book repo
+
+{
+  var a = "a";
+  print a; // Expect: a
+  var b = a + " b";
+  print b; // Expect: a b
+  var c = a + " c";
+  print c; // Expect: a c
+  var d = b + " d";
+  print d; // Expect: a b d
+}

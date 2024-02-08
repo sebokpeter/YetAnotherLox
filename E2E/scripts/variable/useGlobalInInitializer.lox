@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "value";
+var a = a;
+print a; // Expect: value

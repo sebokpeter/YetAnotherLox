@@ -1,0 +1,5 @@
+// Test cases are from the Crafting Interpreters book repo
+
+var false = "value"; // Expect: [line 1] Error at 'false': Expect variable name.
+var nil = "value"; // Expect: [line 1] Error at 'nil': Expect variable name. 
+var this = "value" // Expect: [line 1] Error at 'this': Expect variable name.

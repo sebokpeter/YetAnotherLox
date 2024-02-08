@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+// Expect: [line 5] Error: Unexpected character! (|)
+// Expect: [line 5] Error at 'b': Expect ')' after arguments.
+foo(a | b); 

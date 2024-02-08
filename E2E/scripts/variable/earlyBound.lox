@@ -1,0 +1,12 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "outer";
+{
+  fun foo() {
+    print a;
+  }
+
+  foo(); // Expect: outer
+  var a = "inner";
+  foo(); // Expect: outer
+}

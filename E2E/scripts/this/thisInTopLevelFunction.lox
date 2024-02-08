@@ -1,0 +1,5 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun foo() {
+  this; // Expect: [line 4] Error at 'this': Can't use 'this' outside of a class.
+}

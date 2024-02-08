@@ -1,0 +1,6 @@
+// Test case is from the Crafting Interpreters book repo
+
+fun foo(arg,
+        arg) { // Expect: [line 4] Error at 'arg': Already a variable with this name in this scope.
+  "body";
+}

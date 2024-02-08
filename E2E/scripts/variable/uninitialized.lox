@@ -1,0 +1,4 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a;
+print a; // Expect: nil

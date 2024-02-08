@@ -1,0 +1,8 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  bar() { return this; }
+  baz() { return "baz"; }
+}
+
+print Foo().bar().baz(); // Expect: baz

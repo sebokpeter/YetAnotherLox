@@ -1,0 +1,15 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Foo {
+  getClosure() {
+    fun closure() {
+      return this.toString();
+    }
+    return closure;
+  }
+
+  toString() { return "Foo"; }
+}
+
+var closure = Foo().getClosure();
+print closure(); // Expect: Foo

@@ -1,0 +1,22 @@
+// Test case is from the Crafting Interpreters book repo
+
+class Outer {
+  method() {
+    print this; // Expect: <Outer instance>
+
+    fun f() {
+      print this; // Expect: <Outer instance>
+
+      class Inner {
+        method() {
+          print this; // Expect: <Inner instance>
+        }
+      }
+
+      Inner().method();
+    }
+    f();
+  }
+}
+
+Outer().method();

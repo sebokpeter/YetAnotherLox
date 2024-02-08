@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+{
+  var a = "first";
+  print a; // Expect: first
+}
+
+{
+  var a = "second";
+  print a; // Expect: second
+}

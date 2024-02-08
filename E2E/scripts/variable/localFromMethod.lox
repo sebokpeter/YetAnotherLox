@@ -1,0 +1,11 @@
+// Test case is from the Crafting Interpreters book repo
+
+var foo = "variable";
+
+class Foo {
+  method() {
+    print foo;
+  }
+}
+
+Foo().method(); // Expect: variable

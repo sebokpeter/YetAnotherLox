@@ -1,0 +1,7 @@
+// Test case is from the Crafting Interpreters book repo
+
+if (false) {
+  print notDefined;
+}
+
+print "ok"; // Expect: ok

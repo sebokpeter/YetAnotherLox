@@ -1,0 +1,6 @@
+// Test case is from the Crafting Interpreters book repo
+
+var a = "outer";
+{
+  var a = a; // Expect: [line 5] Error at 'a': Can't read local variable in its own initializer.
+}
