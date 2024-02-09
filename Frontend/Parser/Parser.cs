@@ -8,7 +8,7 @@ namespace Frontend.Parser;
 public class Parser
 {
     public bool HadError => _errors.Count > 0;
-    public IEnumerable<ParseError> Errors => _errors; 
+    public IEnumerable<ParseError> Errors => _errors;
 
     private readonly List<ParseError> _errors;
     private readonly List<Token> _tokens;
@@ -147,6 +147,11 @@ public class Parser
         }
 
         Token name = Consume(IDENTIFIER, $"Expect {kindStr} name.");
+
+        if(isStatic && name.Lexeme == "init")
+        {
+            Error(name, "The 'init' method cannot be static.");
+        }
 
         Consume(LEFT_PAREN, $"Expect '(' after {kindStr} name.");
         List<Token> parameters = ParseParameters();
