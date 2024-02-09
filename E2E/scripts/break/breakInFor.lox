@@ -1,0 +1,19 @@
+for(var i = 0; i < 1000; i = i + 1) {
+    if (i > 10) {
+        break;
+    }
+
+    print i;
+}
+
+// Expect: 0
+// Expect: 1
+// Expect: 2
+// Expect: 3
+// Expect: 4
+// Expect: 5
+// Expect: 6
+// Expect: 7
+// Expect: 8
+// Expect: 9
+// Expect: 10

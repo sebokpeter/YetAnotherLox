@@ -1,0 +1,13 @@
+var i = 100;
+
+i -= 1;
+print i; // Expect: 99
+
+i -= 9;
+print i; // Expect: 90
+
+i -= 90;
+print i; // Expect: 0
+
+i -= -100;
+print i; // Expect: 100

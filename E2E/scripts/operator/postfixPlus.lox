@@ -1,0 +1,10 @@
+var i = 0;
+
+i++;
+print i; // Expect: 1
+
+print i++; // Expect: 1
+print i; // Expect: 2
+
+print i++; // Expect: 2
+print i; // Expect: 3

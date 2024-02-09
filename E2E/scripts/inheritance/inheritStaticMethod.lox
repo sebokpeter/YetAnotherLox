@@ -1,0 +1,9 @@
+class C {
+    static foo() {
+        print "Static foo";
+    }
+}
+
+class D < C {}
+
+D.foo(); // Expect: Static foo

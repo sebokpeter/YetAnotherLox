@@ -1,0 +1,8 @@
+    This 
+    Comment
+    Has 
+    No
+    Opening
+*/
+
+// Expect: [line 2] Error at 'Comment': Expect ';' after expression.

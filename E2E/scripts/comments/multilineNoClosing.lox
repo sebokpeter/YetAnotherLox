@@ -1,0 +1,8 @@
+/*
+    This
+    Comment
+    Is
+    Not
+    Terminated
+
+// Expect: [line 1] Error: Unterminated multiline comment.

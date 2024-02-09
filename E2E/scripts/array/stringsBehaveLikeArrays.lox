@@ -1,0 +1,14 @@
+var str = "Hello Lox!";
+
+print str[0]; // Expect: H
+print str[9]; // Expect: !
+
+for(var i = 0; i < 5; i = i + 1) {
+    print str[i];
+}
+
+// Expect: H
+// Expect: e
+// Expect: l
+// Expect: l
+// Expect: o

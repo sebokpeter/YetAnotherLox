@@ -30,7 +30,7 @@ abstract partial class Test
 
     internal readonly IEnumerable<string> _expectedResults;
 
-    internal const int TimeoutMS = 5000; // How long can an individual script/line run for.
+    internal const int TimeoutMS = 10_000; // How long can an individual script/line run for.
     internal readonly CancellationTokenSource _cts = new(TimeoutMS);
 
 

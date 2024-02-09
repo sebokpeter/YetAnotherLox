@@ -1,0 +1,16 @@
+var nested = [[0; 3]; 2];
+
+var i = 0;
+foreach(inner in nested) {
+    foreach(num in inner) {
+        print i + " " + num;
+    }
+    i++;
+}
+
+// Expect: 0 0
+// Expect: 0 0
+// Expect: 0 0
+// Expect: 1 0
+// Expect: 1 0
+// Expect: 1 0

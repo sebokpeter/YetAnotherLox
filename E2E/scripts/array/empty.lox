@@ -1,0 +1,3 @@
+var array = [];
+
+print array; // Expect: <array 0>

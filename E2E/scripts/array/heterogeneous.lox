@@ -1,0 +1,9 @@
+var array = [];
+
+array[0] = 10;
+array[1] = "Hello";
+array[2] = 22.22;
+
+print array[0]; // Expect: 10
+print array[1]; // Expect: Hello
+print array[2]; // Expect: 22.22

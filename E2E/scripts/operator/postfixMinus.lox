@@ -1,0 +1,11 @@
+var i = 10;
+
+i--;
+
+print i; // Expect: 9
+
+print i--; // Expect: 9
+print i; // Expect: 8
+
+print i--; // Expect: 8
+print i; // Expect: 7

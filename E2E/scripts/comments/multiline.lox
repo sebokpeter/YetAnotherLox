@@ -1,0 +1,7 @@
+/* This 
+   Comment
+   Is
+   Multiline
+*/
+
+print "Ok"; // Expect: Ok

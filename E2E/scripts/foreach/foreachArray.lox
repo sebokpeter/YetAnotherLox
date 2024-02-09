@@ -1,0 +1,16 @@
+foreach(num in [1, 2, 3]) {
+    print num; 
+}
+
+// Expect: 1
+// Expect: 2
+// Expect: 3
+
+var a = ["Hello"; 2];
+
+foreach(greeting in a) {
+    print greeting;
+}
+
+// Expect: Hello
+// Expect: Hello

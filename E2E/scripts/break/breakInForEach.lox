@@ -1,0 +1,12 @@
+foreach(num in [1, 2, 3, 4, 5]) {
+    print num;
+
+    if(num > 3) {
+        break;
+    }
+}
+
+// Expect: 1
+// Expect: 2
+// Expect: 3
+// Expect: 4

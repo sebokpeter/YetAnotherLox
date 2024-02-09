@@ -1,0 +1,10 @@
+/*
+    This
+    Comment
+    /*
+        Is
+        Nested
+    */
+*/
+
+print "Ok"; // Expect: Ok

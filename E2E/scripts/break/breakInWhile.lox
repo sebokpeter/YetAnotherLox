@@ -1,0 +1,11 @@
+var hello = "Hello";
+
+while (true) {
+    print hello;
+
+    if(true) {
+        break;
+    }
+}
+
+// Expect: Hello

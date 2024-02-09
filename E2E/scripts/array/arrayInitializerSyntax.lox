@@ -1,0 +1,13 @@
+var array = [0; 10];
+
+print array; // Expect: <array 10>
+
+print array[0]; // Expect: 0
+print array[9]; // Expect: 0
+
+var array = ["Hello"; 3];
+
+print array; // Expect: <array 3>
+
+print array[0]; // Expect: Hello
+print array[2]; // Expect: Hello 

@@ -1,0 +1,16 @@
+var i = 0;
+
+while (i <= 10) {
+    i = i + 1;
+    if(i % 2 != 0)  {
+        continue;
+    }
+
+    print i;
+}
+
+// Expect: 2
+// Expect: 4
+// Expect: 6
+// Expect: 8
+// Expect: 10

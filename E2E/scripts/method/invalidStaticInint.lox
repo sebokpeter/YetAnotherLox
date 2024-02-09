@@ -1,0 +1,7 @@
+class C {
+    static init() { // Expect: [line 2] Error at 'init': The 'init' method cannot be static.
+        print "Bad";
+    }
+}
+
+var c = C(); 

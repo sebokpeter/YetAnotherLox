@@ -1,0 +1,13 @@
+var i = 1;
+
+i *= 1;
+print i; // Expect: 1
+
+i *= 5; 
+print i; // Expect: 5
+
+i *= 20;
+print i; // Expect: 100
+
+i *= 0.01;
+print i; // Expect: 1

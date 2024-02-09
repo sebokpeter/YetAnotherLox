@@ -1,0 +1,9 @@
+foreach(letter in "Hello") {
+    print letter;
+}
+
+// Expect: H
+// Expect: e
+// Expect: l
+// Expect: l
+// Expect: o

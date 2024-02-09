@@ -1,0 +1,8 @@
+/*
+    This
+    Nested
+    Comment
+    // Has a regular comment inside
+*/
+
+print "Ok"; // Expect: Ok

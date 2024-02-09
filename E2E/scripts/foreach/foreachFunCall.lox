@@ -1,0 +1,12 @@
+fun getArray() {
+    return [10, 9, 8, 7];
+}
+
+foreach(num in getArray()) {
+    print num;
+}
+
+// Expect: 10
+// Expect: 9
+// Expect: 8
+// Expect: 7

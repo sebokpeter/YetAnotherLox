@@ -1,0 +1,7 @@
+class C {
+    foo() {
+        print "Instance foo";
+    }
+}
+
+C.foo(); // Expect: Class 'C' has no static method named 'foo'. [line 7]

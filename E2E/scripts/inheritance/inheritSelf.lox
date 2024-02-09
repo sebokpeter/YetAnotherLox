@@ -1,0 +1,1 @@
+class C < C {} // Expect: [line 1] Error at 'C': A class can't inherit from itself.

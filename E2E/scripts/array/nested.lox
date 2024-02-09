@@ -1,0 +1,24 @@
+var nested = [];
+nested[0] = [];
+nested[1] = [];
+
+print nested; // Expect: <array 2>
+
+print nested[0]; // Expect: <array 0>
+
+nested[0][0] = "Hello";
+nested[1][0] = "World";
+
+print nested[0][0]; // Expect: Hello
+print nested[1][0]; // Expect: World
+
+var grid = [[0; 2]; 2];
+
+print grid; // Expect: <array 2>
+
+foreach(g in grid) {
+    print g;
+}
+
+// Expect: <array 2>
+// Expect: <array 2>
