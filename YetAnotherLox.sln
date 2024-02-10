@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend.Test", "Frontend.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lox.E2E", "Lox.E2E\Lox.E2E.csproj", "{0C31D24C-2FCE-4EFC-A28B-5A5F71887664}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lox.VM", "Lox.VM\Lox.VM.csproj", "{6EB49FE2-17BF-4B26-826C-93E4405EB554}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,5 +58,9 @@ Global
 		{0C31D24C-2FCE-4EFC-A28B-5A5F71887664}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C31D24C-2FCE-4EFC-A28B-5A5F71887664}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C31D24C-2FCE-4EFC-A28B-5A5F71887664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EB49FE2-17BF-4B26-826C-93E4405EB554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EB49FE2-17BF-4B26-826C-93E4405EB554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EB49FE2-17BF-4B26-826C-93E4405EB554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EB49FE2-17BF-4B26-826C-93E4405EB554}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
