@@ -19,24 +19,33 @@ internal static class Debug
     {
         Console.Write($"{offset:0000} ");
 
-        OpCode opCode = chunk[offset];
+        OpCode opCode = (OpCode)chunk[offset];
 
         return opCode switch
         {
-            OpCode.OpReturn => SimpleInstruction(opCode, offset),
-            _ => UnknownInstruction(opCode, offset)
+            OpCode.OpReturn     => SimpleInstruction(opCode, offset),
+            OpCode.OpConstant   => ConstantInstruction(opCode, chunk, offset),
+            _                   => UnknownInstruction(opCode, offset)
         };
+    }
+
+    private static int ConstantInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
+    {
+        byte constant = chunk[offset + 1];
+        Console.Write($"{opCode, -19} {constant:0000} ");
+        Console.WriteLine(chunk.Constants[constant]);
+        return offset + 2;
     }
 
     private static int UnknownInstruction(OpCode opCode, int offset)
     {
         Console.WriteLine($"Unknown instruction: {opCode}");
-        return ++offset;    
+        return offset + 1;    
     }
 
     private static int SimpleInstruction(OpCode opCode, int offset)
     {
         Console.WriteLine(opCode.ToString());
-        return ++offset;
+        return offset + 1;
     }
 }
