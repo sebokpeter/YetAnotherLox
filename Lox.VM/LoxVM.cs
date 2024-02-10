@@ -8,11 +8,11 @@ public class Lox
     public static void Main() 
     {
         Chunk.Chunk chunk = new();
-        int constant = chunk.AddConstant(new() {Val = 1.2});
+        int constant = chunk.AddConstant(new(1.2));
         chunk.WriteChunk(OpConstant);
         chunk.WriteChunk((byte)constant);
 
-        constant = chunk.AddConstant(new() {Val = 120});
+        constant = chunk.AddConstant(new(120));
         chunk.WriteChunk(OpConstant);
         chunk.WriteChunk((byte)constant);
 
