@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using E2E.Test;
 
 namespace E2E;
 
@@ -7,7 +8,7 @@ public class Program
 {
     public static async Task Main()
     {
-        IEnumerable<TestSuite> tests = CreateTests("E2E/scripts");
+        IEnumerable<TestSuite> tests = CreateTests("Lox.E2E/scripts");
 
         await RunTest(tests);
     }

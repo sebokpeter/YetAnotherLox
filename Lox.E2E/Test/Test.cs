@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace E2E;
+namespace E2E.Test;
 
 abstract partial class Test
 {

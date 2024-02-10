@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace E2E;
+namespace E2E.Test;
 
 // The Test class should read in a .lox file, extract the necessary information (expected output, errors, etc), and then run them using the debug version of the interpreter.
 // Redirect the console output to read the results. 

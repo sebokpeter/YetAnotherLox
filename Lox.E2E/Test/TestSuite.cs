@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace E2E;
+namespace E2E.Test;
 
 /// <summary>
 /// Represents a series of related tests.
