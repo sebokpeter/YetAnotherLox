@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using LoxVM.Chunk;
 
 namespace LoxVM;

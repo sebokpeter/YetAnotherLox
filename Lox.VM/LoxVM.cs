@@ -1,5 +1,4 @@
-﻿using LoxVM.Chunk;
-using static LoxVM.Chunk.OpCode;
+﻿using static LoxVM.Chunk.OpCode;
 
 namespace LoxVM;
 
@@ -7,6 +6,8 @@ public class Lox
 {
     public static void Main() 
     {
+        using VM.Vm vm = new();
+
         Chunk.Chunk chunk = new();
         int constant = chunk.AddConstant(new(1.2));
         chunk.WriteChunk(OpConstant, 1);
@@ -18,6 +19,8 @@ public class Lox
 
         chunk.WriteChunk(OpReturn, 2);
 
-        chunk.DisassembleChunk("Test Chunk");
+        //chunk.DisassembleChunk("Test Chunk");
+
+        vm.Interpret(chunk);
     }
 }
