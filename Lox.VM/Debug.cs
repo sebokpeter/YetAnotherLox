@@ -19,6 +19,15 @@ internal static class Debug
     {
         Console.Write($"{offset:0000} ");
 
+        if(offset > 0 && chunk.Lines[offset] == chunk.Lines[offset - 1])
+        {
+            Console.Write("\t| ");
+        }
+        else
+        {
+            Console.Write($"{chunk.Lines[offset]:0000} ");
+        }
+
         OpCode opCode = (OpCode)chunk[offset];
 
         return opCode switch
