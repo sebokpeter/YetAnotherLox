@@ -1,19 +1,25 @@
 using System.Diagnostics;
 using LoxVM.Chunk;
-using LoxVM;
 
 namespace LoxVM.VM;
 
 internal class Vm : IDisposable
 {
+    private const int STACK_MAX = 256;
+
     private Chunk.Chunk? chunk;
 
     private bool disposed;
     private byte ip;
 
+    private readonly Value.Value[] _stack;
+    private byte stackTop;
+
     public Vm()
     {
         disposed = false;
+        _stack = new Value.Value[STACK_MAX];
+        stackTop = 0;
     }
 
     internal InterpretResult Interpret(Chunk.Chunk chunk)
@@ -33,6 +39,7 @@ internal class Vm : IDisposable
         while(true)
         {
             #if DEBUG_TRACE_EXECUTION
+                _stack.PrintStack(stackTop);
                 Debug.DisassembleInstruction(chunk, ip);
             #endif
 
@@ -41,16 +48,20 @@ internal class Vm : IDisposable
             switch (instruction)
             {
                 case OpCode.OpReturn:
+                    Console.WriteLine(Pop());
                     return InterpretResult.Ok;
                 case OpCode.OpConstant:
                     Value.Value constant = ReadConstant();
-                    Console.WriteLine(constant);
+                    Push(constant);
                     break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
+
+    private void Push(Value.Value value) => _stack[stackTop++] = value;
+    private Value.Value Pop() => _stack[--stackTop];
 
     private Value.Value ReadConstant() => chunk!.Constants[ReadByte()];
 

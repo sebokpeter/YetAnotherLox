@@ -4,6 +4,14 @@ namespace LoxVM;
 
 internal static class Debug
 {
+    internal static void PrintStack(this Value.Value[] stack, byte stackTop)
+    {
+        for(byte slot = 0; slot < stackTop; slot++)
+        {
+            Console.WriteLine($"\t[{stack[slot]}]");
+        }
+    }
+
     internal static void DisassembleChunk(this Chunk.Chunk chunk, string name)
     {
         Console.WriteLine($"== {name} ==");
