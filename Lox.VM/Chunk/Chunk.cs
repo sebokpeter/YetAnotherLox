@@ -50,5 +50,10 @@ internal enum OpCode : byte
 {
     Return,
     Constant,
-    Negate
+    Negate,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo
 }

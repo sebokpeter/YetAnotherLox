@@ -40,7 +40,7 @@ internal class Vm : IDisposable
         {
             #if DEBUG_TRACE_EXECUTION
                 _stack.PrintStack(stackTop);
-                Debug.DisassembleInstruction(chunk, ip);
+                chunk.DisassembleInstruction(ip);
             #endif
 
             OpCode instruction = (OpCode)ReadByte();
@@ -59,13 +59,37 @@ internal class Vm : IDisposable
                     val = new(-val.Val);
                     Push(val);
                     break;
+                case OpCode.Add: BinaryOp(OpCode.Add); break;
+                case OpCode.Subtract: BinaryOp(OpCode.Subtract); break;
+                case OpCode.Multiply: BinaryOp(OpCode.Multiply); break;
+                case OpCode.Divide: BinaryOp(OpCode.Divide); break;
+                case OpCode.Modulo: BinaryOp(OpCode.Modulo); break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
 
+    private void BinaryOp(OpCode op)
+    {
+        double a = Pop().Val;
+        double b = Pop().Val;
+
+        double res = op switch
+        {
+            OpCode.Add      => a + b,
+            OpCode.Subtract => a - b,
+            OpCode.Multiply => a * b,
+            OpCode.Divide   => a / b,
+            OpCode.Modulo   => a % b,
+            _               => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
+        };
+
+        Push(new(res));
+    }
+    
     private void Push(Value.Value value) => _stack[stackTop++] = value;
+    
     private Value.Value Pop() => _stack[--stackTop];
 
     private Value.Value ReadConstant() => chunk!.Constants[ReadByte()];

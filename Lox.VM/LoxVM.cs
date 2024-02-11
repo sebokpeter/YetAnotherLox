@@ -17,11 +17,9 @@ public class Lox
         chunk.WriteChunk(Constant, 2);
         chunk.WriteChunk((byte)constant, 2);
 
-        chunk.WriteChunk(Negate, 2);
+        chunk.WriteChunk(Add, 2);
 
         chunk.WriteChunk(Return, 3);
-
-        //chunk.DisassembleChunk("Test Chunk");
 
         vm.Interpret(chunk);
     }

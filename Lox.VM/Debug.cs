@@ -12,17 +12,17 @@ internal static class Debug
         }
     }
 
-    internal static void DisassembleChunk(this Chunk.Chunk chunk, string name)
+    internal static void Disassemble(this Chunk.Chunk chunk, string name)
     {
         Console.WriteLine($"== {name} ==");
 
         for(int offset = 0; offset < chunk.Count;)
         {
-            offset = DisassembleInstruction(chunk, offset);
+            offset = chunk.DisassembleInstruction(offset);
         }
     }
 
-    internal static int DisassembleInstruction(Chunk.Chunk chunk, int offset)
+    internal static int DisassembleInstruction(this Chunk.Chunk chunk, int offset)
     {
         Console.Write($"{offset:0000} ");
 
@@ -42,7 +42,12 @@ internal static class Debug
             OpCode.Return     => SimpleInstruction(opCode, offset),
             OpCode.Constant   => ConstantInstruction(opCode, chunk, offset),
             OpCode.Negate     => SimpleInstruction(opCode, offset),
-            _                   => UnknownInstruction(opCode, offset)
+            OpCode.Add        => SimpleInstruction(opCode, offset),
+            OpCode.Subtract   => SimpleInstruction(opCode, offset),
+            OpCode.Multiply   => SimpleInstruction(opCode, offset),
+            OpCode.Divide     => SimpleInstruction(opCode, offset),
+            OpCode.Modulo     => SimpleInstruction(opCode, offset),
+            _                 => UnknownInstruction(opCode, offset)
         };
     }
 
