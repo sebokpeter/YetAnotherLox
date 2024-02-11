@@ -39,8 +39,9 @@ internal static class Debug
 
         return opCode switch
         {
-            OpCode.OpReturn     => SimpleInstruction(opCode, offset),
-            OpCode.OpConstant   => ConstantInstruction(opCode, chunk, offset),
+            OpCode.Return     => SimpleInstruction(opCode, offset),
+            OpCode.Constant   => ConstantInstruction(opCode, chunk, offset),
+            OpCode.Negate     => SimpleInstruction(opCode, offset),
             _                   => UnknownInstruction(opCode, offset)
         };
     }

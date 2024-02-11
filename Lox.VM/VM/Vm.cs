@@ -47,12 +47,17 @@ internal class Vm : IDisposable
 
             switch (instruction)
             {
-                case OpCode.OpReturn:
+                case OpCode.Return:
                     Console.WriteLine(Pop());
                     return InterpretResult.Ok;
-                case OpCode.OpConstant:
+                case OpCode.Constant:
                     Value.Value constant = ReadConstant();
                     Push(constant);
+                    break;
+                case OpCode.Negate:
+                    Value.Value val = Pop();
+                    val = new(-val.Val);
+                    Push(val);
                     break;
                 default:
                     throw new UnreachableException();

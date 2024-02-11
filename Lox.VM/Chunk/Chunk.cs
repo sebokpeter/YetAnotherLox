@@ -48,6 +48,7 @@ internal class Chunk
 
 internal enum OpCode : byte
 {
-    OpReturn,
-    OpConstant,
+    Return,
+    Constant,
+    Negate
 }

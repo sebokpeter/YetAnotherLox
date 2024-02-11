@@ -10,14 +10,16 @@ public class Lox
 
         Chunk.Chunk chunk = new();
         int constant = chunk.AddConstant(new(1.2));
-        chunk.WriteChunk(OpConstant, 1);
+        chunk.WriteChunk(Constant, 1);
         chunk.WriteChunk((byte)constant, 1);
 
         constant = chunk.AddConstant(new(120));
-        chunk.WriteChunk(OpConstant, 2);
+        chunk.WriteChunk(Constant, 2);
         chunk.WriteChunk((byte)constant, 2);
 
-        chunk.WriteChunk(OpReturn, 2);
+        chunk.WriteChunk(Negate, 2);
+
+        chunk.WriteChunk(Return, 3);
 
         //chunk.DisassembleChunk("Test Chunk");
 
