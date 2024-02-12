@@ -32,7 +32,7 @@ internal class Vm : IDisposable
         {
             return InterpretResult.CompileError;
         }
-        
+
         InterpretResult result = Run();
 
         return result;
@@ -60,7 +60,16 @@ internal class Vm : IDisposable
         }
 
         // TODO: Emit bytecode based on AST
-    
+        BytecodeEmitter emitter = new(statements);
+        Chunk.Chunk chunk = emitter.EmitBytecode();
+
+        if(emitter.HadError)
+        {
+            Console.Error.WriteLine("Emitter had error.");
+            return false;
+        }
+
+        this.chunk = chunk;
         return true;
     }
 

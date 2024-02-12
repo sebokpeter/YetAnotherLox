@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Frontend\Frontend.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
