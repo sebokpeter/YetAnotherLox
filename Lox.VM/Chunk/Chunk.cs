@@ -6,19 +6,18 @@ internal class Chunk
 
     internal List<int> Lines => _lines;
 
-    internal Value.Values Constants => _constants;
+    internal List<Value.Value> Constants => _constants;
     internal byte this[int index] => _code[index];
-
 
     private readonly List<int> _lines;
     private readonly List<byte> _code;
-    private readonly Value.Values _constants;
+    private readonly List<Value.Value> _constants;
 
     internal Chunk()
     {
         _code = [];
         _lines = [];
-        _constants = new();
+        _constants = [];
     }
 
     internal void WriteChunk(byte data, int line)
@@ -36,12 +35,12 @@ internal class Chunk
     {
         _code.Clear();
         _lines.Clear();
-        _constants.FreeValuesList();
+        _constants.Clear();
     }
 
     internal int AddConstant(Value.Value value)
     {
-        _constants.WriteValuesList(value);
+        _constants.Add(value);
         return _constants.Count - 1;
     }
 }
