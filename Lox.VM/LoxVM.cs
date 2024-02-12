@@ -1,26 +1,73 @@
-﻿using static LoxVM.Chunk.OpCode;
+﻿using LoxVM.VM;
 
 namespace LoxVM;
 
 public class Lox
 {
-    public static void Main() 
+    public static void Main(string[] args) 
     {
-        using VM.Vm vm = new();
+        using Vm vm = new();
 
-        Chunk.Chunk chunk = new();
-        int constant = chunk.AddConstant(new(1.2));
-        chunk.WriteChunk(Constant, 1);
-        chunk.WriteChunk((byte)constant, 1);
-
-        constant = chunk.AddConstant(new(120));
-        chunk.WriteChunk(Constant, 2);
-        chunk.WriteChunk((byte)constant, 2);
-
-        chunk.WriteChunk(Add, 2);
-
-        chunk.WriteChunk(Return, 3);
-
-        vm.Interpret(chunk);
+        if(args.Length == 0)
+        {
+            REPL(vm);
+        }
+        else if(args.Length == 1)
+        {
+            RunFile(args[0], vm);
+        }
+        else
+        {
+            Console.Error.WriteLine("Usage: cslox [path]");
+        }
     }
+
+    private static void RunFile(string path, Vm vm)
+    {
+        string source;
+
+        try
+        {
+            source = File.ReadAllText(path);
+        }
+        catch(FileNotFoundException)
+        {
+            Console.Error.WriteLine($"File {path} not found.");
+            return;
+        }
+        catch(Exception ex)
+        {
+            Console.Error.WriteLine($"Could not open file {path}: {ex.Message}");
+            return;
+        }
+
+        InterpretResult result = vm.Interpret(source);
+
+        if(result == InterpretResult.RuntimeError)
+        {
+            Environment.Exit(65);
+        }
+        else if(result == InterpretResult.RuntimeError)
+        {
+            Environment.Exit(70);
+        }
+    }
+
+    private static void REPL(Vm vm)
+    {
+        while(true)
+        {
+            Console.Write("> ");
+
+            string? line = Console.ReadLine();
+
+            if(line is null)
+            {
+                break;
+            }
+
+            vm.Interpret(line);
+        }
+    }
+
 }

@@ -1,5 +1,9 @@
 using System.Diagnostics;
+using Frontend.Parser;
+using Frontend.Scanner;
+using Generated;
 using LoxVM.Chunk;
+using Shared;
 
 namespace LoxVM.VM;
 
@@ -22,11 +26,42 @@ internal class Vm : IDisposable
         stackTop = 0;
     }
 
-    internal InterpretResult Interpret(Chunk.Chunk chunk)
+    internal InterpretResult Interpret(string source)
     {
-        this.chunk = chunk;
-        ip = 0;
-        return Run();
+        if(!Compile(source))
+        {
+            return InterpretResult.CompileError;
+        }
+        
+        InterpretResult result = Run();
+
+        return result;
+    }
+
+    private bool Compile(string source)
+    {
+        Scanner scanner = new(source);
+        List<Token> tokens = scanner.ScanTokens();
+
+        if(scanner.HadError)
+        {
+            // TODO: report errors
+            Console.Error.WriteLine("Scanner had error");
+            return false;
+        }
+
+        Parser parser = new(tokens);
+        List<Stmt> statements = parser.Parse();
+
+        if(parser.HadError)
+        {
+            Console.Error.WriteLine("Parser had error");
+            return false;
+        }
+
+        // TODO: Emit bytecode based on AST
+    
+        return true;
     }
 
     private InterpretResult Run()
@@ -111,7 +146,7 @@ internal class Vm : IDisposable
 
         if(disposing)
         {
-
+            chunk?.FreeChunk();
         }
 
         disposed = true;
