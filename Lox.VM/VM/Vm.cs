@@ -9,6 +9,8 @@ namespace LoxVM.VM;
 
 internal class Vm : IDisposable
 {
+    internal IEnumerable<string> Errors => _errors.AsEnumerable();
+
     private const int STACK_MAX = 256;
 
     private Chunk.Chunk? chunk;
@@ -19,10 +21,13 @@ internal class Vm : IDisposable
     private readonly Value.Value[] _stack;
     private byte stackTop;
 
+    private readonly List<string> _errors; // TODO: Use custom Error object for better reporting
+
     public Vm()
     {
         disposed = false;
         _stack = new Value.Value[STACK_MAX];
+        _errors = [];
         stackTop = 0;
     }
 
@@ -40,34 +45,31 @@ internal class Vm : IDisposable
 
     private bool Compile(string source)
     {
-        Scanner scanner = new(source);
-        List<Token> tokens = scanner.ScanTokens();
+        (bool scanSuccess, List<Token>? tokens) = Scan(source);
 
-        if(scanner.HadError)
+        if(!scanSuccess)
         {
-            // TODO: report errors
-            Console.Error.WriteLine("Scanner had error");
             return false;
         }
 
-        Parser parser = new(tokens);
-        List<Stmt> statements = parser.Parse();
+        (bool parseSuccess, List<Stmt>? statements) = Parse(tokens!);
 
-        if(parser.HadError)
+        if(!parseSuccess)
         {
-            Console.Error.WriteLine("Parser had error");
             return false;
         }
 
         // TODO: Emit bytecode based on AST
-        BytecodeEmitter emitter = new(statements);
-        Chunk.Chunk chunk = emitter.EmitBytecode();
+        (bool compileSuccess, Chunk.Chunk? chunk) = CompileStatements(statements!);
 
-        // if(emitter.HadError)
-        // {
-        //     Console.Error.WriteLine("Emitter had error.");
-        //     return false;
-        // }
+        if(!compileSuccess)
+        {
+            return false;
+        }
+
+#if DEBUG_PRINT_CODE
+        chunk!.Disassemble("Code");
+#endif
 
         ResetVm();
 
@@ -75,23 +77,69 @@ internal class Vm : IDisposable
         return true;
     }
 
-    private InterpretResult Run()
+    private (bool compileSuccess, Chunk.Chunk? chunk) CompileStatements(List<Stmt> stmts)
     {
-        if(chunk is null)
+        BytecodeEmitter emitter = new(stmts);
+        Chunk.Chunk chunk = emitter.EmitBytecode();
+
+        if(emitter.HadError)
         {
-            throw new Exception("Chunk is null."); // TODO: Create exception type
+            foreach(CompilationError err in emitter.Errors)
+            {
+                _errors.Add($"Compilation failed at '{err.Token.Lexeme}': {err.Message} [{err.Token.Line}]");
+            }
+            return (false, null);
         }
 
+        return (true, chunk);
+    }
+
+    private (bool, List<Token>?) Scan(string source)
+    {
+        Scanner scanner = new(source);
+        List<Token> tokens = scanner.ScanTokens();
+
+        if(scanner.HadError)
+        {
+            foreach(ScannerError err in scanner.Errors)
+            {
+                _errors.Add($"Scanning failed: {err.Message} [{err.Line}]");
+            }
+            return (false, null);
+        }
+
+        return (true, tokens);
+    }
+
+    private (bool, List<Stmt>?) Parse(List<Token> tokens)
+    {
+        Parser parser = new(tokens!);
+        List<Stmt> statements = parser.Parse();
+
+        if(parser.HadError)
+        {
+            foreach(ParseError err in parser.Errors)
+            {
+                _errors.Add($"Parsing failed at '{err.Token.Lexeme}': {err.Message}  [{err.Token.Line}]");
+            }
+            return (false, null);
+        }
+
+        return (true, statements);
+    }
+
+    private InterpretResult Run()
+    {
         while(true)
         {
-            #if DEBUG_TRACE_EXECUTION
-                _stack.PrintStack(stackTop);
-                chunk.DisassembleInstruction(ip);
-            #endif
+#if DEBUG_TRACE_EXECUTION
+            _stack.PrintStack(stackTop);
+            chunk!.DisassembleInstruction(ip);
+#endif
 
             OpCode instruction = (OpCode)ReadByte();
 
-            switch (instruction)
+            switch(instruction)
             {
                 case OpCode.Return:
                     Console.WriteLine(Pop());
@@ -123,19 +171,19 @@ internal class Vm : IDisposable
 
         double res = op switch
         {
-            OpCode.Add      => a + b,
+            OpCode.Add => a + b,
             OpCode.Subtract => a - b,
             OpCode.Multiply => a * b,
-            OpCode.Divide   => a / b,
-            OpCode.Modulo   => a % b,
-            _               => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
+            OpCode.Divide => a / b,
+            OpCode.Modulo => a % b,
+            _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
         Push(new(res));
     }
-    
+
     private void Push(Value.Value value) => _stack[stackTop++] = value;
-    
+
     private Value.Value Pop() => _stack[--stackTop];
 
     private Value.Value ReadConstant() => chunk!.Constants[ReadByte()];
@@ -165,9 +213,9 @@ internal class Vm : IDisposable
 
     private void ResetVm()
     {
-            chunk?.FreeChunk();
-            ip = 0;
-            stackTop = 0;
+        chunk?.FreeChunk();
+        ip = 0;
+        stackTop = 0;
     }
 }
 

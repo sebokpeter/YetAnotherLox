@@ -4,7 +4,7 @@ namespace LoxVM;
 
 public class Lox
 {
-    public static void Main(string[] args) 
+    public static void Main(string[] args)
     {
         using Vm vm = new();
 
@@ -43,8 +43,9 @@ public class Lox
 
         InterpretResult result = vm.Interpret(source);
 
-        if(result == InterpretResult.RuntimeError)
+        if(result == InterpretResult.CompileError)
         {
+            ReportErrors(vm.Errors);
             Environment.Exit(65);
         }
         else if(result == InterpretResult.RuntimeError)
@@ -66,7 +67,20 @@ public class Lox
                 break;
             }
 
-            vm.Interpret(line);
+            InterpretResult result = vm.Interpret(line);
+
+            if(result == InterpretResult.CompileError)
+            {
+                ReportErrors(vm.Errors);
+            }
+        }
+    }
+
+    private static void ReportErrors(IEnumerable<string> errors)
+    {
+        foreach(string err in errors)
+        {
+            Console.Error.WriteLine(err);
         }
     }
 

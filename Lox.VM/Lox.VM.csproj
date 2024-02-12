@@ -13,6 +13,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants>DEBUG_TRACE_EXECUTION</DefineConstants>
+    <DefineConstants>DEBUG_TRACE_EXECUTION, DEBUG_PRINT_CODE</DefineConstants>
   </PropertyGroup>
 </Project>

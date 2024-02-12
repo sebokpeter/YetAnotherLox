@@ -8,17 +8,19 @@ namespace LoxVM.VM;
 
 internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 {
-    public bool HadError => throw new NotImplementedException();
-    public IEnumerable<CompilationError> Errors => throw new NotImplementedException();
+    public bool HadError => _errors.Count > 0;
+    public IEnumerable<CompilationError> Errors => _errors.AsEnumerable();
 
     private readonly List<Stmt> _statements;
 
     private readonly Chunk.Chunk _chunk;
+    private readonly List<CompilationError> _errors;
 
     public BytecodeEmitter(List<Stmt> stmts)
     {
         _statements = stmts;
         _chunk = new();
+        _errors = [];
     }
 
     public Chunk.Chunk EmitBytecode()
