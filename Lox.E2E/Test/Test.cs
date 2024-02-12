@@ -23,7 +23,7 @@ abstract partial class Test
     public virtual IEnumerable<string> Errors => _errors.AsEnumerable();
 
 
-    internal readonly static string _interpreterPath = "Lox/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
+    internal readonly static string _interpreterPath = "Lox.Interpreted/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
 
     internal readonly List<string> _results = [];
     internal readonly List<string> _errors = [];
