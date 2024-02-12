@@ -1,6 +1,8 @@
 
+using System.Diagnostics;
 using Generated;
 using LoxVM.Chunk;
+using Shared;
 
 namespace LoxVM.VM;
 
@@ -11,12 +13,12 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private readonly List<Stmt> _statements;
 
-    private Chunk.Chunk chunk;
+    private readonly Chunk.Chunk _chunk;
 
     public BytecodeEmitter(List<Stmt> stmts)
     {
         _statements = stmts;
-        chunk = new();
+        _chunk = new();
     }
 
     public Chunk.Chunk EmitBytecode()
@@ -26,19 +28,52 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         {
             EmitBytecode(stmt);
         }
-        return chunk;
+
+        // TODO: remove temporary return
+        EmitByte(OpCode.Return, _statements.Count);
+        return _chunk;
     }
 
     private void EmitBytecode(Stmt stmt) => stmt.Accept(this);
+    private void EmitBytecode(Expr expr) => expr.Accept(this);
 
     #region Statements
 
+    public void VisitExpressionStmt(Stmt.Expression stmt) => EmitBytecode(stmt.Ex);
+
+    public void VisitReturnStmt(Stmt.Return stmt) => EmitByte(OpCode.Return, stmt.Keyword.Line);
 
     #endregion
 
     #region Expressions
 
+    public void VisitUnaryExpr(Expr.Unary expr)
+    {
+        EmitBytecode(expr.Right);
+        switch(expr.Operator.Type)
+        {
+            case TokenType.BANG:
+                throw new NotImplementedException();
+            case TokenType.MINUS:
+                EmitByte(OpCode.Negate, expr.Operator.Line);
+                break;
+            default:
+                throw new UnreachableException();
+        }
+    }
 
+    public void VisitLiteralExpr(Expr.Literal expr)
+    {
+        if(expr.Value is double d)
+        {
+            Value.Value val = new(d);
+            EmitConstant(val, 1);
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     #endregion
 
@@ -48,11 +83,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitClassStmt(Stmt.Class stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitExpressionStmt(Stmt.Expression stmt)
     {
         throw new NotImplementedException();
     }
@@ -68,11 +98,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitPrintStmt(Stmt.Print stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitReturnStmt(Stmt.Return stmt)
     {
         throw new NotImplementedException();
     }
@@ -127,11 +152,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         throw new NotImplementedException();
     }
 
-    public void VisitLiteralExpr(Expr.Literal expr)
-    {
-        throw new NotImplementedException();
-    }
-
     public void VisitLogicalExpr(Expr.Logical expr)
     {
         throw new NotImplementedException();
@@ -148,11 +168,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitThisExpr(Expr.This expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitUnaryExpr(Expr.Unary expr)
     {
         throw new NotImplementedException();
     }
@@ -181,4 +196,23 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         throw new NotImplementedException();
     }
+
+    #region Utilities
+
+    private void EmitByte(OpCode opCode, int line) => _chunk.WriteChunk(opCode, line);
+
+    private void EmitBytes(OpCode opCodeOne, int l1, OpCode opCodeTwo, int l2)
+    {
+        EmitByte(opCodeOne, l1);
+        EmitByte(opCodeTwo, l2);
+    }
+
+    private void EmitConstant(Value.Value value, int line)
+    {
+        int constant = _chunk.AddConstant(value);
+        _chunk.WriteChunk(OpCode.Constant, line);
+        _chunk.WriteChunk((byte)constant, line);
+    }
+
+    #endregion
 }

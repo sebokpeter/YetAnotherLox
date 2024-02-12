@@ -63,11 +63,13 @@ internal class Vm : IDisposable
         BytecodeEmitter emitter = new(statements);
         Chunk.Chunk chunk = emitter.EmitBytecode();
 
-        if(emitter.HadError)
-        {
-            Console.Error.WriteLine("Emitter had error.");
-            return false;
-        }
+        // if(emitter.HadError)
+        // {
+        //     Console.Error.WriteLine("Emitter had error.");
+        //     return false;
+        // }
+
+        ResetVm();
 
         this.chunk = chunk;
         return true;
@@ -155,10 +157,17 @@ internal class Vm : IDisposable
 
         if(disposing)
         {
-            chunk?.FreeChunk();
+            ResetVm();
         }
 
         disposed = true;
+    }
+
+    private void ResetVm()
+    {
+            chunk?.FreeChunk();
+            ip = 0;
+            stackTop = 0;
     }
 }
 
