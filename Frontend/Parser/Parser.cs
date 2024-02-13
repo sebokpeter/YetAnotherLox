@@ -3,6 +3,8 @@ using Shared;
 using Generated;
 using static Shared.TokenType;
 
+using Shared.ErrorHandling;
+
 namespace Frontend.Parser;
 
 public class Parser
@@ -457,7 +459,6 @@ public class Parser
             return get with { Obj = CopyCollectionExpr(get.Obj, line, pos) };
         }
 
-
         throw Error(pos, "Invalid Expression type.");
     }
 
@@ -473,7 +474,6 @@ public class Parser
         Consume(SEMICOLON, "Expect ';' after 'continue'.");
 
         return new Stmt.Continue(keyword);
-
     }
 
     private Stmt.Break BreakStatement()
@@ -837,11 +837,11 @@ public class Parser
 
         return literalToken.Type switch
         {
-            TRUE => new(true),
-            FALSE => new(false),
-            NIL => new(null),
-            NUMBER or STRING => new(literalToken.Literal),
-            _ => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
+            TRUE                => new(true),
+            FALSE               => new(false),
+            NIL                 => new(null),
+            NUMBER or STRING    => new(literalToken.Literal),
+            _                   => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
         };
     }
 
@@ -942,7 +942,7 @@ public class Parser
 
     private ParseException Error(Token token, string msg)
     {
-        _errors.Add(new(token, msg));
+        _errors.Add(new(msg, token));
         return new ParseException();
     }
 

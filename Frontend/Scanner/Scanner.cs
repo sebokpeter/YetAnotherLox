@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Shared;
+using Shared.ErrorHandling;
 using static Shared.TokenType;
 
 namespace Frontend.Scanner;
@@ -7,7 +8,7 @@ namespace Frontend.Scanner;
 public class Scanner
 {
     public bool HadError => errors.Count != 0; 
-    public IEnumerable<ScannerError> Errors => errors;
+    public IEnumerable<ScanError> Errors => errors;
 
     private readonly string _source;
     private readonly List<Token> tokens = [];
@@ -15,7 +16,7 @@ public class Scanner
     private int start = 0;
     private int line = 1;
 
-    private readonly List<ScannerError> errors;
+    private readonly List<ScanError> errors;
 
     private static readonly Dictionary<string, TokenType> keywords;
 
@@ -339,5 +340,5 @@ public class Scanner
         tokens.Add(new Token(type, text, literal, line));
     }
 
-    private void Error(int line, string msg) => errors.Add(new(line, msg));
+    private void Error(int line, string msg) => errors.Add(new(msg, line));
 }
