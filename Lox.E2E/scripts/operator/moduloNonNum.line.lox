@@ -1,2 +1,2 @@
-"10" % 2; // Expect runtime error: Operands must be numbers. [line 1]
-10 % "2"; // Expect runtime error: Operands must be numbers. [line 1]
+"10" % 2; // Expect: [line 1] Runtime Error: Operands must be numbers.
+10 % "2"; // Expect: [line 1] Runtime Error: Operands must be numbers.

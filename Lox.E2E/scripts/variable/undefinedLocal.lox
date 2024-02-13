@@ -1,5 +1,5 @@
 // Test case is from the Crafting Interpreters book repo
 
 {
-  print notDefined;  // Expect runtime error: Undefined variable 'notDefined'. [line 4]
+  print notDefined;  // Expect: [line 4] Runtime Error: Undefined variable 'notDefined'.
 }

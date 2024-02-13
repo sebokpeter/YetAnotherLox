@@ -34,8 +34,22 @@ abstract partial class Test
     internal readonly CancellationTokenSource _cts = new(TimeoutMS);
 
 
-    [GeneratedRegex("Expect( runtime error)?: (?<expected>.*)$")]
+    /// <summary>
+    /// Generate a regex that is used to parse the test inputs.
+    /// The regex removes information such as the line number and the stage where the error happened.
+    /// For example, the error "[line 1] Scan Error: Unterminated multiline comment." will become "Unterminated multiline comment."
+    /// </summary>
+    /// <returns></returns>
+    [GeneratedRegex(@"Expect: ((\[line [0-9]*\])? (((Scan|Parse|Resolution|Runtime) )?Error)?( at (end|\'.*\'))?:)?(?<expected>.*)$")]
     internal static partial Regex ExpectedOutputRegex();
+
+    /// <summary>
+    /// Generate a regex that is used to parse the test results.
+    /// Behaves the same as <see cref="Test.ExpectedOutputRegex"/>, except does not not expect the "Expect: " prefix.
+    /// </summary>
+    /// <returns></returns>
+    [GeneratedRegex(@"((\[line [0-9]*\])? (((Scan|Parse|Resolution|Runtime) )?Error( at (end|\'.*\'))?: ))?(?<expected>.*)$")]
+    internal static partial Regex OutputRegex();
 
     public abstract Task Run();
 
@@ -54,12 +68,27 @@ abstract partial class Test
 
     }
 
-    internal virtual void CheckErrors(IEnumerable<string> results)
+    /// <summary>
+    /// Check the results. There are two checks:
+    /// 1. The number of results. If the number of actual results does not match the number of expected results, an error is reported.
+    /// 2. Check each actual result against the expected result. If they do not match, report an error.
+    /// If <paramref name="checkResultsVerbatim"/> is true, the actual results is parsed by the generated <see cref="Test.ExpectedOutputRegex()"/> Regex, to extract the message.
+    /// This strips away information such as the line number, and in which stage did the error occurred.
+    /// For example, the error "[line 1] Scan Error: Unterminated multiline comment." will be interpreted simply as "Unterminated multiline comment."
+    /// </summary>
+    /// <param name="results">The <see cref="IEnumerable{String}"/> that contains the results.</param>
+    /// <param name="checkResultsVerbatim">A switch that indicates whether of not the results should be interpreted verbatim.</param>
+    internal virtual void CheckErrors(IEnumerable<string> results, bool checkResultsVerbatim = false)
     {
         if(results.Count() != _expectedResults.Count())
         {
             _errors.Add($"Expected {_expectedResults.Count()} results but got {results.Count()}.");
             return;
+        }
+
+        if(!checkResultsVerbatim)
+        {
+            results = results.Select(res => OutputRegex().Match(res).Groups["expected"].Value.Trim());
         }
 
         int i = 1;

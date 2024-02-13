@@ -4,4 +4,4 @@ class Foo {
   method(a, b) {}
 }
 
-Foo().method(1); // Expect runtime error: Expected 2 arguments, but got 1. [line 7]
+Foo().method(1); // Expect: [line 7] Runtime Error: Expected 2 arguments, but got 1.

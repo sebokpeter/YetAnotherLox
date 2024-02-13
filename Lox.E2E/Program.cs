@@ -6,11 +6,30 @@ namespace E2E;
 
 public class Program
 {
-    public static async Task Main()
+    public static async Task Main(string[] args)
     {
-        IEnumerable<TestSuite> tests = CreateTests("Lox.E2E/scripts");
 
-        await RunTest(tests);
+        if(args.Length == 0)
+        {
+            IEnumerable<TestSuite> tests = CreateTests("Lox.E2E/scripts");
+
+            await RunTest(tests);
+        }
+        else
+        {
+            Test.Test test;
+
+            if(args[0].EndsWith(".line.lox"))
+            {
+                test = CreateLineTest(args[0]);
+            }
+            else 
+            {
+                test = CreateTest(args[0]);
+            }
+
+            await test.Run();
+        }
     }
 
     private static async Task RunTest(IEnumerable<TestSuite> tests)
@@ -77,5 +96,25 @@ public class Program
         string[] subDirectories = Directory.GetDirectories(testFolder);
 
         return subDirectories.Select(dir => new TestSuite(dir));
+    }
+
+    private static ScriptTest CreateTest(string testPath)
+    {
+        if(!File.Exists(testPath))
+        {
+            throw new ArgumentException($"File {testPath} does not exists!", nameof(testPath));
+        }
+
+        return new ScriptTest(testPath);
+    }
+
+    private static LineTest CreateLineTest(string testPath)
+    {
+        if(!File.Exists(testPath))
+        {
+            throw new ArgumentException($"File {testPath} does not exists!", nameof(testPath));
+        }
+
+        return new LineTest(testPath);
     }
 }

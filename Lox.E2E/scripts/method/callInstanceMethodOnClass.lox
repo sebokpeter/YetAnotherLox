@@ -4,4 +4,4 @@ class C {
     }
 }
 
-C.foo(); // Expect: Class 'C' has no static method named 'foo'. [line 7]
+C.foo(); // Expect: Class 'C' has no static method named 'foo'.

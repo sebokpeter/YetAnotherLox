@@ -1,4 +1,4 @@
 // Test case is from the Crafting Interpreters book repo
 
-undefined1.bar // Expect runtime error: Undefined variable 'undefined1'. [line 3]
+undefined1.bar // Expect: [line 3] Runtime Error: Undefined variable 'undefined1'.
   = undefined2;

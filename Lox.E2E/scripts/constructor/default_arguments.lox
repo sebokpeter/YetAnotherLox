@@ -2,4 +2,4 @@
 
 class Foo {}
 
-var foo = Foo(1, 2, 3); // Expect runtime error: Expected 0 arguments, but got 3. [line 5]
+var foo = Foo(1, 2, 3); // Expect: [line 5] Runtime Error: Expected 0 arguments, but got 3.

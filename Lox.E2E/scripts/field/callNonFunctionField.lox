@@ -5,4 +5,4 @@ class Foo {}
 var foo = Foo();
 foo.bar = "not fn";
 
-foo.bar(); // Expect runtime error: Can only call functions and classes. [line 8]
+foo.bar(); // Expect: [line 8] Runtime Error: Can only call functions and classes.

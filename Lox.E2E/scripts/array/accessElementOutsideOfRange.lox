@@ -1,4 +1,4 @@
 var array = [0, 1, 2];
 
 print array[2]; // Expect: 2
-print array[3]; // Expect runtime error: Index is out of bounds. Array size: 3, index: 3 [line 4]
+print array[3]; // Expect: Index is out of bounds. Array size: 3, index: 3.

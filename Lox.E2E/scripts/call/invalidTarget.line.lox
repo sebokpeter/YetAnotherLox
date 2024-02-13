@@ -1,8 +1,8 @@
 // Test cases are from the Crafting Interpreters book repo
 
-true(); // Expect runtime error: Can only call functions and classes. [line 1]
-nil(); // Expect runtime error: Can only call functions and classes. [line 1]
-123(); // Expect runtime error: Can only call functions and classes. [line 1]
+true(); // Expect: [line 1] Runtime Error: Can only call functions and classes.
+nil(); // Expect: [line 1] Runtime Error: Can only call functions and classes.
+123(); // Expect: [line 1] Runtime Error: Can only call functions and classes.
 
-class Foo {} var foo = Foo(); foo(); // Expect runtime error: Can only call functions and classes. [line 1]
-"str"(); // Expect runtime error: Can only call functions and classes. [line 1]
+class Foo {} var foo = Foo(); foo(); // Expect: [line 1] Runtime Error: Can only call functions and classes.
+"str"(); // Expect: [line 1] Runtime Error: Can only call functions and classes.

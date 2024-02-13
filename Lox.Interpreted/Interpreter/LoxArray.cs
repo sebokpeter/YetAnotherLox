@@ -46,7 +46,7 @@ internal class LoxArray
     {
         if(index > _values.Count - 1) 
         {
-            throw new RuntimeException(bracket, $"Index is out of bounds. Array size: {_values.Count}, index: {index}");
+            throw new RuntimeException(bracket, $"Index is out of bounds. Array size: {_values.Count}, index: {index}.");
         }
 
         return _values[index];

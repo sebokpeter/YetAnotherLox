@@ -7,4 +7,4 @@ class Foo {
   }
 }
 
-var foo = Foo(1, 2, 3, 4); // Expect runtime error: Expected 2 arguments, but got 4. [line 10]
+var foo = Foo(1, 2, 3, 4); // Expect: [line 10] Runtime Error: Expected 2 arguments, but got 4.

@@ -13,4 +13,4 @@ class Derived < Base {
   }
 }
 
-Derived().foo(); // Expect runtime error: Expected 2 arguments, but got 4. [line 16]
+Derived().foo(); // Expect: [line 16] Runtime Error: Expected 2 arguments, but got 4.

@@ -12,4 +12,4 @@ print div(10, 5); // Expect: 2
 print add(2, 2) == 2 + 2; // Expect: True
 print div(2, 2) == 2 / 2; // Expect: True
 
-print div(2, 0); // Expect runtime error: Attempted division by zero. [line 15]
+print div(2, 0); // Expect: [line 15] Runtime Error: Attempted division by zero.

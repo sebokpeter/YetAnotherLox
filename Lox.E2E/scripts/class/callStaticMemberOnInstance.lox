@@ -6,4 +6,4 @@ class ClassWithStaticMembers {
 
 var c = ClassWithStaticMembers();
 
-c.foo(); // Expect runtime error: Static method 'foo' cannot be called on an instance. [line 9]
+c.foo(); // Expect: [line 9] Runtime Error: Static method 'foo' cannot be called on an instance.

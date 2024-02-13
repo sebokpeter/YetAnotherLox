@@ -1,7 +1,7 @@
 // Test cases are from the Crafting Interpreters book repo
 
-true.foo; // Expect runtime error: Only instances have properties. [line 1]
-fun foo() {} foo.bar; // Expect runtime error: Only instances have properties. [line 1]
-nil.foo; // Expect runtime error: Only instances have properties. [line 1]
-123.foo; // Expect runtime error: Only instances have properties. [line 1]
-"foo".foo; // Expect runtime error: Only instances have properties. [line 1]
+true.foo; // Expect: [line 1] Runtime Error: Only instances have properties.
+fun foo() {} foo.bar; // Expect: [line 1] Runtime Error: Only instances have properties.
+nil.foo; // Expect: [line 1] Runtime Error: Only instances have properties.
+123.foo; // Expect: [line 1] Runtime Error: Only instances have properties.
+"foo".foo; // Expect: [line 1] Runtime Error: Only instances have properties.

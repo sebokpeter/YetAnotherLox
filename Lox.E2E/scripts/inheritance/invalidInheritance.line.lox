@@ -1,5 +1,5 @@
 // Test cases are from the Crafting Interpreters book repo
 
-fun foo() {} class Subclass < foo {} // Expect runtime error: Superclass must be a (non-static) class. [line 1]
-var Nil = nil; class Foo < Nil {} // Expect runtime error: Superclass must be a (non-static) class. [line 1]
-var n = 123; class FooNum < n {} // Expect runtime error: Superclass must be a (non-static) class. [line 1]
+fun foo() {} class Subclass < foo {} // Expect: [line 1] Runtime Error: Superclass must be a (non-static) class.
+var Nil = nil; class Foo < Nil {} // Expect: [line 1] Runtime Error: Superclass must be a (non-static) class.
+var n = 123; class FooNum < n {} // Expect: [line 1] Runtime Error: Superclass must be a (non-static) class.

@@ -4,4 +4,4 @@ class Class {
     }
 }
 
-Class.bar(); // Expect runtime error: Class 'Class' has no static method named 'bar'. [line 7]
+Class.bar(); // Expect: [line 7] Runtime Error: Class 'Class' has no static method named 'bar'.

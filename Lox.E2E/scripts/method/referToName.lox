@@ -6,4 +6,4 @@ class Foo {
   }
 }
 
-Foo().method(); // Expect runtime error: Undefined variable 'method'. [line 9]
+Foo().method(); // Expect: [line 9] Runtime Error: Undefined variable 'method'.

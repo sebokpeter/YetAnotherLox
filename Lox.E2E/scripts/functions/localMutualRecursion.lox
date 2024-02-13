@@ -11,5 +11,5 @@
     return isEven(n - 1);
   }
 
-  isEven(4); // Expect runtime error: Undefined variable 'isOdd'. [line 14]
+  isEven(4); // Expect: [line 14] Runtime Error: Undefined variable 'isOdd'.
 }
