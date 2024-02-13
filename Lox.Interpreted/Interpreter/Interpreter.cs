@@ -59,7 +59,8 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
         catch(RuntimeException ex)
         {
-            Lox.RuntimeError(ex);
+           // Lox.RuntimeError(ex);
+            // TODO
         }
     }
 

@@ -3,6 +3,7 @@ using Lox.Interpreter;
 using Shared;
 using Generated;
 using Frontend.Parser;
+using Shared.ErrorHandling;
 
 namespace Lox;
 
@@ -56,12 +57,23 @@ public class Lox
 
         if(_hadError) return;
 
-        Resolver.Resolver resolver = new(_interpreter);
-        resolver.Resolve(statements);
+        Resolve(statements);
 
         if(_hadError) return;
 
         _interpreter.Interpret(statements);
+    }
+
+    private static void Resolve(List<Stmt> stmts)
+    {
+        Resolver.Resolver resolver = new(_interpreter);
+        resolver.Resolve(stmts);
+
+        if(resolver.HadError)
+        {
+            resolver.Errors.ReportAll();
+            _hadError = true;
+        }
     }
 
     private static List<Stmt> ScanAndParse(string source)
@@ -70,54 +82,21 @@ public class Lox
         Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
 
-        // if(scanner.HadError)
-        // {
-        //     foreach(ScannerError scannerError in scanner.Errors) 
-        //     {
-        //         Error(scannerError.Line, scannerError.Message);
-        //     }
-        // }
+        if(scanner.HadError)
+        {
+            scanner.Errors.ReportAll();
+            _hadError = true;
+        }
 
         Parser parser = new(tokens);
         List<Stmt> statements = parser.Parse();
 
-        // if(parser.HadError)
-        // {
-        //     foreach(ParseError parseError in parser.Errors)
-        //     {
-        //         Error(parseError.Token, parseError.Message);
-        //     }
-        // }
+        if(parser.HadError)
+        {
+            parser.Errors.ReportAll();
+            _hadError = true;
+        }
 
         return statements;
-    }
-
-    internal static void Error(int line, string msg)
-    {
-        Report(line, "", msg);
-    }
-
-    internal static void Error(Token token, string msg)
-    {
-        if(token.Type == TokenType.EOF)
-        {
-            Report(token.Line, " at end", msg);
-        }
-        else
-        {
-            Report(token.Line, " at '" + token.Lexeme + "'", msg);
-        }
-    }
-
-    internal static void RuntimeError(RuntimeException ex)
-    {
-        Console.Error.WriteLine(ex.Message + $" [line {ex.Token.Line}]");
-        _hadRuntimeError = true;
-    }
-
-    private static void Report(int line, string where, string msg)
-    {
-        Console.Error.WriteLine($"[line {line}] Error{where}: {msg}");
-        _hadError = true;
     }
 }

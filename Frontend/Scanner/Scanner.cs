@@ -7,8 +7,8 @@ namespace Frontend.Scanner;
 
 public class Scanner
 {
-    public bool HadError => errors.Count != 0; 
-    public IEnumerable<ScanError> Errors => errors;
+    public bool HadError => _errors.Count != 0; 
+    public IEnumerable<ScanError> Errors => _errors;
 
     private readonly string _source;
     private readonly List<Token> tokens = [];
@@ -16,7 +16,7 @@ public class Scanner
     private int start = 0;
     private int line = 1;
 
-    private readonly List<ScanError> errors;
+    private readonly List<ScanError> _errors;
 
     private static readonly Dictionary<string, TokenType> keywords;
 
@@ -49,7 +49,7 @@ public class Scanner
     public Scanner(string source)
     {
         _source = source;
-        errors = [];
+        _errors = [];
     }
 
     public List<Token> ScanTokens()
@@ -340,5 +340,5 @@ public class Scanner
         tokens.Add(new Token(type, text, literal, line));
     }
 
-    private void Error(int line, string msg) => errors.Add(new(msg, line));
+    private void Error(int line, string msg) => _errors.Add(new(msg, line));
 }
