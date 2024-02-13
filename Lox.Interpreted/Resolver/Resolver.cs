@@ -1,12 +1,18 @@
 using Shared;
 using Generated;
+using Shared.ErrorHandling;
 
 namespace Lox.Resolver;
 
 internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 {
+    public bool HadError => _errors.Count > 0;
+    public IEnumerable<ResolveError> Errors => _errors.AsEnumerable();
+
     private readonly Interpreter.Interpreter _interpreter;
     private readonly Stack<Dictionary<string, bool>> _scopes = new();
+
+    private readonly List<ResolveError> _errors;
 
     private FunctionType currentFunction = FunctionType.NONE;
     private ClassType _currentClass = ClassType.NONE;
@@ -14,6 +20,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public Resolver(Interpreter.Interpreter interpreter)
     {
         _interpreter = interpreter;
+        _errors = [];
     }
 
     public object VisitBlockStmt(Stmt.Block stmt)
@@ -27,7 +34,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     public object VisitVarStmt(Stmt.Var stmt)
     {
         Declare(stmt.Name);
-        if (stmt.Initializer is not null)
+        if(stmt.Initializer is not null)
         {
             Resolve(stmt.Initializer);
         }
@@ -37,9 +44,9 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-        if (_scopes.Count != 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool found) && !found)
+        if(_scopes.Count != 0 && _scopes.Peek().TryGetValue(expr.Name.Lexeme, out bool found) && !found)
         {
-            Lox.Error(expr.Name, "Can't read local variable in its own initializer.");
+            _errors.Add(new("Can't read local variable in its own initializer.", expr.Name));
         }
 
         ResolveLocal(expr, expr.Name);
@@ -69,7 +76,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         currentFunction = type;
 
         BeginScope();
-        foreach (Token param in function.Params)
+        foreach(Token param in function.Params)
         {
             Declare(param);
             Define(param);
@@ -91,7 +98,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         Resolve(expr.Callee);
 
-        foreach (Expr arg in expr.Arguments)
+        foreach(Expr arg in expr.Arguments)
         {
             Resolve(arg);
         }
@@ -133,7 +140,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         Resolve(stmt.Condition);
         Resolve(stmt.ThenBranch);
-        if (stmt.ElseBranch is not null)
+        if(stmt.ElseBranch is not null)
         {
             Resolve(stmt.ElseBranch!);
         }
@@ -148,16 +155,16 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitReturnStmt(Stmt.Return stmt)
     {
-        if (currentFunction is FunctionType.NONE)
+        if(currentFunction is FunctionType.NONE)
         {
-            Lox.Error(stmt.Keyword, "Can't return from top-level code.");
+            _errors.Add(new("Can't return from top-level code.", stmt.Keyword));
         }
 
-        if (stmt.Value is not null)
+        if(stmt.Value is not null)
         {
-            if (currentFunction is FunctionType.INITIALIZER)
+            if(currentFunction is FunctionType.INITIALIZER)
             {
-                Lox.Error(stmt.Keyword, "Can't return value from an initializer.");
+                _errors.Add(new("Can't return value from an initializer.", stmt.Keyword));
             }
             Resolve(stmt.Value);
         }
@@ -188,7 +195,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
 
         Resolve(stmt.Body);
-        
+
         EndScope();
 
         return null!;
@@ -204,7 +211,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
         if(stmt.Superclass is not null && stmt.Name.Lexeme.Equals(stmt.Superclass.Name.Lexeme))
         {
-            Lox.Error(stmt.Superclass.Name, "A class can't inherit from itself.");
+            _errors.Add(new("A class can't inherit from itself.", stmt.Superclass.Name));
         }
 
         if(stmt.Superclass is not null)
@@ -213,7 +220,8 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
             Resolve(stmt.Superclass);
         }
 
-        if(stmt.Superclass is not null) {
+        if(stmt.Superclass is not null)
+        {
             BeginScope();
             _scopes.Peek().Add("super", true);
         }
@@ -221,14 +229,14 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         BeginScope();
         _scopes.Peek().Add("this", true);
 
-        foreach (Stmt.Function method in stmt.Methods)
+        foreach(Stmt.Function method in stmt.Methods)
         {
-            ResolveFunction(method, method.Name.Lexeme.Equals("init")? FunctionType.INITIALIZER : FunctionType.METHOD);
+            ResolveFunction(method, method.Name.Lexeme.Equals("init") ? FunctionType.INITIALIZER : FunctionType.METHOD);
         }
 
         EndScope();
 
-        if(stmt.Superclass is not null) 
+        if(stmt.Superclass is not null)
         {
             EndScope();
         }
@@ -252,9 +260,9 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     public object VisitThisExpr(Expr.This expr)
     {
-        if (_currentClass is ClassType.NONE)
+        if(_currentClass is ClassType.NONE)
         {
-            Lox.Error(expr.Keyword, "Can't use 'this' outside of a class.");
+            _errors.Add(new("Can't use 'this' outside of a class.", expr.Keyword));
             return null!;
         }
 
@@ -266,11 +274,12 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         if(_currentClass is ClassType.NONE)
         {
-            Lox.Error(expr.Keyword, "Can't use 'super' outside of a class.");
-        } 
+            _errors.Add(new("Can't use 'super' outside of a class.", expr.Keyword));
+        }
         else if(_currentClass is not ClassType.SUBCLASS)
         {
-            Lox.Error(expr.Keyword, "Can't use 'super' in a class with no superclass.");
+            _errors.Add(new("Can't use 'super' in a class with no superclass.", expr.Keyword));
+
         }
         ResolveLocal(expr, expr.Keyword);
         return null!;
@@ -281,7 +290,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         return null!;
     }
 
-    public object VisitContinueStmt(Stmt.Continue stmt) 
+    public object VisitContinueStmt(Stmt.Continue stmt)
     {
         return null!;
     }
@@ -290,7 +299,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {
         if(expr.Initializers is not null)
         {
-            foreach (Expr e in expr.Initializers)
+            foreach(Expr e in expr.Initializers)
             {
                 Resolve(e);
             }
@@ -330,9 +339,9 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void ResolveLocal(Expr expr, Token name)
     {
-        for (int i = 0; i < _scopes.Count; i++)
+        for(int i = 0; i < _scopes.Count; i++)
         {
-            if (_scopes.ElementAt(i).ContainsKey(name.Lexeme))
+            if(_scopes.ElementAt(i).ContainsKey(name.Lexeme))
             {
                 _interpreter.Resolve(expr, i);
                 return;
@@ -342,7 +351,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     private void Define(Token name)
     {
-        if (_scopes.Count == 0)
+        if(_scopes.Count == 0)
         {
             return;
         }
@@ -351,23 +360,23 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
         {
             _scopes.Peek()[name.Lexeme] = true;
         }
-        else 
+        else
         {
-            Lox.Error(name, $"Variable '{name.Lexeme}' has not been declared.");
+            _errors.Add(new($"Variable '{name.Lexeme}' has not been declared.", name));
         }
     }
 
     private void Declare(Token name)
     {
-        if (_scopes.Count == 0)
+        if(_scopes.Count == 0)
         {
             return;
         }
 
         Dictionary<string, bool> scope = _scopes.Peek();
-        if (scope.ContainsKey(name.Lexeme))
+        if(scope.ContainsKey(name.Lexeme))
         {
-            Lox.Error(name, "Already a variable with this name in this scope.");
+            _errors.Add(new($"Already a variable with this name in this scope.", name));
             return;
         }
         scope.Add(name.Lexeme, false);
@@ -385,7 +394,7 @@ internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     internal void Resolve(List<Stmt> statements)
     {
-        foreach (Stmt stmt in statements)
+        foreach(Stmt stmt in statements)
         {
             Resolve(stmt);
         }

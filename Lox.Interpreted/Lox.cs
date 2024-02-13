@@ -70,24 +70,24 @@ public class Lox
         Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
 
-        if(scanner.HadError)
-        {
-            foreach(ScannerError scannerError in scanner.Errors) 
-            {
-                Error(scannerError.Line, scannerError.Message);
-            }
-        }
+        // if(scanner.HadError)
+        // {
+        //     foreach(ScannerError scannerError in scanner.Errors) 
+        //     {
+        //         Error(scannerError.Line, scannerError.Message);
+        //     }
+        // }
 
         Parser parser = new(tokens);
         List<Stmt> statements = parser.Parse();
 
-        if(parser.HadError)
-        {
-            foreach(ParseError parseError in parser.Errors)
-            {
-                Error(parseError.Token, parseError.Message);
-            }
-        }
+        // if(parser.HadError)
+        // {
+        //     foreach(ParseError parseError in parser.Errors)
+        //     {
+        //         Error(parseError.Token, parseError.Message);
+        //     }
+        // }
 
         return statements;
     }

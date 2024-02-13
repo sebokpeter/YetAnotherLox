@@ -20,6 +20,13 @@ public record ScanError(string Message, int Line) : Error(Message);
 public record ParseError(string Message, Token? Location) : Error(Message);
 
 /// <summary>
+/// Type representing errors that occurred during the variable resolution pass. 
+/// </summary>
+/// <param name="Message">The error message.</param>
+/// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
+public record ResolveError(string Message, Token? Location) : Error(Message);
+
+/// <summary>
 /// Type representing errors that occurred while the program was running.
 /// </summary>
 /// <param name="Message">The error message.</param>
