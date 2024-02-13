@@ -54,8 +54,8 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitBinaryExpr(Expr.Binary expr)
     {
-        EmitBytecode(expr.Left);
         EmitBytecode(expr.Right);
+        EmitBytecode(expr.Left);
 
         OpCode op = expr.Operator.Type switch
         {
