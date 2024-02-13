@@ -49,6 +49,26 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     #region Expressions
 
+    public void VisitGroupingExpr(Expr.Grouping expr) => EmitBytecode(expr.Expression);
+
+    public void VisitBinaryExpr(Expr.Binary expr)
+    {
+        EmitBytecode(expr.Left);
+        EmitBytecode(expr.Right);
+
+        OpCode op = expr.Operator.Type switch
+        {
+            TokenType.PLUS      => OpCode.Add,
+            TokenType.MINUS     => OpCode.Subtract,
+            TokenType.STAR      => OpCode.Multiply,
+            TokenType.SLASH     => OpCode.Divide,
+            TokenType.MODULO    => OpCode.Modulo,
+            _                   => throw new UnreachableException()     
+        };
+
+        EmitByte(op, expr.Operator.Line);
+    }
+
     public void VisitUnaryExpr(Expr.Unary expr)
     {
         EmitBytecode(expr.Right);
@@ -134,22 +154,12 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         throw new NotImplementedException();
     }
 
-    public void VisitBinaryExpr(Expr.Binary expr)
-    {
-        throw new NotImplementedException();
-    }
-
     public void VisitCallExpr(Expr.Call expr)
     {
         throw new NotImplementedException();
     }
 
     public void VisitGetExpr(Expr.Get expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitGroupingExpr(Expr.Grouping expr)
     {
         throw new NotImplementedException();
     }
