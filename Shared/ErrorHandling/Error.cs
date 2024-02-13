@@ -31,4 +31,5 @@ public record ResolveError(string Message, Token? Location) : Error(Message);
 /// </summary>
 /// <param name="Message">The error message.</param>
 /// <param name="Line">The line number where the error occurred.</param>
-public record RuntimeError(string Message, int Line) : Error(Message);
+/// <param name="Token">The <see cref="Token"/> where the error occurred.</param>
+public record RuntimeError(string Message, int? Line, Token? Token) : Error(Message);

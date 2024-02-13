@@ -51,11 +51,27 @@ public static class ErrorReporter
     {
         if(error.Location is null)
         {
-            Console.Error.WriteLine($"{error.Message}");
+            Console.Error.WriteLine(error.Message);
         }
         else
         {
             Console.Error.WriteLine($"[line {error.Location.Line}] Resolution Error {GetLocationString(error.Location)}: {error.Message}");
+        }
+    }
+
+    public static void Report(this RuntimeError error)
+    {
+        if(error.Line is null && error.Token is null)
+        {
+            Console.Error.WriteLine(error.Message);
+        }
+        else if(error.Token is null)
+        {
+            Console.Error.WriteLine($"[line {error.Line}] Runtime Error: {error.Message}");
+        }
+        else 
+        {
+            Console.Error.WriteLine($"[line {error.Token.Line}] Runtime Error {GetLocationString(error.Token)}: {error.Message}");
         }
     }
 

@@ -62,6 +62,12 @@ public class Lox
         if(_hadError) return;
 
         _interpreter.Interpret(statements);
+
+        if(_interpreter.HadError)
+        {
+            _interpreter.Error.Report();
+            _hadRuntimeError = true;
+        }
     }
 
     private static void Resolve(List<Stmt> stmts)

@@ -1,11 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using Generated;
 using Shared;
+using Shared.ErrorHandling;
 using static Shared.TokenType;
 
 namespace Lox.Interpreter;
 
 internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 {
+    [MemberNotNullWhen(true, nameof(Error))]
+    internal bool HadError {get; private set;}
+    internal RuntimeError? Error {get; private set;}
+
+
     private readonly Dictionary<Expr, int> _locals;
     private readonly Environment _globals;
     private Environment _environment;
@@ -50,6 +57,9 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
 
     internal void Interpret(List<Stmt> statements)
     {
+        HadError = false;
+        Error = null;
+
         try
         {
             foreach(Stmt stmt in statements)
@@ -59,8 +69,8 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
         }
         catch(RuntimeException ex)
         {
-           // Lox.RuntimeError(ex);
-            // TODO
+            HadError = true;
+            Error = new(ex.Message, null, ex.Token);
         }
     }
 
