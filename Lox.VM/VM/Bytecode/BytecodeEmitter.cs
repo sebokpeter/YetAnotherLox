@@ -3,18 +3,19 @@ using System.Diagnostics;
 using Generated;
 using LoxVM.Chunk;
 using Shared;
+using Shared.ErrorHandling;
 
 namespace LoxVM.VM;
 
 internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 {
-    public bool HadError => _errors.Count > 0;
-    public IEnumerable<CompilationError> Errors => _errors.AsEnumerable();
+    internal bool HadError => _errors.Count > 0;
+    internal IEnumerable<BytecodeEmitterError> Errors => _errors;
 
     private readonly List<Stmt> _statements;
 
     private readonly Chunk.Chunk _chunk;
-    private readonly List<CompilationError> _errors;
+    private readonly List<BytecodeEmitterError> _errors;
 
     public BytecodeEmitter(List<Stmt> stmts)
     {

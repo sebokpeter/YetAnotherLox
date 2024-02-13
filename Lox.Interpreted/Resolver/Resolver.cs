@@ -7,7 +7,7 @@ namespace Lox.Resolver;
 internal class Resolver : Expr.IVisitor<object>, Stmt.IVisitor<object>
 {
     public bool HadError => _errors.Count > 0;
-    public IEnumerable<ResolveError> Errors => _errors.AsEnumerable();
+    public IEnumerable<ResolveError> Errors => _errors;
 
     private readonly Interpreter.Interpreter _interpreter;
     private readonly Stack<Dictionary<string, bool>> _scopes = new();

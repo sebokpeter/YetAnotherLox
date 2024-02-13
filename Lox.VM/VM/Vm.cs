@@ -4,13 +4,12 @@ using Frontend.Scanner;
 using Generated;
 using LoxVM.Chunk;
 using Shared;
+using Shared.ErrorHandling;
 
 namespace LoxVM.VM;
 
 internal class Vm : IDisposable
 {
-    internal IEnumerable<string> Errors => _errors.AsEnumerable();
-
     private const int STACK_MAX = 256;
 
     private Chunk.Chunk? chunk;
@@ -21,13 +20,13 @@ internal class Vm : IDisposable
     private readonly Value.Value[] _stack;
     private byte stackTop;
 
-    private readonly List<string> _errors; // TODO: Use custom Error object for better reporting
+    internal List<Error> Errors {get; init; }
 
     public Vm()
     {
         disposed = false;
         _stack = new Value.Value[STACK_MAX];
-        _errors = [];
+        Errors = [];
         stackTop = 0;
     }
 
@@ -84,10 +83,7 @@ internal class Vm : IDisposable
 
         if(emitter.HadError)
         {
-            foreach(CompilationError err in emitter.Errors)
-            {
-                _errors.Add($"Compilation failed at '{err.Token.Lexeme}': {err.Message} [{err.Token.Line}]");
-            }
+            Errors.AddRange(emitter.Errors);
             return (false, null);
         }
 
@@ -101,10 +97,7 @@ internal class Vm : IDisposable
 
         if(scanner.HadError)
         {
-            foreach(ScannerError err in scanner.Errors)
-            {
-                _errors.Add($"Scanning failed: {err.Message} [{err.Line}]");
-            }
+            Errors.AddRange(scanner.Errors);
             return (false, null);
         }
 
@@ -118,10 +111,7 @@ internal class Vm : IDisposable
 
         if(parser.HadError)
         {
-            foreach(ParseError err in parser.Errors)
-            {
-                _errors.Add($"Parsing failed at '{err.Token.Lexeme}': {err.Message}  [{err.Token.Line}]");
-            }
+            Errors.AddRange(parser.Errors);
             return (false, null);
         }
 

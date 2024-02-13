@@ -9,5 +9,5 @@ public class SimpleParserTestData : TheoryData
         AddRow(source, expected);
     }
 
-    internal static IEnumerable<Stmt> ToIEnumerable(params Stmt[] stmts) => stmts.AsEnumerable();
+    internal static IEnumerable<Stmt> ToIEnumerable(params Stmt[] stmts) => stmts;
 }

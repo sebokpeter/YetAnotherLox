@@ -3,7 +3,7 @@ namespace Shared.ErrorHandling;
 /// <summary>
 /// Base type for compile-time and runtime errors.
 /// </summary>
-public record Error(string Message);
+public abstract record Error(string Message);
 
 /// <summary>
 /// Type representing errors that occurred during scanning.
@@ -25,6 +25,13 @@ public record ParseError(string Message, Token? Location) : Error(Message);
 /// <param name="Message">The error message.</param>
 /// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
 public record ResolveError(string Message, Token? Location) : Error(Message);
+
+/// <summary>
+/// Type representing errors that occurred during the bytecode emission pass. 
+/// </summary>
+/// <param name="Message">The error message.</param>
+/// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
+public record BytecodeEmitterError(string Message, Token? Location) : Error(Message);
 
 /// <summary>
 /// Type representing errors that occurred while the program was running.

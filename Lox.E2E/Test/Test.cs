@@ -20,7 +20,7 @@ abstract partial class Test
     /// Note that not it may not contain all errors, if, for example, one of the errors caused the test to return early (e.g. the script did not finish in <see cref="TimeoutMS"/> milliseconds);
     /// TODO: Create an 'Error' class to better represent errors
     /// </summary>
-    public virtual IEnumerable<string> Errors => _errors.AsEnumerable();
+    public virtual IEnumerable<string> Errors => _errors;
 
 
     internal readonly static string _interpreterPath = "Lox.Interpreted/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.

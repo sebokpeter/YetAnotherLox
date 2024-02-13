@@ -1,4 +1,5 @@
-﻿using LoxVM.VM;
+﻿using Shared.ErrorHandling;
+using LoxVM.VM;
 
 namespace LoxVM;
 
@@ -45,7 +46,7 @@ public class Lox
 
         if(result == InterpretResult.CompileError)
         {
-            ReportErrors(vm.Errors);
+            vm.Errors.ReportAll();
             Environment.Exit(65);
         }
         else if(result == InterpretResult.RuntimeError)
@@ -71,16 +72,8 @@ public class Lox
 
             if(result == InterpretResult.CompileError)
             {
-                ReportErrors(vm.Errors);
+                vm.Errors.ReportAll();
             }
-        }
-    }
-
-    private static void ReportErrors(IEnumerable<string> errors)
-    {
-        foreach(string err in errors)
-        {
-            Console.Error.WriteLine(err);
         }
     }
 
