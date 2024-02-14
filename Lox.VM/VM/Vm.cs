@@ -139,38 +139,50 @@ internal class Vm : IDisposable
                 case OpCode.Negate:
                     if(!Peek(0).IsNumber)
                     {
-                        Errors.Add(new RuntimeError("Operand must be a number.", chunk!.Lines.Last(), null));
+                        AddRuntimeError("Operand must be a number.", chunk!.Lines.Last());
                         return InterpretResult.RuntimeError;
                     }
                     Push(new(Value.ValueType.Number, -Pop().AsNumber));
                     break;
-                case OpCode.Add: BinaryOp(OpCode.Add); break;
-                case OpCode.Subtract: BinaryOp(OpCode.Subtract); break;
-                case OpCode.Multiply: BinaryOp(OpCode.Multiply); break;
-                case OpCode.Divide: BinaryOp(OpCode.Divide); break;
-                case OpCode.Modulo: BinaryOp(OpCode.Modulo); break;
+                case OpCode.Add or OpCode.Subtract or OpCode.Multiply or OpCode.Divide or OpCode.Modulo:
+                    if(!BinaryOp(instruction))
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
 
-    private void BinaryOp(OpCode op)
+    private bool BinaryOp(OpCode op)
     {
-        double a = Pop().AsNumber;
-        double b = Pop().AsNumber;
+        LoxValue a = Pop();
+        LoxValue b = Pop();
+
+        if(!(a.IsNumber && b.IsNumber))
+        {
+            AddRuntimeError("Both operands must be numbers", chunk!.Lines.Last());
+            return false;
+        }
+
+        double left = a.AsNumber;
+        double right = b.AsNumber;
 
         double res = op switch
         {
-            OpCode.Add => a + b,
-            OpCode.Subtract => a - b,
-            OpCode.Multiply => a * b,
-            OpCode.Divide => a / b,
-            OpCode.Modulo => a % b,
+            OpCode.Add => left + right,
+            OpCode.Subtract => left - right,
+            OpCode.Multiply => left * right,
+            OpCode.Divide => left / right,
+            OpCode.Modulo => left % right,
             _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
         Push(new(Value.ValueType.Number, res));
+        
+        return true;
     }
 
     private void Push(LoxValue value) => _stack.Push(value);
@@ -210,6 +222,8 @@ internal class Vm : IDisposable
         Errors.Clear();
         ip = 0;
     }
+
+    private void AddRuntimeError(string message, int line) => Errors.Add(new RuntimeError(message, line, null));
 }
 
 internal enum InterpretResult
