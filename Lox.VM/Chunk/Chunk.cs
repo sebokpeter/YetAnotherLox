@@ -57,6 +57,9 @@ internal enum OpCode : byte
     Modulo,
     True,
     False,
+    Not,
+    Equal,
+    Greater,
+    Less,
     Nil,
-    Not
 }

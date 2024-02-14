@@ -162,14 +162,51 @@ internal class Vm : IDisposable
                 case OpCode.Not:
                     Push(LoxValue.CreateBoolValue(IsFalsey(Pop())));
                     break;
+                case OpCode.Equal:
+                    LoxValue a = Pop();
+                    LoxValue b = Pop();
+                    Push(LoxValue.CreateBoolValue(a.Equals(b)));
+                    break;
+                case OpCode.Greater or OpCode.Less:
+                    if(!BinaryComparison(instruction))
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
 
-    private bool IsFalsey(LoxValue loxValue) => loxValue.IsNil || (loxValue.IsBool && !loxValue.AsBool);
+    private static bool IsFalsey(LoxValue loxValue) => loxValue.IsNil || (loxValue.IsBool && !loxValue.AsBool);
 
+    private bool BinaryComparison(OpCode op)
+    {
+        LoxValue a = Pop();
+        LoxValue b = Pop();
+
+        if(!(a.IsNumber && b.IsNumber))
+        {
+            AddRuntimeError("Both operands must be numbers", chunk!.Lines.Last());
+            return false;
+        }
+
+        double left = a.AsNumber;
+        double right = b.AsNumber;
+
+        bool res = op switch
+        {
+            OpCode.Greater  => left > right,
+            OpCode.Less     => left < right,
+            _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
+        };
+
+        Push(LoxValue.CreateBoolValue(res));
+
+        return true;
+    }
+    
     private bool BinaryOp(OpCode op)
     {
         LoxValue a = Pop();

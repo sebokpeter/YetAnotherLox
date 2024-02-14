@@ -74,17 +74,46 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitBytecode(expr.Right);
         EmitBytecode(expr.Left);
 
-        OpCode op = expr.Operator.Type switch
-        {
-            TokenType.PLUS => OpCode.Add,
-            TokenType.MINUS => OpCode.Subtract,
-            TokenType.STAR => OpCode.Multiply,
-            TokenType.SLASH => OpCode.Divide,
-            TokenType.MODULO => OpCode.Modulo,
-            _ => throw new UnreachableException()
-        };
+        int line = expr.Operator.Line;
 
-        EmitByte(op, expr.Operator.Line);
+        switch (expr.Operator.Type)
+        {
+            case TokenType.PLUS:
+                EmitByte(OpCode.Add, line);
+                break;
+            case TokenType.MINUS:
+                EmitByte(OpCode.Subtract, line);
+                break;
+            case TokenType.STAR:
+                EmitByte(OpCode.Multiply, line);
+                break;
+            case TokenType.SLASH:
+                EmitByte(OpCode.Divide, line);
+                break;
+            case TokenType.MODULO:
+                EmitByte(OpCode.Modulo, line);
+                break;
+            case TokenType.EQUAL_EQUAL:
+                EmitByte(OpCode.Equal, line);
+                break;
+            case TokenType.BANG_EQUAL:
+                EmitBytes(OpCode.Equal, line, OpCode.Not, line);
+                break;
+            case TokenType.LESS:
+                EmitByte(OpCode.Less, line);
+                break;
+            case TokenType.LESS_EQUAL:
+                EmitBytes(OpCode.Greater, line, OpCode.Not, line);
+                break;
+            case TokenType.GREATER:
+                EmitByte(OpCode.Greater, line);
+                break;
+            case TokenType.GREATER_EQUAL:
+                EmitBytes(OpCode.Less, line, OpCode.Not, line);
+                break;
+            default:
+                throw new UnreachableException();
+        }
     }
 
     public void VisitUnaryExpr(Expr.Unary expr)
