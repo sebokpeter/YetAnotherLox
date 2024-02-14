@@ -33,6 +33,10 @@ public static class ErrorReporter
         {
             Report(resolveError);
         }
+        else if(error is RuntimeError runtimeError)
+        {
+            Report(runtimeError);
+        }
     }
     public static void Report(this ScanError error) => Console.Error.WriteLine($"[line {error.Line}] Scan Error: {error.Message}");
     public static void Report(this ParseError error)

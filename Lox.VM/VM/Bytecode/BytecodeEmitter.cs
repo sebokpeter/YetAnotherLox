@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Generated;
 using LoxVM.Chunk;
+using LoxVM.Value;
 using Shared;
 using Shared.ErrorHandling;
 
@@ -37,20 +38,36 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         return _chunk;
     }
 
-    private void EmitBytecode(Stmt stmt) => stmt.Accept(this);
-    private void EmitBytecode(Expr expr) => expr.Accept(this);
+    private void EmitBytecode(Stmt stmt)
+    {
+        stmt.Accept(this);
+    }
+
+    private void EmitBytecode(Expr expr)
+    {
+        expr.Accept(this);
+    }
 
     #region Statements
 
-    public void VisitExpressionStmt(Stmt.Expression stmt) => EmitBytecode(stmt.Ex);
+    public void VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        EmitBytecode(stmt.Ex);
+    }
 
-    public void VisitReturnStmt(Stmt.Return stmt) => EmitByte(OpCode.Return, stmt.Keyword.Line);
+    public void VisitReturnStmt(Stmt.Return stmt)
+    {
+        EmitByte(OpCode.Return, stmt.Keyword.Line);
+    }
 
     #endregion
 
     #region Expressions
 
-    public void VisitGroupingExpr(Expr.Grouping expr) => EmitBytecode(expr.Expression);
+    public void VisitGroupingExpr(Expr.Grouping expr)
+    {
+        EmitBytecode(expr.Expression);
+    }
 
     public void VisitBinaryExpr(Expr.Binary expr)
     {
@@ -87,14 +104,21 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitLiteralExpr(Expr.Literal expr)
     {
-        if(expr.Value is double d)
+        int line = expr.Token is not null ? expr.Token.Line : -1; // TODO: Throw exception if Literal.Token is null? 
+
+        switch (expr.Value)
         {
-            Value.Value val = new(d);
-            EmitConstant(val, 1);
-        }
-        else
-        {
-            throw new NotImplementedException();
+            case null:
+                EmitConstant(new(Value.ValueType.Nil, null), line);
+                break;
+            case double d:
+                EmitConstant(new(Value.ValueType.Number, d), line);
+                break;
+            case bool b:
+                EmitConstant(new(Value.ValueType.Bool, b), line);
+                break;
+            default:
+                throw new NotImplementedException($"{nameof(VisitLiteralExpr)} can not yet handle {expr.Value.GetType()} values.");
         }
     }
 
@@ -212,7 +236,10 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     #region Utilities
 
-    private void EmitByte(OpCode opCode, int line) => _chunk.WriteChunk(opCode, line);
+    private void EmitByte(OpCode opCode, int line)
+    {
+        _chunk.WriteChunk(opCode, line);
+    }
 
     private void EmitBytes(OpCode opCodeOne, int l1, OpCode opCodeTwo, int l2)
     {
@@ -220,7 +247,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitByte(opCodeTwo, l2);
     }
 
-    private void EmitConstant(Value.Value value, int line)
+    private void EmitConstant(LoxValue value, int line)
     {
         int constant = _chunk.AddConstant(value);
         _chunk.WriteChunk(OpCode.Constant, line);

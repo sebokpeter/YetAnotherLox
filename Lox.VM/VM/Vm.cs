@@ -3,6 +3,7 @@ using Frontend.Parser;
 using Frontend.Scanner;
 using Generated;
 using LoxVM.Chunk;
+using LoxVM.Value;
 using Shared;
 using Shared.ErrorHandling;
 
@@ -16,10 +17,10 @@ internal class Vm : IDisposable
 
     private bool disposed;
     private byte ip;
-    
-    private readonly Stack<Value.Value> _stack;
 
-    internal List<Error> Errors {get; init; }
+    private readonly Stack<LoxValue> _stack;
+
+    internal List<Error> Errors { get; init; }
 
     public Vm()
     {
@@ -42,6 +43,8 @@ internal class Vm : IDisposable
 
     private bool Compile(string source)
     {
+        ResetVm();
+
         (bool scanSuccess, List<Token>? tokens) = Scan(source);
 
         if(!scanSuccess)
@@ -67,9 +70,6 @@ internal class Vm : IDisposable
 #if DEBUG_PRINT_CODE
         chunk!.Disassemble("Code");
 #endif
-
-        ResetVm();
-
         this.chunk = chunk;
         return true;
     }
@@ -133,13 +133,16 @@ internal class Vm : IDisposable
                     Console.WriteLine(Pop());
                     return InterpretResult.Ok;
                 case OpCode.Constant:
-                    Value.Value constant = ReadConstant();
+                    LoxValue constant = ReadConstant();
                     Push(constant);
                     break;
                 case OpCode.Negate:
-                    Value.Value val = Pop();
-                    val = new(-val.Val);
-                    Push(val);
+                    if(!Peek(0).IsNumber)
+                    {
+                        Errors.Add(new RuntimeError("Operand must be a number.", chunk!.Lines.Last(), null));
+                        return InterpretResult.RuntimeError;
+                    }
+                    Push(new(Value.ValueType.Number, -Pop().AsNumber));
                     break;
                 case OpCode.Add: BinaryOp(OpCode.Add); break;
                 case OpCode.Subtract: BinaryOp(OpCode.Subtract); break;
@@ -154,8 +157,8 @@ internal class Vm : IDisposable
 
     private void BinaryOp(OpCode op)
     {
-        double a = Pop().Val;
-        double b = Pop().Val;
+        double a = Pop().AsNumber;
+        double b = Pop().AsNumber;
 
         double res = op switch
         {
@@ -167,14 +170,16 @@ internal class Vm : IDisposable
             _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
-        Push(new(res));
+        Push(new(Value.ValueType.Number, res));
     }
 
-    private void Push(Value.Value value) => _stack.Push(value);
+    private void Push(LoxValue value) => _stack.Push(value);
 
-    private Value.Value Pop() => _stack.Pop();
+    private LoxValue Pop() => _stack.Pop();
 
-    private Value.Value ReadConstant() => chunk!.Constants[ReadByte()];
+    private LoxValue Peek(int distance) => _stack.ElementAt(distance);
+
+    private LoxValue ReadConstant() => chunk!.Constants[ReadByte()];
 
     private byte ReadByte() => chunk![ip++];
 
@@ -202,6 +207,7 @@ internal class Vm : IDisposable
     private void ResetVm()
     {
         chunk?.FreeChunk();
+        Errors.Clear();
         ip = 0;
     }
 }

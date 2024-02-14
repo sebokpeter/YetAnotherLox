@@ -6,12 +6,12 @@ internal class Chunk
 
     internal List<int> Lines => _lines;
 
-    internal List<Value.Value> Constants => _constants;
+    internal List<Value.LoxValue> Constants => _constants;
     internal byte this[int index] => _code[index];
 
     private readonly List<int> _lines;
     private readonly List<byte> _code;
-    private readonly List<Value.Value> _constants;
+    private readonly List<Value.LoxValue> _constants;
 
     internal Chunk()
     {
@@ -38,7 +38,7 @@ internal class Chunk
         _constants.Clear();
     }
 
-    internal int AddConstant(Value.Value value)
+    internal int AddConstant(Value.LoxValue value)
     {
         _constants.Add(value);
         return _constants.Count - 1;

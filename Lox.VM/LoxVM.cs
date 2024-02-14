@@ -71,7 +71,7 @@ public class Lox
 
             InterpretResult result = vm.Interpret(line);
 
-            if(result == InterpretResult.CompileError)
+            if(result == InterpretResult.CompileError || result == InterpretResult.RuntimeError)
             {
                 vm.Errors.ReportAll();
             }
