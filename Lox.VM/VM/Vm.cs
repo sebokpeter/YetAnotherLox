@@ -150,6 +150,15 @@ internal class Vm : IDisposable
                         return InterpretResult.RuntimeError;
                     }
                     break;
+                case OpCode.Nil:
+                    Push(LoxValue.CreateNilValue());
+                    break;
+                case OpCode.True:
+                    Push(LoxValue.CreateBoolValue(true));
+                    break;
+                case OpCode.False:
+                    Push(LoxValue.CreateBoolValue(false));
+                    break;
                 default:
                     throw new UnreachableException();
             }

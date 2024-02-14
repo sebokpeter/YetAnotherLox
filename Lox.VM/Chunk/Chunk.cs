@@ -54,5 +54,8 @@ internal enum OpCode : byte
     Subtract,
     Multiply,
     Divide,
-    Modulo
+    Modulo,
+    True,
+    False,
+    Nil,
 }

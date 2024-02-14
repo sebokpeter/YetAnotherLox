@@ -47,6 +47,9 @@ internal static class Debug
             OpCode.Multiply   => SimpleInstruction(opCode, offset),
             OpCode.Divide     => SimpleInstruction(opCode, offset),
             OpCode.Modulo     => SimpleInstruction(opCode, offset),
+            OpCode.Nil        => SimpleInstruction(opCode, offset),
+            OpCode.True       => SimpleInstruction(opCode, offset),
+            OpCode.False      => SimpleInstruction(opCode, offset),
             _                 => UnknownInstruction(opCode, offset)
         };
     }
