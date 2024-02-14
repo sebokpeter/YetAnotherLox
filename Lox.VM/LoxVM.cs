@@ -51,6 +51,7 @@ public class Lox
         }
         else if(result == InterpretResult.RuntimeError)
         {
+            vm.Errors.ReportAll();
             Environment.Exit(70);
         }
     }
