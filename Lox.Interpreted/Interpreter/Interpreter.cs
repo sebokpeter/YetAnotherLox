@@ -209,7 +209,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
                 Execute(stmt.Initializer);
             }
 
-            Expr condition = stmt.Condition ?? new Expr.Literal(true);
+            Expr condition = stmt.Condition ?? new Expr.Literal(true, null);
 
             try
             {
