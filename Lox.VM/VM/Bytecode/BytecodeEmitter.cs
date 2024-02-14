@@ -93,7 +93,8 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         switch(expr.Operator.Type)
         {
             case TokenType.BANG:
-                throw new NotImplementedException();
+                EmitByte(OpCode.Not, expr.Operator.Line);
+                break;
             case TokenType.MINUS:
                 EmitByte(OpCode.Negate, expr.Operator.Line);
                 break;

@@ -159,11 +159,16 @@ internal class Vm : IDisposable
                 case OpCode.False:
                     Push(LoxValue.CreateBoolValue(false));
                     break;
+                case OpCode.Not:
+                    Push(LoxValue.CreateBoolValue(IsFalsey(Pop())));
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
+
+    private bool IsFalsey(LoxValue loxValue) => loxValue.IsNil || (loxValue.IsBool && !loxValue.AsBool);
 
     private bool BinaryOp(OpCode op)
     {

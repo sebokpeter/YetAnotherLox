@@ -58,4 +58,5 @@ internal enum OpCode : byte
     True,
     False,
     Nil,
+    Not
 }

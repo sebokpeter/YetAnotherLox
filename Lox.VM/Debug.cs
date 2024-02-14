@@ -50,6 +50,7 @@ internal static class Debug
             OpCode.Nil        => SimpleInstruction(opCode, offset),
             OpCode.True       => SimpleInstruction(opCode, offset),
             OpCode.False      => SimpleInstruction(opCode, offset),
+            OpCode.Not        => SimpleInstruction(opCode, offset),
             _                 => UnknownInstruction(opCode, offset)
         };
     }
