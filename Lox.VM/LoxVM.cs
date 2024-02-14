@@ -19,7 +19,7 @@ public class Lox
         }
         else
         {
-            Console.Error.WriteLine("Usage: cslox [path]");
+            Console.Error.WriteLine("Usage: vmlox [path]");
         }
     }
 

@@ -16,7 +16,7 @@ public class AstGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
         {
-            IEnumerable<string> lines = nameAndContent.content.Split('\n');
+            IEnumerable<string> nodes = nameAndContent.content.Split('\n');
             string baseType = nameAndContent.name;
 
             spc.AddSource($"{baseType}.g.cs",
@@ -28,11 +28,11 @@ public class AstGenerator : IIncrementalGenerator
                 
                 public abstract record {{baseType}}() 
                 {
-                    {{GetVisitor(lines, baseType)}}
+                    {{GetVisitor(nodes, baseType, true, "IVisitor", "R")}}
 
-                    {{GetVoidVisitor(lines, baseType)}}
+                    {{GetVisitor(nodes, baseType, false, "IVoidVisitor", "void")}}
                 
-                    {{GetTypeRecords(lines, baseType)}}
+                    {{GetTypeRecords(nodes, baseType)}}
 
                     public abstract R Accept<R>(IVisitor<R> visitor);
                     public abstract void Accept(IVoidVisitor visitor);
@@ -42,39 +42,31 @@ public class AstGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Generate code for an interface (IVoidVisitor) that can be used to implement the visitor pattern.
-    /// All visitor methods are void. 
+    /// Create a visitor interface.
     /// </summary>
-    /// <param name="lines"></param>
-    /// <param name="baseType"></param>
+    /// <param name="nodes">A string containing the name of the node and its fields in the format: "Name : Type propertyName"</param>
+    /// <param name="baseType">The base type of the node (Expr or Stmt).</param>
+    /// <param name="isGeneric">If true, the visitor interface will be generic. In this case, the parameter <paramref name="returnType"/> will be used as the generic type.</param>
+    /// <param name="name">The name of the interface (e.g. IVisitor)</param>
+    /// <param name="returnType">The return type of the visitor methods. If <paramref name="isGeneric"/> is true, this will also be used as the generic type.</param>
     /// <returns></returns>
-    private string GetVoidVisitor(IEnumerable<string> lines, string baseType)
+    private string GetVisitor(IEnumerable<string> nodes, string baseType, bool isGeneric, string name, string returnType)
     {
         StringBuilder visitorBuilder = new();
 
-        visitorBuilder.AppendLine("public interface IVoidVisitor\n\t{");
-
-        foreach(string line in lines)
+        if(isGeneric)
         {
-            string typeName = line.Split(':')[0].Trim();
-            visitorBuilder.AppendLine($"\t\tvoid Visit{typeName}{baseType}({typeName} {baseType.ToLowerInvariant()});");
+            visitorBuilder.AppendLine($"public interface {name}<{returnType}>\n\t{{");
+        }
+        else
+        {
+            visitorBuilder.AppendLine($"public interface {name}\n\t{{");
         }
 
-        visitorBuilder.AppendLine("\t}");
-
-        return visitorBuilder.ToString();
-    }
-
-    private string GetVisitor(IEnumerable<string> lines, string baseType)
-    {
-        StringBuilder visitorBuilder = new();
-
-        visitorBuilder.AppendLine("public interface IVisitor<R>\n\t{");
-
-        foreach(string line in lines)
+        foreach(string node in nodes)
         {
-            string typeName = line.Split(':')[0].Trim();
-            visitorBuilder.AppendLine($"\t\tR Visit{typeName}{baseType}({typeName} {baseType.ToLowerInvariant()});");
+            string typeName = node.Split(':')[0].Trim();
+            visitorBuilder.AppendLine($"\t\t{returnType} Visit{typeName}{baseType}({typeName} {baseType.ToLowerInvariant()});");
         }
 
         visitorBuilder.AppendLine("\t}");
