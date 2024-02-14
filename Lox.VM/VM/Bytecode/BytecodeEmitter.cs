@@ -76,12 +76,12 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         OpCode op = expr.Operator.Type switch
         {
-            TokenType.PLUS      => OpCode.Add,
-            TokenType.MINUS     => OpCode.Subtract,
-            TokenType.STAR      => OpCode.Multiply,
-            TokenType.SLASH     => OpCode.Divide,
-            TokenType.MODULO    => OpCode.Modulo,
-            _                   => throw new UnreachableException()     
+            TokenType.PLUS => OpCode.Add,
+            TokenType.MINUS => OpCode.Subtract,
+            TokenType.STAR => OpCode.Multiply,
+            TokenType.SLASH => OpCode.Divide,
+            TokenType.MODULO => OpCode.Modulo,
+            _ => throw new UnreachableException()
         };
 
         EmitByte(op, expr.Operator.Line);
@@ -106,16 +106,16 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         int line = expr.Token is not null ? expr.Token.Line : -1; // TODO: Throw exception if Literal.Token is null? 
 
-        switch (expr.Value)
+        switch(expr.Value)
         {
             case null:
-                EmitConstant(new(Value.ValueType.Nil, null), line);
+                EmitByte(OpCode.Nil, line);
                 break;
             case double d:
-                EmitConstant(new(Value.ValueType.Number, d), line);
+                EmitConstant(LoxValue.CreateNumberValue(d), line);
                 break;
             case bool b:
-                EmitConstant(new(Value.ValueType.Bool, b), line);
+                EmitByte(b ? OpCode.True : OpCode.False, line);
                 break;
             default:
                 throw new NotImplementedException($"{nameof(VisitLiteralExpr)} can not yet handle {expr.Value.GetType()} values.");

@@ -142,7 +142,7 @@ internal class Vm : IDisposable
                         AddRuntimeError("Operand must be a number.", chunk!.Lines.Last());
                         return InterpretResult.RuntimeError;
                     }
-                    Push(new(Value.ValueType.Number, -Pop().AsNumber));
+                    Push(LoxValue.CreateNumberValue(-Pop().AsNumber));
                     break;
                 case OpCode.Add or OpCode.Subtract or OpCode.Multiply or OpCode.Divide or OpCode.Modulo:
                     if(!BinaryOp(instruction))
@@ -180,7 +180,7 @@ internal class Vm : IDisposable
             _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
-        Push(new(Value.ValueType.Number, res));
+        Push(LoxValue.CreateNumberValue(res));
         
         return true;
     }

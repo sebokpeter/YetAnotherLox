@@ -49,6 +49,26 @@ internal readonly struct LoxValue
         Value = value;
     }
 
+    /// <summary>
+    /// Create a new <see cref="LoxValue"/>, representing the runtime numeric type, with the value <paramref name="value"/>. 
+    /// </summary>
+    /// <param name="value">The numeric value.</param>
+    /// <returns></returns>
+    public static LoxValue CreateNumberValue(double value) => new(ValueType.Number, value);
+    
+    /// <summary>
+    /// Create a new <see cref="LoxValue"/>, representing the runtime nil value.
+    /// </summary>
+    /// <returns></returns>
+    public static LoxValue CreateNilValue() => new(ValueType.Nil, null);
+
+    /// <summary>
+    /// Create a new <see cref="LoxValue"/>, representing the runtime boolean type, with the value <paramref name="b"/>.
+    /// </summary>
+    /// <param name="b">The boolean value.</param>
+    /// <returns></returns>
+    public static LoxValue CreateBoolValue(bool b) => new(ValueType.Bool, b);
+
     public override readonly string ToString()
     {
         return $"{Value}";
