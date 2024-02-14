@@ -4,11 +4,11 @@ namespace LoxVM;
 
 internal static class Debug
 {
-    internal static void PrintStack(this Value.Value[] stack, byte stackTop)
+    internal static void PrintStack(this Stack<Value.Value> stack)
     {
-        for(byte slot = 0; slot < stackTop; slot++)
+        foreach(Value.Value value in stack)
         {
-            Console.WriteLine($"\t[{stack[slot]}]");
+            Console.WriteLine($"\t[{value}]");
         }
     }
 

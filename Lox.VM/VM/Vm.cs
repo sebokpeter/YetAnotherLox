@@ -16,18 +16,16 @@ internal class Vm : IDisposable
 
     private bool disposed;
     private byte ip;
-
-    private readonly Value.Value[] _stack;
-    private byte stackTop;
+    
+    private readonly Stack<Value.Value> _stack;
 
     internal List<Error> Errors {get; init; }
 
     public Vm()
     {
         disposed = false;
-        _stack = new Value.Value[STACK_MAX];
+        _stack = new(STACK_MAX);
         Errors = [];
-        stackTop = 0;
     }
 
     internal InterpretResult Interpret(string source)
@@ -123,7 +121,7 @@ internal class Vm : IDisposable
         while(true)
         {
 #if DEBUG_TRACE_EXECUTION
-            _stack.PrintStack(stackTop);
+            _stack.PrintStack();
             chunk!.DisassembleInstruction(ip);
 #endif
 
@@ -172,9 +170,9 @@ internal class Vm : IDisposable
         Push(new(res));
     }
 
-    private void Push(Value.Value value) => _stack[stackTop++] = value;
+    private void Push(Value.Value value) => _stack.Push(value);
 
-    private Value.Value Pop() => _stack[--stackTop];
+    private Value.Value Pop() => _stack.Pop();
 
     private Value.Value ReadConstant() => chunk!.Constants[ReadByte()];
 
@@ -205,7 +203,6 @@ internal class Vm : IDisposable
     {
         chunk?.FreeChunk();
         ip = 0;
-        stackTop = 0;
     }
 }
 
