@@ -391,7 +391,7 @@ public class Parser
         // We need to create a new token every time we need to create or access the '@loop' variable, just as if it was parsed from source code.
 
         // Initialize @loop to 0
-        Stmt.Var initializer = new(new(IDENTIFIER, loopName, null, paren.Line), new Expr.Literal(0d));
+        Stmt.Var initializer = new(new(IDENTIFIER, loopName, null, paren.Line), new Expr.Literal(0d, null));
 
         // Create a new binary operation, which will be the loop condition
         Expr.Variable var = new(new(IDENTIFIER, loopName, null, paren.Line)); // Same '@loop' variable
@@ -837,10 +837,10 @@ public class Parser
 
         return literalToken.Type switch
         {
-            TRUE                => new(true),
-            FALSE               => new(false),
-            NIL                 => new(null),
-            NUMBER or STRING    => new(literalToken.Literal),
+            TRUE                => new(true, literalToken),
+            FALSE               => new(false, literalToken),
+            NIL                 => new(null, literalToken),
+            NUMBER or STRING    => new(literalToken.Literal, literalToken),
             _                   => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
         };
     }

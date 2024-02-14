@@ -3,7 +3,7 @@ Binary      : Expr left, Shared.Token operator, Expr right
 Call        : Expr callee, Shared.Token paren, List<Expr> arguments
 Get         : Expr obj, Shared.Token name
 Grouping    : Expr expression
-Literal     : object? value
+Literal     : object? value, Shared.Token? token
 Logical     : Expr left, Shared.Token oper, Expr right
 Set         : Expr obj, Shared.Token name, Expr value
 Super       : Shared.Token keyword, Shared.Token method
