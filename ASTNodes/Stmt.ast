@@ -3,7 +3,7 @@ Class       : Shared.Token name, Expr.Variable? superclass, List<Stmt.Function> 
 Expression  : Expr ex
 Function    : Shared.Token name, List<Shared.Token> params, List<Stmt> body, bool isStatic
 If          : Expr condition, Stmt thenBranch, Stmt elseBranch
-Print       : Expr ex
+Print       : Expr ex, int line
 Return      : Shared.Token keyword, Expr value
 Break       : Shared.Token keyword
 Continue    : Shared.Token keyword

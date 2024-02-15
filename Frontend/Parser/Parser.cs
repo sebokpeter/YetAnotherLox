@@ -533,7 +533,7 @@ public class Parser
     {
         Expr value = Expression();
         Consume(SEMICOLON, "Expect ';' after value.");
-        return new Stmt.Print(value);
+        return new Stmt.Print(value, Previous().Line);
     }
 
     private List<Stmt> Block()
