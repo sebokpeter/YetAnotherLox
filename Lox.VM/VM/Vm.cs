@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 using Frontend.Parser;
 using Frontend.Scanner;
 using Generated;
@@ -173,6 +174,12 @@ internal class Vm : IDisposable
                         return InterpretResult.RuntimeError;
                     }
                     break;
+                case OpCode.And or OpCode.Or:
+                    if(!BinaryOp(instruction))
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+                    break;
                 default:
                     throw new UnreachableException();
             }
@@ -200,8 +207,36 @@ internal class Vm : IDisposable
         {
             return HandleNum(a, b, op);
         }
+        else if(a.IsBool)
+        {
+            return HandleBool(a, b, op);
+        }
+        else 
+        {
+            throw new UnreachableException($"Operand {a} is neither a string, number, or bool.");
+        }
+    }
 
-        // TODO: logical operators
+    private bool HandleBool(LoxValue a, LoxValue b, OpCode op)
+    {
+        if(!b.IsBool)
+        {
+            AddRuntimeError("Both operands must be numbers.", chunk!.Lines.Last());
+            return false;
+        }
+
+        bool left = a.AsBool;
+        bool right = b.AsBool;
+
+        bool res = op switch
+        {
+            OpCode.And  => left && right,
+            OpCode.Or   => left || right,
+            _           => throw new UnreachableException($"Opcode was {op}.")
+        };
+
+        Push(LoxValue.Bool(res));
+
         return true;
     }
 

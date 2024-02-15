@@ -57,6 +57,8 @@ internal enum OpCode : byte
     Modulo,
     True,
     False,
+    And,
+    Or,
     Not,
     Equal,
     Greater,
@@ -69,4 +71,5 @@ internal static class OpcodeExtensions
     internal static bool IsComparisonOp(this OpCode opCode) => opCode == OpCode.Equal || opCode == OpCode.Less || opCode == OpCode.Greater;
     internal static bool IsMathOp(this OpCode opCode)       => opCode == OpCode.Add || opCode == OpCode.Subtract || opCode == OpCode.Multiply || opCode == OpCode.Divide || opCode == OpCode.Modulo;
     internal static bool IsUnaryOp(this OpCode opCode)      => opCode == OpCode.Not || opCode == OpCode.Negate; 
+    internal static bool IsLogicalOp(this OpCode opCode)    => opCode == OpCode.And || opCode == OpCode.Or;
 }

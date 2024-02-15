@@ -76,7 +76,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         int line = expr.Operator.Line;
 
-        switch (expr.Operator.Type)
+        switch(expr.Operator.Type)
         {
             case TokenType.PLUS:
                 EmitByte(OpCode.Add, line);
@@ -110,6 +110,26 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
                 break;
             case TokenType.GREATER_EQUAL:
                 EmitBytes(OpCode.Less, OpCode.Not, line);
+                break;
+            default:
+                throw new UnreachableException();
+        }
+    }
+
+    public void VisitLogicalExpr(Expr.Logical expr)
+    {
+        EmitBytecode(expr.Right);
+        EmitBytecode(expr.Left);
+
+        int line = expr.Oper.Line;
+
+        switch(expr.Oper.Type)
+        {
+            case TokenType.AND:
+                EmitByte(OpCode.And, line);
+                break;
+            case TokenType.OR:
+                EmitByte(OpCode.Or, line);
                 break;
             default:
                 throw new UnreachableException();
@@ -218,11 +238,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitGetExpr(Expr.Get expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitLogicalExpr(Expr.Logical expr)
     {
         throw new NotImplementedException();
     }

@@ -54,6 +54,8 @@ internal static class Debug
             OpCode.Equal      => SimpleInstruction(opCode, offset),
             OpCode.Less       => SimpleInstruction(opCode, offset),
             OpCode.Greater    => SimpleInstruction(opCode, offset),
+            OpCode.And        => SimpleInstruction(opCode, offset),
+            OpCode.Or         => SimpleInstruction(opCode, offset),
             _                 => UnknownInstruction(opCode, offset)
         };
     }

@@ -164,7 +164,6 @@ internal readonly struct Obj
     public static Obj String(string s) => new(s);
 
     public override string ToString() => _obj.ToString()!;
-    
 }
 
 internal enum ValueType
