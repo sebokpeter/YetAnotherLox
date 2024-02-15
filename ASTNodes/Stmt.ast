@@ -1,6 +1,6 @@
 Block       : List<Stmt> statements
 Class       : Shared.Token name, Expr.Variable? superclass, List<Stmt.Function> methods, bool isStatic
-Expression  : Expr ex
+Expression  : Expr ex, int line
 Function    : Shared.Token name, List<Shared.Token> params, List<Stmt> body, bool isStatic
 If          : Expr condition, Stmt thenBranch, Stmt elseBranch
 Print       : Expr ex, int line

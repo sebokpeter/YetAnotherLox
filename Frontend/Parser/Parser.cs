@@ -526,7 +526,7 @@ public class Parser
     {
         Expr value = Expression();
         Consume(SEMICOLON, "Expect ';' after expression.");
-        return new Stmt.Expression(value);
+        return new Stmt.Expression(value, Previous().Line);
     }
 
     private Stmt.Print PrintStatement()
