@@ -57,7 +57,14 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitReturnStmt(Stmt.Return stmt)
     {
-        EmitByte(OpCode.Return, stmt.Keyword.Line);
+        throw new NotImplementedException();
+        //EmitByte(OpCode.Return, stmt.Keyword.Line);
+    }
+
+    public void VisitPrintStmt(Stmt.Print stmt)
+    {
+        EmitBytecode(stmt.Ex);
+        EmitByte(OpCode.Print, stmt.Line);
     }
 
     #endregion
@@ -193,11 +200,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitIfStmt(Stmt.If stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitPrintStmt(Stmt.Print stmt)
     {
         throw new NotImplementedException();
     }

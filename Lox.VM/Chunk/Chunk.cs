@@ -64,6 +64,7 @@ internal enum OpCode : byte
     Greater,
     Less,
     Nil,
+    Print,
 }
 
 internal static class OpcodeExtensions

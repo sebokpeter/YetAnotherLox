@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Sockets;
 using Frontend.Parser;
 using Frontend.Scanner;
 using Generated;
@@ -131,7 +130,6 @@ internal class Vm : IDisposable
             switch(instruction)
             {
                 case OpCode.Return:
-                    Console.WriteLine(Pop());
                     return InterpretResult.Ok;
                 case OpCode.Constant:
                     LoxValue constant = ReadConstant();
@@ -180,6 +178,9 @@ internal class Vm : IDisposable
                         return InterpretResult.RuntimeError;
                     }
                     break;
+                case OpCode.Print:
+                    Console.WriteLine(Pop());
+                    break;
                 default:
                     throw new UnreachableException();
             }
@@ -211,7 +212,7 @@ internal class Vm : IDisposable
         {
             return HandleBool(a, b, op);
         }
-        else 
+        else
         {
             throw new UnreachableException($"Operand {a} is neither a string, number, or bool.");
         }
@@ -230,9 +231,9 @@ internal class Vm : IDisposable
 
         bool res = op switch
         {
-            OpCode.And  => left && right,
-            OpCode.Or   => left || right,
-            _           => throw new UnreachableException($"Opcode was {op}.")
+            OpCode.And => left && right,
+            OpCode.Or => left || right,
+            _ => throw new UnreachableException($"Opcode was {op}.")
         };
 
         Push(LoxValue.Bool(res));
