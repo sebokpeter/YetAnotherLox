@@ -66,7 +66,8 @@ internal enum OpCode : byte
     Nil,
     Print,
     Pop,
-    DefineGlobal
+    DefineGlobal,
+    GetGlobal,
 }
 
 internal static class OpcodeExtensions

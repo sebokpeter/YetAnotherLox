@@ -122,6 +122,8 @@ internal class Vm : IDisposable
 
     private InterpretResult Run()
     {
+        // TODO: Handle line numbers correctly
+
         while(true)
         {
 #if DEBUG_TRACE_EXECUTION
@@ -192,6 +194,15 @@ internal class Vm : IDisposable
                     Obj name = ReadConstant().AsObj;
                     _globals[name] = Peek(0);
                     Pop();
+                    break;
+                case OpCode.GetGlobal:
+                    Obj varName = ReadConstant().AsObj;
+                    if(!_globals.TryGetValue(varName, out LoxValue value))
+                    {
+                        AddRuntimeError($"Undefined variable {varName.AsString}", chunk!.Lines.Last());
+                        return InterpretResult.RuntimeError;
+                    }
+                    Push(value);
                     break;
                 default:
                     throw new UnreachableException();

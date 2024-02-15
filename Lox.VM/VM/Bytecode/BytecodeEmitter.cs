@@ -205,6 +205,13 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         }
     }
 
+    public void VisitVariableExpr(Expr.Variable expr)
+    {
+        Token name = expr.Name;
+        byte arg = MakeConstant(LoxValue.Object(name.Lexeme));
+        EmitBytes(OpCode.GetGlobal, arg, name.Line);
+    }
+
     #endregion
 
     public void VisitBlockStmt(Stmt.Block stmt)
@@ -273,11 +280,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitThisExpr(Expr.This expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitVariableExpr(Expr.Variable expr)
     {
         throw new NotImplementedException();
     }
