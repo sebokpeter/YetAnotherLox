@@ -97,19 +97,19 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
                 EmitByte(OpCode.Equal, line);
                 break;
             case TokenType.BANG_EQUAL:
-                EmitBytes(OpCode.Equal, line, OpCode.Not, line);
+                EmitBytes(OpCode.Equal, OpCode.Not, line);
                 break;
             case TokenType.LESS:
                 EmitByte(OpCode.Less, line);
                 break;
             case TokenType.LESS_EQUAL:
-                EmitBytes(OpCode.Greater, line, OpCode.Not, line);
+                EmitBytes(OpCode.Greater, OpCode.Not, line);
                 break;
             case TokenType.GREATER:
                 EmitByte(OpCode.Greater, line);
                 break;
             case TokenType.GREATER_EQUAL:
-                EmitBytes(OpCode.Less, line, OpCode.Not, line);
+                EmitBytes(OpCode.Less, OpCode.Not, line);
                 break;
             default:
                 throw new UnreachableException();
@@ -146,6 +146,9 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
                 break;
             case bool b:
                 EmitByte(b ? OpCode.True : OpCode.False, line);
+                break;
+            case string s:
+                EmitConstant(LoxValue.Object(s), line);
                 break;
             default:
                 throw new NotImplementedException($"{nameof(VisitLiteralExpr)} can not yet handle {expr.Value.GetType()} values.");
@@ -270,6 +273,8 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         _chunk.WriteChunk(opCode, line);
     }
+
+    private void EmitBytes(OpCode opCodeOne, OpCode opCodeTwo, int line) => EmitBytes(opCodeOne, line, opCodeTwo, line);
 
     private void EmitBytes(OpCode opCodeOne, int l1, OpCode opCodeTwo, int l2)
     {

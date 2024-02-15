@@ -168,7 +168,7 @@ internal class Vm : IDisposable
                     Push(LoxValue.Bool(a.Equals(b)));
                     break;
                 case OpCode.Greater or OpCode.Less:
-                    if(!BinaryComparison(instruction))
+                    if(!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -181,59 +181,70 @@ internal class Vm : IDisposable
 
     private static bool IsFalsey(LoxValue loxValue) => loxValue.IsNil || (loxValue.IsBool && !loxValue.AsBool);
 
-    private bool BinaryComparison(OpCode op)
-    {
-        LoxValue a = Pop();
-        LoxValue b = Pop();
-
-        if(!(a.IsNumber && b.IsNumber))
-        {
-            AddRuntimeError("Both operands must be numbers", chunk!.Lines.Last());
-            return false;
-        }
-
-        double left = a.AsNumber;
-        double right = b.AsNumber;
-
-        bool res = op switch
-        {
-            OpCode.Greater  => left > right,
-            OpCode.Less     => left < right,
-            _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
-        };
-
-        Push(LoxValue.Bool(res));
-
-        return true;
-    }
-    
     private bool BinaryOp(OpCode op)
     {
         LoxValue a = Pop();
         LoxValue b = Pop();
 
-        if(!(a.IsNumber && b.IsNumber))
+        if(a.IsString || b.IsString)
         {
-            AddRuntimeError("Both operands must be numbers", chunk!.Lines.Last());
+            // Concat a and b
+            // Automatically convert a non-string value (e.g. a number) to string, when one of the operand is string
+            string left = a.ToString();
+            string right = b.ToString();
+
+            Push(LoxValue.Object(left + right));
+            return true;
+        }
+        else if(a.IsNumber)
+        {
+            return HandleNum(a, b, op);
+        }
+
+        // TODO: logical operators
+        return true;
+    }
+
+    private bool HandleNum(LoxValue a, LoxValue b, OpCode op)
+    {
+        if(!b.IsNumber)
+        {
+            AddRuntimeError("Both operands must be numbers.", chunk!.Lines.Last());
             return false;
         }
 
         double left = a.AsNumber;
         double right = b.AsNumber;
 
-        double res = op switch
+        if(op.IsComparisonOp())
         {
-            OpCode.Add => left + right,
-            OpCode.Subtract => left - right,
-            OpCode.Multiply => left * right,
-            OpCode.Divide => left / right,
-            OpCode.Modulo => left % right,
-            _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
-        };
+            bool res = op switch
+            {
+                OpCode.Less => left < right,
+                OpCode.Greater => left > right,
+                _ => throw new UnreachableException($"Opcode was {op}.")
+            };
 
-        Push(LoxValue.Number(res));
-        
-        return true;
+            Push(LoxValue.Bool(res));
+            return true;
+        }
+        else
+        {
+            double res = op switch
+            {
+                OpCode.Add => left + right,
+                OpCode.Subtract => left - right,
+                OpCode.Multiply => left * right,
+                OpCode.Divide => left / right,
+                OpCode.Modulo => left % right,
+                _ => throw new UnreachableException($"Opcode was {op}.")
+            };
+
+            Push(LoxValue.Number(res));
+
+            return true;
+        }
+
     }
 
     private void Push(LoxValue value) => _stack.Push(value);
