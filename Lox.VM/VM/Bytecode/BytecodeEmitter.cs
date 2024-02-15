@@ -53,6 +53,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     public void VisitExpressionStmt(Stmt.Expression stmt)
     {
         EmitBytecode(stmt.Ex);
+        EmitByte(OpCode.Pop, stmt.Line);
     }
 
     public void VisitReturnStmt(Stmt.Return stmt)

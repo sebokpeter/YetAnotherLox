@@ -65,6 +65,7 @@ internal enum OpCode : byte
     Less,
     Nil,
     Print,
+    Pop,
 }
 
 internal static class OpcodeExtensions

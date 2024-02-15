@@ -57,6 +57,7 @@ internal static class Debug
             OpCode.And        => SimpleInstruction(opCode, offset),
             OpCode.Or         => SimpleInstruction(opCode, offset),
             OpCode.Print      => SimpleInstruction(opCode, offset),
+            OpCode.Pop        => SimpleInstruction(opCode, offset),
             _                 => UnknownInstruction(opCode, offset)
         };
     }

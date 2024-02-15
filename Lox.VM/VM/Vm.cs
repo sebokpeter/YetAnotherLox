@@ -181,6 +181,9 @@ internal class Vm : IDisposable
                 case OpCode.Print:
                     Console.WriteLine(Pop());
                     break;
+                case OpCode.Pop:
+                    Pop();
+                    break;
                 default:
                     throw new UnreachableException();
             }
