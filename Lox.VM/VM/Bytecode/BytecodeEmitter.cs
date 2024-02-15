@@ -142,7 +142,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
                 EmitByte(OpCode.Nil, line);
                 break;
             case double d:
-                EmitConstant(LoxValue.CreateNumberValue(d), line);
+                EmitConstant(LoxValue.Number(d), line);
                 break;
             case bool b:
                 EmitByte(b ? OpCode.True : OpCode.False, line);

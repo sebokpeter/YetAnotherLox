@@ -142,7 +142,7 @@ internal class Vm : IDisposable
                         AddRuntimeError("Operand must be a number.", chunk!.Lines.Last());
                         return InterpretResult.RuntimeError;
                     }
-                    Push(LoxValue.CreateNumberValue(-Pop().AsNumber));
+                    Push(LoxValue.Number(-Pop().AsNumber));
                     break;
                 case OpCode.Add or OpCode.Subtract or OpCode.Multiply or OpCode.Divide or OpCode.Modulo:
                     if(!BinaryOp(instruction))
@@ -151,21 +151,21 @@ internal class Vm : IDisposable
                     }
                     break;
                 case OpCode.Nil:
-                    Push(LoxValue.CreateNilValue());
+                    Push(LoxValue.Nil());
                     break;
                 case OpCode.True:
-                    Push(LoxValue.CreateBoolValue(true));
+                    Push(LoxValue.Bool(true));
                     break;
                 case OpCode.False:
-                    Push(LoxValue.CreateBoolValue(false));
+                    Push(LoxValue.Bool(false));
                     break;
                 case OpCode.Not:
-                    Push(LoxValue.CreateBoolValue(IsFalsey(Pop())));
+                    Push(LoxValue.Bool(IsFalsey(Pop())));
                     break;
                 case OpCode.Equal:
                     LoxValue a = Pop();
                     LoxValue b = Pop();
-                    Push(LoxValue.CreateBoolValue(a.Equals(b)));
+                    Push(LoxValue.Bool(a.Equals(b)));
                     break;
                 case OpCode.Greater or OpCode.Less:
                     if(!BinaryComparison(instruction))
@@ -202,7 +202,7 @@ internal class Vm : IDisposable
             _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
-        Push(LoxValue.CreateBoolValue(res));
+        Push(LoxValue.Bool(res));
 
         return true;
     }
@@ -231,7 +231,7 @@ internal class Vm : IDisposable
             _ => throw new ArgumentException($"{op} is not a valid binary operator opcode.", nameof(op))
         };
 
-        Push(LoxValue.CreateNumberValue(res));
+        Push(LoxValue.Number(res));
         
         return true;
     }
