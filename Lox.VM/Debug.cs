@@ -60,6 +60,7 @@ internal static class Debug
             OpCode.Pop          => SimpleInstruction(opCode, offset),
             OpCode.DefineGlobal => ConstantInstruction(opCode, chunk, offset),
             OpCode.GetGlobal    => ConstantInstruction(opCode, chunk, offset),  
+            OpCode.SetGlobal    => ConstantInstruction(opCode, chunk, offset),
             _                   => UnknownInstruction(opCode, offset)
         };
     }

@@ -204,6 +204,15 @@ internal class Vm : IDisposable
                     }
                     Push(value);
                     break;
+                case OpCode.SetGlobal:
+                    Obj globalName = ReadConstant().AsObj;
+                    if(!_globals.ContainsKey(globalName))
+                    {
+                        AddRuntimeError($"Undefined variable {globalName.AsString}", chunk!.Lines.Last());
+                        return InterpretResult.RuntimeError;
+                    }
+                    _globals[globalName] = Peek(0);
+                    break;
                 default:
                     throw new UnreachableException();
             }
@@ -245,7 +254,7 @@ internal class Vm : IDisposable
     {
         if(!b.IsBool)
         {
-            AddRuntimeError("Both operands must be numbers.", chunk!.Lines.Last());
+            AddRuntimeError("Both operands must be booleans.", chunk!.Lines.Last());
             return false;
         }
 

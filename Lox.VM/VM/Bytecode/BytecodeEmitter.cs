@@ -212,6 +212,15 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitBytes(OpCode.GetGlobal, arg, name.Line);
     }
 
+    public void VisitAssignExpr(Expr.Assign expr)
+    {
+        // Only for globals for now
+        byte arg = MakeConstant(LoxValue.Object(expr.Name.Lexeme));
+
+        EmitBytecode(expr.Value);
+        EmitBytes(OpCode.SetGlobal, arg, expr.Name.Line);
+    }
+
     #endregion
 
     public void VisitBlockStmt(Stmt.Block stmt)
@@ -250,11 +259,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitForStmt(Stmt.For stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitAssignExpr(Expr.Assign expr)
     {
         throw new NotImplementedException();
     }
