@@ -129,7 +129,7 @@ internal readonly struct LoxValue
 }
 
 /// <summary>
-/// Wrapper around a heap allocate object (e.g. string)
+/// Wrapper around a heap allocated object (e.g. string)
 /// </summary>
 internal readonly struct Obj
 {

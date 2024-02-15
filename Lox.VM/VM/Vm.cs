@@ -11,6 +11,8 @@ namespace LoxVM.VM;
 
 internal class Vm : IDisposable
 {
+    internal List<Error> Errors { get; init; }
+
     private const int STACK_MAX = 256;
 
     private Chunk.Chunk? chunk;
@@ -20,13 +22,15 @@ internal class Vm : IDisposable
 
     private readonly Stack<LoxValue> _stack;
 
-    internal List<Error> Errors { get; init; }
+    private readonly Dictionary<Obj, LoxValue> _globals;
 
     public Vm()
     {
         disposed = false;
         _stack = new(STACK_MAX);
+        _globals = [];
         Errors = [];
+
     }
 
     internal InterpretResult Interpret(string source)
@@ -182,6 +186,11 @@ internal class Vm : IDisposable
                     Console.WriteLine(Pop());
                     break;
                 case OpCode.Pop:
+                    Pop();
+                    break;
+                case OpCode.DefineGlobal:
+                    Obj name = ReadConstant().AsObj;
+                    _globals[name] = Peek(0);
                     Pop();
                     break;
                 default:

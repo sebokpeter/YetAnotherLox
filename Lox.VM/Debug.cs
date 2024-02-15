@@ -39,26 +39,27 @@ internal static class Debug
 
         return opCode switch
         {
-            OpCode.Return     => SimpleInstruction(opCode, offset),
-            OpCode.Constant   => ConstantInstruction(opCode, chunk, offset),
-            OpCode.Negate     => SimpleInstruction(opCode, offset),
-            OpCode.Add        => SimpleInstruction(opCode, offset),
-            OpCode.Subtract   => SimpleInstruction(opCode, offset),
-            OpCode.Multiply   => SimpleInstruction(opCode, offset),
-            OpCode.Divide     => SimpleInstruction(opCode, offset),
-            OpCode.Modulo     => SimpleInstruction(opCode, offset),
-            OpCode.Nil        => SimpleInstruction(opCode, offset),
-            OpCode.True       => SimpleInstruction(opCode, offset),
-            OpCode.False      => SimpleInstruction(opCode, offset),
-            OpCode.Not        => SimpleInstruction(opCode, offset),
-            OpCode.Equal      => SimpleInstruction(opCode, offset),
-            OpCode.Less       => SimpleInstruction(opCode, offset),
-            OpCode.Greater    => SimpleInstruction(opCode, offset),
-            OpCode.And        => SimpleInstruction(opCode, offset),
-            OpCode.Or         => SimpleInstruction(opCode, offset),
-            OpCode.Print      => SimpleInstruction(opCode, offset),
-            OpCode.Pop        => SimpleInstruction(opCode, offset),
-            _                 => UnknownInstruction(opCode, offset)
+            OpCode.Return       => SimpleInstruction(opCode, offset),
+            OpCode.Constant     => ConstantInstruction(opCode, chunk, offset),
+            OpCode.Negate       => SimpleInstruction(opCode, offset),
+            OpCode.Add          => SimpleInstruction(opCode, offset),
+            OpCode.Subtract     => SimpleInstruction(opCode, offset),
+            OpCode.Multiply     => SimpleInstruction(opCode, offset),
+            OpCode.Divide       => SimpleInstruction(opCode, offset),
+            OpCode.Modulo       => SimpleInstruction(opCode, offset),
+            OpCode.Nil          => SimpleInstruction(opCode, offset),
+            OpCode.True         => SimpleInstruction(opCode, offset),
+            OpCode.False        => SimpleInstruction(opCode, offset),
+            OpCode.Not          => SimpleInstruction(opCode, offset),
+            OpCode.Equal        => SimpleInstruction(opCode, offset),
+            OpCode.Less         => SimpleInstruction(opCode, offset),
+            OpCode.Greater      => SimpleInstruction(opCode, offset),
+            OpCode.And          => SimpleInstruction(opCode, offset),
+            OpCode.Or           => SimpleInstruction(opCode, offset),
+            OpCode.Print        => SimpleInstruction(opCode, offset),
+            OpCode.Pop          => SimpleInstruction(opCode, offset),
+            OpCode.DefineGlobal => ConstantInstruction(opCode, chunk, offset), 
+            _                   => UnknownInstruction(opCode, offset)
         };
     }
 

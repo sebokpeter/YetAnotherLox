@@ -1,5 +1,6 @@
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Generated;
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -66,6 +67,27 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         EmitBytecode(stmt.Ex);
         EmitByte(OpCode.Print, stmt.Line);
+    }
+
+    public void VisitVarStmt(Stmt.Var stmt)
+    {
+        byte global = MakeConstant(LoxValue.Object(stmt.Name.Lexeme));
+
+        if(stmt.Initializer is not null)
+        {
+            EmitBytecode(stmt.Initializer);
+        }
+        else
+        {
+            EmitByte(OpCode.Nil, stmt.Name.Line);
+        }
+
+        DefineVariable(global, stmt.Name.Line);
+    }
+
+    private void DefineVariable(byte global, int line)
+    {
+        EmitBytes(OpCode.DefineGlobal, global, line);
     }
 
     #endregion
@@ -215,11 +237,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         throw new NotImplementedException();
     }
 
-    public void VisitVarStmt(Stmt.Var stmt)
-    {
-        throw new NotImplementedException();
-    }
-
     public void VisitWhileStmt(Stmt.While stmt)
     {
         throw new NotImplementedException();
@@ -287,11 +304,15 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     #region Utilities
 
-    private void EmitByte(OpCode opCode, int line)
-    {
-        _chunk.WriteChunk(opCode, line);
-    }
+    private void EmitByte(OpCode opCode, int line) => _chunk.WriteChunk(opCode, line);
 
+    private void EmitByte(byte val, int line) => _chunk.WriteChunk(val, line);
+
+    private void EmitBytes(OpCode opCode, byte val, int line)
+    {
+        EmitByte(opCode, line);
+        EmitByte(val, line);
+    }
     private void EmitBytes(OpCode opCodeOne, OpCode opCodeTwo, int line) => EmitBytes(opCodeOne, line, opCodeTwo, line);
 
     private void EmitBytes(OpCode opCodeOne, int l1, OpCode opCodeTwo, int l2)
@@ -300,12 +321,26 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitByte(opCodeTwo, l2);
     }
 
-    private void EmitConstant(LoxValue value, int line)
+    private byte MakeConstant(LoxValue value)
     {
         int constant = _chunk.AddConstant(value);
-        _chunk.WriteChunk(OpCode.Constant, line);
-        _chunk.WriteChunk((byte)constant, line);
+        if(constant > byte.MaxValue)
+        {
+            AddError("Too many constants in one chunk.");
+            return 0;
+        }
+
+        return (byte)constant;
     }
+
+    private void EmitConstant(LoxValue value, int line)
+    {
+        byte constant = MakeConstant(value);
+        _chunk.WriteChunk(OpCode.Constant, line);
+        _chunk.WriteChunk(constant, line);
+    }
+
+    private void AddError(string msg, Token? token = null) => _errors.Add(new(msg, token));
 
     #endregion
 }
