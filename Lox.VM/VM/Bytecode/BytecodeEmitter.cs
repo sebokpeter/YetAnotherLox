@@ -19,11 +19,14 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     private readonly Chunk.Chunk _chunk;
     private readonly List<BytecodeEmitterError> _errors;
 
+    private readonly Compiler _current;
+
     public BytecodeEmitter(List<Stmt> stmts)
     {
         _statements = stmts;
         _chunk = new();
         _errors = [];
+        _current = new();
     }
 
     public Chunk.Chunk EmitBytecode()
@@ -49,6 +52,13 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         expr.Accept(this);
     }
 
+    private void EmitBytecode(IEnumerable<Stmt> stmts)
+    {
+        foreach(Stmt stmt in stmts)
+        {
+            EmitBytecode(stmt);
+        }
+    }
     #region Statements
 
     public void VisitExpressionStmt(Stmt.Expression stmt)
@@ -223,11 +233,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     #endregion
 
-    public void VisitBlockStmt(Stmt.Block stmt)
-    {
-        throw new NotImplementedException();
-    }
-
     public void VisitClassStmt(Stmt.Class stmt)
     {
         throw new NotImplementedException();
@@ -310,6 +315,31 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     #region Utilities
 
+    # region Variable Declaration
+    private void EndScope() => _current.ScopeDepth--;
+
+    private void BeginScope() => _current.ScopeDepth++;
+
+    private void DefineVariable(byte global, int line) => EmitBytes(OpCode.DefineGlobal, global, line);
+
+    private void DefineGlobal(Stmt.Var stmt)
+    {
+        byte global = MakeConstant(LoxValue.Object(stmt.Name.Lexeme));
+
+        if(stmt.Initializer is not null)
+        {
+            EmitBytecode(stmt.Initializer);
+        }
+        else
+        {
+            EmitByte(OpCode.Nil, stmt.Name.Line);
+        }
+
+        DefineVariable(global, stmt.Name.Line);
+    }
+
+    #endregion
+
     private void EmitByte(OpCode opCode, int line) => _chunk.WriteChunk(opCode, line);
 
     private void EmitByte(byte val, int line) => _chunk.WriteChunk(val, line);
@@ -349,4 +379,23 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     private void AddError(string msg, Token? token = null) => _errors.Add(new(msg, token));
 
     #endregion
+}
+
+internal class Compiler
+{
+    internal const int MAX_LOCAL_COUNT = byte.MaxValue + 1;
+    internal Local[] Locals { get; init; }
+    internal int ScopeDepth { get; set; }
+    internal int LocalCount { get; set; }
+
+    public Compiler()
+    {
+        Locals = new Local[MAX_LOCAL_COUNT];
+    }
+}
+
+internal class Local
+{
+    internal required Token Name { get; init; }
+    internal int Depth { get; init; }
 }
