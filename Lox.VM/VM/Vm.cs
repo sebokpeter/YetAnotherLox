@@ -200,7 +200,7 @@ internal class Vm : IDisposable
                     Obj varName = ReadConstant().AsObj;
                     if(!_globals.TryGetValue(varName, out LoxValue value))
                     {
-                        AddRuntimeError($"Undefined variable {varName.AsString}", chunk!.Lines.Last());
+                        AddRuntimeError($"Undefined variable {varName.AsString}.", chunk!.Lines.Last());
                         return InterpretResult.RuntimeError;
                     }
                     Push(value);
@@ -209,7 +209,7 @@ internal class Vm : IDisposable
                     Obj globalName = ReadConstant().AsObj;
                     if(!_globals.ContainsKey(globalName))
                     {
-                        AddRuntimeError($"Undefined variable {globalName.AsString}", chunk!.Lines.Last());
+                        AddRuntimeError($"Undefined variable {globalName.AsString}.", chunk!.Lines.Last());
                         return InterpretResult.RuntimeError;
                     }
                     _globals[globalName] = Peek(0);

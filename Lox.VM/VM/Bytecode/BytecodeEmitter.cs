@@ -83,6 +83,8 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitVarStmt(Stmt.Var stmt)
     {
+        DeclareVariable(stmt);
+
         if(stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
@@ -92,14 +94,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
             EmitByte(OpCode.Nil, stmt.Name.Line);
         }
 
-        if(_current.ScopeDepth == 0)
-        {
-            DefineGlobal(stmt);
-        }
-        else
-        {
-            DefineLocal(stmt);
-        }
+        DefineVariable(stmt);
     }
 
     public void VisitBlockStmt(Stmt.Block stmt)
@@ -355,20 +350,41 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         }
     }
 
-    private void DefineVariable(byte global, int line) => EmitBytes(OpCode.DefineGlobal, global, line);
+    private void DefineVariable(Stmt.Var stmt)
+    {
+        if(_current.ScopeDepth > 0)
+        {
+            MarkInitialized();
+            return;
+        }
+
+        DefineGlobal(stmt);
+    }
+
+    private void MarkInitialized() => _current.Locals[_current.LocalCount - 1].Depth = _current.ScopeDepth;
 
     private void DefineGlobal(Stmt.Var stmt)
     {
         byte global = MakeConstant(LoxValue.Object(stmt.Name.Lexeme));
 
-        DefineVariable(global, stmt.Name.Line);
+        EmitBytes(OpCode.DefineGlobal, global, stmt.Name.Line);
     }
 
-    private void DefineLocal(Stmt.Var stmt)
+    private void DeclareVariable(Stmt.Var stmt)
+    {
+        if(_current.ScopeDepth == 0)
+        {
+            return;
+        }
+
+        AddLocal(stmt.Name);
+    }
+
+    private void AddLocal(Token name)
     {
         if(_current.LocalCount == Compiler.MAX_LOCAL_COUNT)
         {
-            AddError("Too many local variables in function.", stmt.Name);
+            AddError("Too many local variables in function.", name);
             return;
         }
 
@@ -376,20 +392,21 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         {
             Local l = _current.Locals[i];
 
-            if(l.Depth < _current.ScopeDepth)
+            if(l.Depth != -1 && l.Depth < _current.ScopeDepth)
             {
                 break;
             }
 
-            if(l.Name.Lexeme == stmt.Name.Lexeme)
+            if(l.Name.Lexeme == name.Lexeme)
             {
-                AddError("Already a variable with this name in this scope.", stmt.Name);
+                AddError("Already a variable with this name in this scope.", name);
             }
         }
 
-        Local local = new() { Name = stmt.Name, Depth = _current.ScopeDepth };
+        Local local = new() { Name = name, Depth = -1 };
         _current.Locals[_current.LocalCount++] = local;
     }
+
 
     private int ResolveLocal(Token name)
     {
@@ -399,6 +416,10 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
             if(name.Lexeme == local.Name.Lexeme)
             {
+                if(local.Depth == -1)
+                {
+                    AddError("Can't read local variable in its own initializer.", name);
+                }
                 return i;
             }
         }
@@ -491,5 +512,5 @@ internal class Compiler
 internal class Local
 {
     internal required Token Name { get; init; }
-    internal int Depth { get; init; }
+    internal int Depth { get; set; }
 }
