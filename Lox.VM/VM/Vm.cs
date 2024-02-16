@@ -20,7 +20,7 @@ internal class Vm : IDisposable
     private bool disposed;
     private byte ip;
 
-    private readonly LoxValue[] _stack;
+    private readonly LoxValue[] _stack; // TODO: Create a stack class
     private int stackTop;
 
     private readonly Dictionary<Obj, LoxValue> _globals;
@@ -219,7 +219,9 @@ internal class Vm : IDisposable
                     Push(_stack[getSlot]);
                     break;
                 case OpCode.SetLocal:
-                    throw new NotImplementedException();
+                    byte setSlot = ReadByte();
+                    _stack[setSlot] = Peek(0);
+                    break;
                 default:
                     throw new UnreachableException();
             }

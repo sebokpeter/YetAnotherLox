@@ -91,7 +91,7 @@ internal static class Debug
     private static int ByteInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
     {
         byte slot = chunk[offset + 1];
-        Console.WriteLine($"{opCode,-16} {slot:0000} ");
+        Console.WriteLine($"{opCode,-19} {slot:0000} ");
         return offset + 2;
     }
 }
