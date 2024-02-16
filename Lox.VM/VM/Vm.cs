@@ -20,17 +20,18 @@ internal class Vm : IDisposable
     private bool disposed;
     private byte ip;
 
-    private readonly Stack<LoxValue> _stack;
+    private readonly LoxValue[] _stack;
+    private int stackTop;
 
     private readonly Dictionary<Obj, LoxValue> _globals;
 
     public Vm()
     {
         disposed = false;
-        _stack = new(STACK_MAX);
+        _stack = new LoxValue[STACK_MAX];
         _globals = [];
         Errors = [];
-
+        stackTop = 0;
     }
 
     internal InterpretResult Interpret(string source)
@@ -127,7 +128,7 @@ internal class Vm : IDisposable
         while(true)
         {
 #if DEBUG_TRACE_EXECUTION
-            _stack.PrintStack();
+            _stack.PrintStack(stackTop);
             chunk!.DisassembleInstruction(ip);
 #endif
 
@@ -215,7 +216,7 @@ internal class Vm : IDisposable
                     break;
                 case OpCode.GetLocal:
                     byte getSlot = ReadByte();
-                    Push(Peek(_stack.Count - 1 - getSlot));
+                    Push(_stack[getSlot]);
                     break;
                 case OpCode.SetLocal:
                     throw new NotImplementedException();
@@ -321,11 +322,11 @@ internal class Vm : IDisposable
 
     }
 
-    private void Push(LoxValue value) => _stack.Push(value);
+    private void Push(LoxValue value) => _stack[stackTop++] = value;
 
-    private LoxValue Pop() => _stack.Pop();
+    private LoxValue Pop() => _stack[--stackTop];
 
-    private LoxValue Peek(int distance) => _stack.ElementAt(distance);
+    private LoxValue Peek(int distance) => _stack[stackTop - 1 - distance];
 
     private LoxValue ReadConstant() => chunk!.Constants[ReadByte()];
 

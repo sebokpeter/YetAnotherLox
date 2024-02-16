@@ -1,14 +1,15 @@
 using LoxVM.Chunk;
+using LoxVM.Value;
 
 namespace LoxVM;
 
 internal static class Debug
 {
-    internal static void PrintStack(this Stack<Value.LoxValue> stack)
+    internal static void PrintStack(this LoxValue[] stack, int stackTop)
     {
-        foreach(Value.LoxValue value in stack.Reverse())
+        for(int i = 0; i < stackTop; i++)
         {
-            Console.WriteLine($"\t[{value}]");
+            Console.WriteLine($"\t[{stack[i]}]");
         }
     }
 
