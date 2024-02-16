@@ -5,11 +5,11 @@ namespace LoxVM;
 
 internal static class Debug
 {
-    internal static void PrintStack(this LoxValue[] stack, int stackTop)
+    internal static void PrintStack(this ValueStack stack)
     {
-        for(int i = 0; i < stackTop; i++)
+        foreach (LoxValue loxValue in stack)
         {
-            Console.WriteLine($"\t[{stack[i]}]");
+            Console.WriteLine($"\t[{loxValue}]");
         }
     }
 
