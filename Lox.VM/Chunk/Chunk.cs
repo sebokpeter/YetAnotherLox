@@ -69,6 +69,8 @@ internal enum OpCode : byte
     DefineGlobal,
     GetGlobal,
     SetGlobal,
+    GetLocal,
+    SetLocal,
 }
 
 internal static class OpcodeExtensions

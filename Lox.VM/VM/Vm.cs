@@ -213,6 +213,12 @@ internal class Vm : IDisposable
                     }
                     _globals[globalName] = Peek(0);
                     break;
+                case OpCode.GetLocal:
+                    byte getSlot = ReadByte();
+                    Push(Peek(_stack.Count - 1 - getSlot));
+                    break;
+                case OpCode.SetLocal:
+                    throw new NotImplementedException();
                 default:
                     throw new UnreachableException();
             }

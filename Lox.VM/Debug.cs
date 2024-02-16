@@ -59,16 +59,18 @@ internal static class Debug
             OpCode.Print        => SimpleInstruction(opCode, offset),
             OpCode.Pop          => SimpleInstruction(opCode, offset),
             OpCode.DefineGlobal => ConstantInstruction(opCode, chunk, offset),
-            OpCode.GetGlobal    => ConstantInstruction(opCode, chunk, offset),  
+            OpCode.GetGlobal    => ConstantInstruction(opCode, chunk, offset),
             OpCode.SetGlobal    => ConstantInstruction(opCode, chunk, offset),
-            _                   => UnknownInstruction(opCode, offset)
+            OpCode.GetLocal     => ByteInstruction(opCode, chunk, offset),
+            OpCode.SetLocal     => ByteInstruction(opCode, chunk, offset),
+            _ => UnknownInstruction(opCode, offset)
         };
     }
 
     private static int ConstantInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
     {
         byte constant = chunk[offset + 1];
-        Console.Write($"{opCode, -19} {constant:0000} ");
+        Console.Write($"{opCode,-19} {constant:0000} ");
         Console.WriteLine(chunk.Constants[constant]);
         return offset + 2;
     }
@@ -76,12 +78,19 @@ internal static class Debug
     private static int UnknownInstruction(OpCode opCode, int offset)
     {
         Console.WriteLine($"Unknown instruction: {opCode}");
-        return offset + 1;    
+        return offset + 1;
     }
 
     private static int SimpleInstruction(OpCode opCode, int offset)
     {
-        Console.WriteLine(opCode.ToString());
+        Console.WriteLine(opCode);
         return offset + 1;
+    }
+
+    private static int ByteInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
+    {
+        byte slot = chunk[offset + 1];
+        Console.WriteLine($"{opCode,-16} {slot:0000} ");
+        return offset + 2;
     }
 }

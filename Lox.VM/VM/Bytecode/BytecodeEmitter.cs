@@ -226,18 +226,34 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitVariableExpr(Expr.Variable expr)
     {
-        Token name = expr.Name;
-        byte arg = MakeConstant(LoxValue.Object(name.Lexeme));
-        EmitBytes(OpCode.GetGlobal, arg, name.Line);
+        int arg = ResolveLocal(expr.Name);
+
+        if(arg == -1)
+        {
+            // Did not find a local variable
+            // Assume it is global
+            ReadGlobal(expr);
+        }
+        else
+        {
+            EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
+        }
     }
 
     public void VisitAssignExpr(Expr.Assign expr)
     {
-        // Only for globals for now
-        byte arg = MakeConstant(LoxValue.Object(expr.Name.Lexeme));
-
         EmitBytecode(expr.Value);
-        EmitBytes(OpCode.SetGlobal, arg, expr.Name.Line);
+
+        int arg = ResolveLocal(expr.Name);
+
+        if(arg == -1)
+        {
+            AssignGlobal(expr);
+        }
+        else
+        {
+            EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
+        }
     }
 
     #endregion
@@ -373,6 +389,35 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         Local local = new() { Name = stmt.Name, Depth = _current.ScopeDepth };
         _current.Locals[_current.LocalCount++] = local;
+    }
+
+    private int ResolveLocal(Token name)
+    {
+        for(int i = _current.LocalCount - 1; i >= 0; i--)
+        {
+            Local local = _current.Locals[i];
+
+            if(name.Lexeme == local.Name.Lexeme)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void ReadGlobal(Expr.Variable expr)
+    {
+        Token name = expr.Name;
+        byte arg = MakeConstant(LoxValue.Object(name.Lexeme));
+        EmitBytes(OpCode.GetGlobal, arg, name.Line);
+    }
+
+    private void AssignGlobal(Expr.Assign expr)
+    {
+        byte arg = MakeConstant(LoxValue.Object(expr.Name.Lexeme));
+
+        EmitBytes(OpCode.SetGlobal, arg, expr.Name.Line);
     }
 
     #endregion
