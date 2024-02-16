@@ -1,6 +1,5 @@
 
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using Generated;
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -21,12 +20,15 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private readonly Compiler _current;
 
+    private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
+
     public BytecodeEmitter(List<Stmt> stmts)
     {
         _statements = stmts;
         _chunk = new();
         _errors = [];
         _current = new();
+        latestLine = 0;
     }
 
     public Chunk.Chunk EmitBytecode()
@@ -81,8 +83,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitVarStmt(Stmt.Var stmt)
     {
-        byte global = MakeConstant(LoxValue.Object(stmt.Name.Lexeme));
-
         if(stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
@@ -92,12 +92,21 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
             EmitByte(OpCode.Nil, stmt.Name.Line);
         }
 
-        DefineVariable(global, stmt.Name.Line);
+        if(_current.ScopeDepth == 0)
+        {
+            DefineGlobal(stmt);
+        }
+        else
+        {
+            DefineLocal(stmt);
+        }
     }
 
-    private void DefineVariable(byte global, int line)
+    public void VisitBlockStmt(Stmt.Block stmt)
     {
-        EmitBytes(OpCode.DefineGlobal, global, line);
+        BeginScope();
+        EmitBytecode(stmt.Statements);
+        EndScope();
     }
 
     #endregion
@@ -316,9 +325,19 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     #region Utilities
 
     # region Variable Declaration
-    private void EndScope() => _current.ScopeDepth--;
 
     private void BeginScope() => _current.ScopeDepth++;
+
+    private void EndScope()
+    {
+        _current.ScopeDepth--;
+
+        while(_current.LocalCount > 0 && _current.Locals[_current.LocalCount - 1].Depth > _current.ScopeDepth)
+        {
+            EmitByte(OpCode.Pop);
+            _current.LocalCount--;
+        }
+    }
 
     private void DefineVariable(byte global, int line) => EmitBytes(OpCode.DefineGlobal, global, line);
 
@@ -326,28 +345,57 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         byte global = MakeConstant(LoxValue.Object(stmt.Name.Lexeme));
 
-        if(stmt.Initializer is not null)
+        DefineVariable(global, stmt.Name.Line);
+    }
+
+    private void DefineLocal(Stmt.Var stmt)
+    {
+        if(_current.LocalCount == Compiler.MAX_LOCAL_COUNT)
         {
-            EmitBytecode(stmt.Initializer);
-        }
-        else
-        {
-            EmitByte(OpCode.Nil, stmt.Name.Line);
+            AddError("Too many local variables in function.", stmt.Name);
+            return;
         }
 
-        DefineVariable(global, stmt.Name.Line);
+        for(int i = _current.LocalCount - 1; i >= 0; i--)
+        {
+            Local l = _current.Locals[i];
+
+            if(l.Depth < _current.ScopeDepth)
+            {
+                break;
+            }
+
+            if(l.Name.Lexeme == stmt.Name.Lexeme)
+            {
+                AddError("Already a variable with this name in this scope.", stmt.Name);
+            }
+        }
+
+        Local local = new() { Name = stmt.Name, Depth = _current.ScopeDepth };
+        _current.Locals[_current.LocalCount++] = local;
     }
 
     #endregion
 
-    private void EmitByte(OpCode opCode, int line) => _chunk.WriteChunk(opCode, line);
+    private void EmitByte(OpCode opCode) => EmitByte(opCode, latestLine);
 
-    private void EmitByte(byte val, int line) => _chunk.WriteChunk(val, line);
+    private void EmitByte(OpCode opCode, int line)
+    {
+        _chunk.WriteChunk(opCode, line);
+        latestLine = line;
+    }
+
+    private void EmitByte(byte val, int line)
+    {
+        _chunk.WriteChunk(val, line);
+        latestLine = line;
+    }
 
     private void EmitBytes(OpCode opCode, byte val, int line)
     {
         EmitByte(opCode, line);
         EmitByte(val, line);
+        latestLine = line;
     }
     private void EmitBytes(OpCode opCodeOne, OpCode opCodeTwo, int line) => EmitBytes(opCodeOne, line, opCodeTwo, line);
 
@@ -355,6 +403,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         EmitByte(opCodeOne, l1);
         EmitByte(opCodeTwo, l2);
+        latestLine = Math.Max(l1, l2);
     }
 
     private byte MakeConstant(LoxValue value)
