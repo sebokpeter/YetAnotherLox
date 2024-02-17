@@ -258,6 +258,7 @@ public class Parser
 
     private Stmt.For ForStatement()
     {
+        int forStartLine = Previous().Line;
         Consume(LEFT_PAREN, "Expect '(' after 'for'.");
 
         Stmt initializer;
@@ -293,7 +294,7 @@ public class Parser
             _loopDepth++;
             Stmt body = Statement();
 
-            return new Stmt.For(initializer, condition, increment, body);
+            return new Stmt.For(initializer, condition, increment, body, forStartLine);
         }
         finally
         {
@@ -326,6 +327,7 @@ public class Parser
 
     private Stmt.For ForeachStatement()
     {
+        int foreachStartLine = Previous().Line;
         Token paren = Consume(LEFT_PAREN, "Expect '(' after 'foreach'.");
 
         Token name = Consume(IDENTIFIER, "Expect identifier.");
@@ -353,7 +355,7 @@ public class Parser
             // Create a new block, with the array access as the first statement.
             Stmt newBody = new Stmt.Block([access, .. body]);
 
-            var tmp = new Stmt.For(initializer, condition, increment, newBody);
+            var tmp = new Stmt.For(initializer, condition, increment, newBody, foreachStartLine);
             return tmp;
         }
         finally
