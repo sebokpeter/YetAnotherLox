@@ -141,19 +141,44 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitByte(OpCode.Pop);
     }
 
-    private void EmitLoop(int loopStart, int line)
+    public void VisitForStmt(Stmt.For stmt)
     {
-        EmitByte(OpCode.Loop, line);
-
-        int offset = _chunk.Count - loopStart + 2;
-
-        if(offset > ushort.MaxValue)
+        BeginScope();
+        if(stmt.Initializer is not null)
         {
-            AddError("Loop body too large");
+            EmitBytecode(stmt.Initializer);
         }
 
-        EmitByte((byte)((offset >> 8) & 0xFF), line);
-        EmitByte((byte)(offset & 0xFF), line);
+        int loopStart = _chunk.Count;
+
+        (int exitJump, int conditionLine) = (-1, -1);
+        if(stmt.Condition is not null)
+        {
+            EmitBytecode(stmt.Condition);
+
+            conditionLine = GetLineNumber(stmt.Condition);
+
+            exitJump = EmitJump(OpCode.JumpIfFalse, conditionLine);
+            EmitByte(OpCode.Pop, conditionLine);
+        }
+
+        EmitBytecode(stmt.Body);
+
+        if(stmt.Increment is not null)
+        {
+            EmitBytecode(stmt.Increment);
+            EmitByte(OpCode.Pop, GetLineNumber(stmt.Increment));
+        }
+
+        EmitLoop(loopStart, stmt.Line);
+        
+        if(exitJump != -1)
+        {
+            PatchJump(exitJump);
+            EmitByte(OpCode.Pop, conditionLine);
+        }
+        
+        EndScope();
     }
 
     #endregion
@@ -325,11 +350,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         throw new NotImplementedException();
     }
 
-    public void VisitForStmt(Stmt.For stmt)
-    {
-        throw new NotImplementedException();
-    }
-
     public void VisitCallExpr(Expr.Call expr)
     {
         throw new NotImplementedException();
@@ -379,7 +399,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     # region Variable Declaration
 
-    #region Jumping
+    #region Jumping And Looping
 
     private void PatchJump(int offset)
     {
@@ -400,6 +420,21 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitByte(0xFF, line);
         EmitByte(0xFF, line);
         return _chunk.Count - 2;
+    }
+
+    private void EmitLoop(int loopStart, int line)
+    {
+        EmitByte(OpCode.Loop, line);
+
+        int offset = _chunk.Count - loopStart + 2;
+
+        if(offset > ushort.MaxValue)
+        {
+            AddError("Loop body too large");
+        }
+
+        EmitByte((byte)((offset >> 8) & 0xFF), line);
+        EmitByte((byte)(offset & 0xFF), line);
     }
 
     #endregion
@@ -574,6 +609,14 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         else if(expr is Expr.Literal literal)
         {
             return literal.Token!.Line;
+        }
+        else if(expr is Expr.Assign assign)
+        {
+            return assign.Name.Line;
+        }
+        else if(expr is Expr.Postfix postfix)
+        {
+            return postfix.Operator.Line;
         }
 
         throw new NotImplementedException($"{nameof(GetLineNumber)} is not implemented for {expr.GetType()}.");
