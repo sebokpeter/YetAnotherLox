@@ -34,7 +34,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     public Chunk.Chunk EmitBytecode()
     {
         // TODO
-        foreach (Stmt stmt in _statements)
+        foreach(Stmt stmt in _statements)
         {
             EmitBytecode(stmt);
         }
@@ -56,7 +56,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void EmitBytecode(IEnumerable<Stmt> stmts)
     {
-        foreach (Stmt stmt in stmts)
+        foreach(Stmt stmt in stmts)
         {
             EmitBytecode(stmt);
         }
@@ -85,7 +85,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         DeclareVariable(stmt);
 
-        if (stmt.Initializer is not null)
+        if(stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
         }
@@ -115,7 +115,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         int elseJump = EmitJump(OpCode.Jump, GetLineNumber(stmt.Condition));
 
-        PatchJump(thenJump);   
+        PatchJump(thenJump);
 
         EmitByte(OpCode.Pop);
         if(stmt.ElseBranch is not null)
@@ -125,25 +125,35 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         PatchJump(elseJump);
     }
 
-    private void PatchJump(int offset)
+    public void VisitWhileStmt(Stmt.While stmt)
     {
-        int jump = _chunk.Count - offset - 2;
+        int loopStart = _chunk.Count;
+        EmitBytecode(stmt.Condition);
 
-        if(jump > ushort.MaxValue)
-        {
-            AddError("Too much code to jump over.");
-        }
+        int line = GetLineNumber(stmt.Condition);
+        int exitJump = EmitJump(OpCode.JumpIfFalse, line);
+        EmitByte(OpCode.Pop, line);
 
-        _chunk[offset] = (byte)((jump >> 8) & 0xFF);
-        _chunk[offset + 1] = (byte)(jump & 0xFF);
+        EmitBytecode(stmt.Body);
+        EmitLoop(loopStart, line);
+
+        PatchJump(exitJump);
+        EmitByte(OpCode.Pop);
     }
 
-    private int EmitJump(OpCode instruction, int line)
+    private void EmitLoop(int loopStart, int line)
     {
-        EmitByte(instruction, line);
-        EmitByte(0xFF, line);
-        EmitByte(0xFF, line);
-        return _chunk.Count - 2;
+        EmitByte(OpCode.Loop, line);
+
+        int offset = _chunk.Count - loopStart + 2;
+
+        if(offset > ushort.MaxValue)
+        {
+            AddError("Loop body too large");
+        }
+
+        EmitByte((byte)((offset >> 8) & 0xFF), line);
+        EmitByte((byte)(offset & 0xFF), line);
     }
 
     #endregion
@@ -162,7 +172,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         int line = expr.Operator.Line;
 
-        switch (expr.Operator.Type)
+        switch(expr.Operator.Type)
         {
             case TokenType.PLUS:
                 EmitByte(OpCode.Add, line);
@@ -209,7 +219,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         int line = expr.Oper.Line;
 
-        switch (expr.Oper.Type)
+        switch(expr.Oper.Type)
         {
             case TokenType.AND:
                 EmitByte(OpCode.And, line);
@@ -225,7 +235,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     public void VisitUnaryExpr(Expr.Unary expr)
     {
         EmitBytecode(expr.Right);
-        switch (expr.Operator.Type)
+        switch(expr.Operator.Type)
         {
             case TokenType.BANG:
                 EmitByte(OpCode.Not, expr.Operator.Line);
@@ -242,7 +252,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         int line = expr.Token is not null ? expr.Token.Line : -1; // TODO: Throw exception if Literal.Token is null? 
 
-        switch (expr.Value)
+        switch(expr.Value)
         {
             case null:
                 EmitByte(OpCode.Nil, line);
@@ -265,7 +275,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     {
         int arg = ResolveLocal(expr.Name);
 
-        if (arg == -1)
+        if(arg == -1)
         {
             // Did not find a local variable
             // Assume it is global
@@ -283,7 +293,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         int arg = ResolveLocal(expr.Name);
 
-        if (arg == -1)
+        if(arg == -1)
         {
             AssignGlobal(expr);
         }
@@ -311,11 +321,6 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     }
 
     public void VisitContinueStmt(Stmt.Continue stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitWhileStmt(Stmt.While stmt)
     {
         throw new NotImplementedException();
     }
@@ -374,13 +379,38 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     # region Variable Declaration
 
+    #region Jumping
+
+    private void PatchJump(int offset)
+    {
+        int jump = _chunk.Count - offset - 2;
+
+        if(jump > ushort.MaxValue)
+        {
+            AddError("Too much code to jump over.");
+        }
+
+        _chunk[offset] = (byte)((jump >> 8) & 0xFF);
+        _chunk[offset + 1] = (byte)(jump & 0xFF);
+    }
+
+    private int EmitJump(OpCode instruction, int line)
+    {
+        EmitByte(instruction, line);
+        EmitByte(0xFF, line);
+        EmitByte(0xFF, line);
+        return _chunk.Count - 2;
+    }
+
+    #endregion
+
     private void BeginScope() => _current.ScopeDepth++;
 
     private void EndScope()
     {
         _current.ScopeDepth--;
 
-        while (_current.LocalCount > 0 && _current.Locals[_current.LocalCount - 1].Depth > _current.ScopeDepth)
+        while(_current.LocalCount > 0 && _current.Locals[_current.LocalCount - 1].Depth > _current.ScopeDepth)
         {
             EmitByte(OpCode.Pop);
             _current.LocalCount--;
@@ -389,7 +419,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void DefineVariable(Stmt.Var stmt)
     {
-        if (_current.ScopeDepth > 0)
+        if(_current.ScopeDepth > 0)
         {
             MarkInitialized();
             return;
@@ -409,7 +439,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void DeclareVariable(Stmt.Var stmt)
     {
-        if (_current.ScopeDepth == 0)
+        if(_current.ScopeDepth == 0)
         {
             return;
         }
@@ -419,22 +449,22 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void AddLocal(Token name)
     {
-        if (_current.LocalCount == Compiler.MAX_LOCAL_COUNT)
+        if(_current.LocalCount == Compiler.MAX_LOCAL_COUNT)
         {
             AddError("Too many local variables in function.", name);
             return;
         }
 
-        for (int i = _current.LocalCount - 1; i >= 0; i--)
+        for(int i = _current.LocalCount - 1; i >= 0; i--)
         {
             Local l = _current.Locals[i];
 
-            if (l.Depth != -1 && l.Depth < _current.ScopeDepth)
+            if(l.Depth != -1 && l.Depth < _current.ScopeDepth)
             {
                 break;
             }
 
-            if (l.Name.Lexeme == name.Lexeme)
+            if(l.Name.Lexeme == name.Lexeme)
             {
                 AddError("Already a variable with this name in this scope.", name);
             }
@@ -444,16 +474,15 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         _current.Locals[_current.LocalCount++] = local;
     }
 
-
     private int ResolveLocal(Token name)
     {
-        for (int i = _current.LocalCount - 1; i >= 0; i--)
+        for(int i = _current.LocalCount - 1; i >= 0; i--)
         {
             Local local = _current.Locals[i];
 
-            if (name.Lexeme == local.Name.Lexeme)
+            if(name.Lexeme == local.Name.Lexeme)
             {
-                if (local.Depth == -1)
+                if(local.Depth == -1)
                 {
                     AddError("Can't read local variable in its own initializer.", name);
                 }
@@ -512,7 +541,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     private byte MakeConstant(LoxValue value)
     {
         int constant = _chunk.AddConstant(value);
-        if (constant > byte.MaxValue)
+        if(constant > byte.MaxValue)
         {
             AddError("Too many constants in one chunk.");
             return 0;
@@ -545,7 +574,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         else if(expr is Expr.Literal literal)
         {
             return literal.Token!.Line;
-        } 
+        }
 
         throw new NotImplementedException($"{nameof(GetLineNumber)} is not implemented for {expr.GetType()}.");
     }

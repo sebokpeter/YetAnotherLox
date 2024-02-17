@@ -66,6 +66,7 @@ internal static class Debug
             OpCode.SetLocal     => ByteInstruction(opCode, chunk, offset),
             OpCode.JumpIfFalse  => JumpInstruction(opCode, 1, chunk, offset),
             OpCode.Jump         => JumpInstruction(opCode, 1, chunk, offset),
+            OpCode.Loop         => JumpInstruction(opCode, -1, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
     }

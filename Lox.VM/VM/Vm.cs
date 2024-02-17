@@ -232,6 +232,10 @@ internal class Vm : IDisposable
                     ushort jumpOffset = ReadShort();
                     ip += jumpOffset;
                     break;
+                case Loop:
+                    ushort loopOffset = ReadShort();
+                    ip -= loopOffset;
+                    break;
                 default:
                     throw new UnreachableException();
             }
