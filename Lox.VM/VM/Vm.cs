@@ -6,6 +6,7 @@ using LoxVM.Chunk;
 using LoxVM.Value;
 using Shared;
 using Shared.ErrorHandling;
+using static LoxVM.Chunk.OpCode;
 
 namespace LoxVM.VM;
 
@@ -18,7 +19,7 @@ internal class Vm : IDisposable
     private Chunk.Chunk? chunk;
 
     private bool disposed;
-    private byte ip;
+    private ushort ip;
 
     private readonly ValueStack _stack;
 
@@ -134,13 +135,13 @@ internal class Vm : IDisposable
 
             switch(instruction)
             {
-                case OpCode.Return:
+                case Return:
                     return InterpretResult.Ok;
-                case OpCode.Constant:
+                case Constant:
                     LoxValue constant = ReadConstant();
                     _stack.Push(constant);
                     break;
-                case OpCode.Negate:
+                case Negate:
                     if(!_stack.Peek(0).IsNumber)
                     {
                         AddRuntimeError("Operand must be a number.", chunk!.Lines.Last());
@@ -148,53 +149,53 @@ internal class Vm : IDisposable
                     }
                     _stack.Push(LoxValue.Number(-_stack.Pop().AsNumber));
                     break;
-                case OpCode.Add or OpCode.Subtract or OpCode.Multiply or OpCode.Divide or OpCode.Modulo:
+                case Add or Subtract or Multiply or Divide or Modulo:
                     if(!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
                     break;
-                case OpCode.Nil:
+                case Nil:
                     _stack.Push(LoxValue.Nil());
                     break;
-                case OpCode.True:
+                case True:
                     _stack.Push(LoxValue.Bool(true));
                     break;
-                case OpCode.False:
+                case False:
                     _stack.Push(LoxValue.Bool(false));
                     break;
-                case OpCode.Not:
+                case Not:
                     _stack.Push(LoxValue.Bool(IsFalsey(_stack.Pop())));
                     break;
-                case OpCode.Equal:
+                case Equal:
                     LoxValue a = _stack.Pop();
                     LoxValue b = _stack.Pop();
                     _stack.Push(LoxValue.Bool(a.Equals(b)));
                     break;
-                case OpCode.Greater or OpCode.Less:
+                case Greater or Less:
                     if(!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
                     break;
-                case OpCode.And or OpCode.Or:
+                case And or Or:
                     if(!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
                     break;
-                case OpCode.Print:
+                case Print:
                     Console.WriteLine(_stack.Pop());
                     break;
-                case OpCode.Pop:
+                case Pop:
                     _stack.Pop();
                     break;
-                case OpCode.DefineGlobal:
+                case DefineGlobal:
                     Obj name = ReadConstant().AsObj;
                     _globals[name] = _stack.Peek(0);
                     _stack.Pop();
                     break;
-                case OpCode.GetGlobal:
+                case GetGlobal:
                     Obj varName = ReadConstant().AsObj;
                     if(!_globals.TryGetValue(varName, out LoxValue value))
                     {
@@ -203,7 +204,7 @@ internal class Vm : IDisposable
                     }
                     _stack.Push(value);
                     break;
-                case OpCode.SetGlobal:
+                case SetGlobal:
                     Obj globalName = ReadConstant().AsObj;
                     if(!_globals.ContainsKey(globalName))
                     {
@@ -212,13 +213,24 @@ internal class Vm : IDisposable
                     }
                     _globals[globalName] = _stack.Peek(0);
                     break;
-                case OpCode.GetLocal:
+                case GetLocal:
                     byte getSlot = ReadByte();
                     _stack.Push(_stack[getSlot]);
                     break;
-                case OpCode.SetLocal:
+                case SetLocal:
                     byte setSlot = ReadByte();
                     _stack[setSlot] = _stack.Peek(0);
+                    break;
+                case JumpIfFalse:
+                    ushort offset = ReadShort();
+                    if(IsFalsey(_stack.Peek(0)))
+                    {
+                        ip += offset;
+                    }
+                    break;
+                case Jump:
+                    ushort jumpOffset = ReadShort();
+                    ip += jumpOffset;
                     break;
                 default:
                     throw new UnreachableException();
@@ -270,8 +282,8 @@ internal class Vm : IDisposable
 
         bool res = op switch
         {
-            OpCode.And => left && right,
-            OpCode.Or => left || right,
+            And => left && right,
+            Or => left || right,
             _ => throw new UnreachableException($"Opcode was {op}.")
         };
 
@@ -295,9 +307,9 @@ internal class Vm : IDisposable
         {
             bool res = op switch
             {
-                OpCode.Less     => left < right,
-                OpCode.Greater  => left > right,
-                _               => throw new UnreachableException($"Opcode was {op}.")
+                Less => left < right,
+                Greater => left > right,
+                _ => throw new UnreachableException($"Opcode was {op}.")
             };
 
             _stack.Push(LoxValue.Bool(res));
@@ -307,12 +319,12 @@ internal class Vm : IDisposable
         {
             double res = op switch
             {
-                OpCode.Add      => left + right,
-                OpCode.Subtract => left - right,
-                OpCode.Multiply => left * right,
-                OpCode.Divide   => left / right,
-                OpCode.Modulo   => left % right,
-                _               => throw new UnreachableException($"Opcode was {op}.")
+                Add => left + right,
+                Subtract => left - right,
+                Multiply => left * right,
+                Divide => left / right,
+                Modulo => left % right,
+                _ => throw new UnreachableException($"Opcode was {op}.")
             };
 
             _stack.Push(LoxValue.Number(res));
@@ -324,6 +336,12 @@ internal class Vm : IDisposable
     private LoxValue ReadConstant() => chunk!.Constants[ReadByte()];
 
     private byte ReadByte() => chunk![ip++];
+
+    private ushort ReadShort()
+    {
+        ip += 2;
+        return (ushort)(chunk![ip-2] << 8 | chunk[ip-1]);
+    }
 
     public void Dispose() // Implement IDisposable instead of freeVM(), even though there are no unmanaged resources
     {

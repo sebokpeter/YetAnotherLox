@@ -64,6 +64,8 @@ internal static class Debug
             OpCode.SetGlobal    => ConstantInstruction(opCode, chunk, offset),
             OpCode.GetLocal     => ByteInstruction(opCode, chunk, offset),
             OpCode.SetLocal     => ByteInstruction(opCode, chunk, offset),
+            OpCode.JumpIfFalse  => JumpInstruction(opCode, 1, chunk, offset),
+            OpCode.Jump         => JumpInstruction(opCode, 1, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
     }
@@ -93,5 +95,14 @@ internal static class Debug
         byte slot = chunk[offset + 1];
         Console.WriteLine($"{opCode,-19} {slot:0000} ");
         return offset + 2;
+    }
+
+    private static int JumpInstruction(OpCode opCode, int sign, Chunk.Chunk chunk, int offset)
+    {
+        ushort jump = (ushort)(chunk[offset + 1] << 8);
+        jump |= chunk[offset + 2];
+
+        Console.WriteLine($"{opCode,-19} {offset:0000} -> {offset+3+sign*jump}");
+        return offset + 3;
     }
 }

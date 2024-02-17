@@ -7,7 +7,11 @@ internal class Chunk
     internal List<int> Lines => _lines;
 
     internal List<Value.LoxValue> Constants => _constants;
-    internal byte this[int index] => _code[index];
+    internal byte this[int index] 
+    {
+        get => _code[index];
+        set => _code[index] = value;
+    }
 
     private readonly List<int> _lines;
     private readonly List<byte> _code;
@@ -71,6 +75,8 @@ internal enum OpCode : byte
     SetGlobal,
     GetLocal,
     SetLocal,
+    JumpIfFalse,
+    Jump
 }
 
 internal static class OpcodeExtensions
