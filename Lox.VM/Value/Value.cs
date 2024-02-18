@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata;
 
 namespace LoxVM.Value;
 
@@ -207,6 +208,7 @@ internal readonly struct ObjFunction
         Chunk = new();
     }
 
+    public static ObjFunction TopLevel() => new(0, "");
 
     public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
 }

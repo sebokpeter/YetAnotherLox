@@ -3,6 +3,7 @@ using Frontend.Parser;
 using Frontend.Scanner;
 using Generated;
 using LoxVM.Chunk;
+using LoxVM.Compiler;
 using LoxVM.Value;
 using Shared;
 using Shared.ErrorHandling;
@@ -87,7 +88,7 @@ internal class Vm : IDisposable
 
     private (bool compileSuccess, ObjFunction? chunk) CompileStatements(List<Stmt> stmts)
     {
-        BytecodeEmitter emitter = new(stmts);
+        BytecodeCompiler emitter = new(stmts);
         ObjFunction function = emitter.EmitBytecode();
 
         if(emitter.HadError)
@@ -220,11 +221,11 @@ internal class Vm : IDisposable
                     break;
                 case GetLocal:
                     byte getSlot = Frame.ReadByte();
-                    _stack.Push(_stack[Frame.Slot - 1 + getSlot]);
+                    _stack.Push(_stack[Frame.Slot + getSlot]);
                     break;
                 case SetLocal:
                     byte setSlot = Frame.ReadByte();
-                    _stack[Frame.Slot - 1 + setSlot] = _stack.Peek(0);
+                    _stack[Frame.Slot + setSlot] = _stack.Peek(0);
                     break;
                 case JumpIfFalse:
                     ushort offset = Frame.ReadShort();
