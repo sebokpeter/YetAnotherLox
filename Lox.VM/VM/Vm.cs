@@ -18,6 +18,8 @@ internal class Vm : IDisposable
 
     private Chunk.Chunk? chunk;
 
+    private ObjFunction function;
+
     private bool disposed;
     private ushort ip;
 
@@ -64,24 +66,26 @@ internal class Vm : IDisposable
         }
 
         // TODO: Emit bytecode based on AST
-        (bool compileSuccess, Chunk.Chunk? chunk) = CompileStatements(statements!);
+        (bool compileSuccess, ObjFunction? function) = CompileStatements(statements!);
 
         if(!compileSuccess)
         {
             return false;
         }
 
+
 #if DEBUG_PRINT_CODE
-        chunk!.Disassemble("Code");
+        function!.Value.Chunk.Disassemble("Code");
 #endif
-        this.chunk = chunk;
+
+        this.function = (ObjFunction)function!;
         return true;
     }
 
-    private (bool compileSuccess, Chunk.Chunk? chunk) CompileStatements(List<Stmt> stmts)
+    private (bool compileSuccess, ObjFunction? chunk) CompileStatements(List<Stmt> stmts)
     {
         BytecodeEmitter emitter = new(stmts);
-        Chunk.Chunk chunk = emitter.EmitBytecode();
+        ObjFunction function = emitter.EmitBytecode();
 
         if(emitter.HadError)
         {
@@ -89,7 +93,7 @@ internal class Vm : IDisposable
             return (false, null);
         }
 
-        return (true, chunk);
+        return (true, function);
     }
 
     private (bool, List<Token>?) Scan(string source)
@@ -344,7 +348,7 @@ internal class Vm : IDisposable
     private ushort ReadShort()
     {
         ip += 2;
-        return (ushort)(chunk![ip-2] << 8 | chunk[ip-1]);
+        return (ushort)(chunk![ip - 2] << 8 | chunk[ip - 1]);
     }
 
     public void Dispose() // Implement IDisposable instead of freeVM(), even though there are no unmanaged resources

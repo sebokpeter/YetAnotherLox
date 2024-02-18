@@ -146,15 +146,31 @@ internal readonly struct Obj
     public bool IsString => Type == ObjType.String;
 
     /// <summary>
+    /// Returns true, if the lox runtime of this <see cref="Obj"/> is function.
+    /// </summary>
+    public bool IsFunction => Type == ObjType.Function;
+
+    /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
     /// </summary>
     public string AsString => (string)_obj;
+
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjFunction"/>.
+    /// </summary>
+    public ObjFunction AsFunction => (ObjFunction)_obj;
 
     private Obj(string s)
     {
         _obj = s;
         Type = ObjType.String;
-    } 
+    }
+
+    private Obj(ObjFunction objFunction)
+    {
+        _obj = objFunction;
+        Type = ObjType.Function;
+    }
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime type is string, and the value is <paramref name="s"/>.
@@ -163,7 +179,32 @@ internal readonly struct Obj
     /// <returns></returns>
     public static Obj String(string s) => new(s);
 
+    /// <summary>
+    /// Return a new <see cref="Obj"/>, where the lox runtime type is function, and the value is <paramref name="objFunction"/>.
+    /// </summary>
+    /// <param name="objFunction">The lox runtime value, a lox function.</param>
+    /// <returns></returns>
+    public static Obj Function(ObjFunction objFunction) => new(objFunction);
+
     public override string ToString() => _obj.ToString()!;
+}
+
+internal readonly struct ObjFunction
+{
+    
+    internal int Arity { get; init; }
+    internal string Name { get; init; }
+    internal Chunk.Chunk Chunk { get; init; }
+
+    public ObjFunction(int arity, string name)
+    {
+        Arity = arity;
+        Name = name;
+        Chunk = new();
+    }
+
+
+    public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
 }
 
 internal enum ValueType
@@ -176,5 +217,6 @@ internal enum ValueType
 
 internal enum ObjType
 {
+    Function,
     String,
 }

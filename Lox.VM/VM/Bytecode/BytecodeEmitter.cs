@@ -15,7 +15,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private readonly List<Stmt> _statements;
 
-    private readonly Chunk.Chunk _chunk;
+    private Chunk.Chunk Chunk => _current.Function.Chunk;
     private readonly List<BytecodeEmitterError> _errors;
 
     private readonly Compiler _current;
@@ -25,13 +25,12 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     public BytecodeEmitter(List<Stmt> stmts)
     {
         _statements = stmts;
-        _chunk = new();
         _errors = [];
-        _current = new();
+        _current = new(FunctionType.Script);
         latestLine = 0;
     }
 
-    public Chunk.Chunk EmitBytecode()
+    public ObjFunction EmitBytecode()
     {
         // TODO
         foreach(Stmt stmt in _statements)
@@ -41,7 +40,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
         // TODO: remove temporary return
         EmitByte(OpCode.Return, _statements.Count);
-        return _chunk;
+        return _current.Function;
     }
 
     private void EmitBytecode(Stmt stmt)
@@ -127,7 +126,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     public void VisitWhileStmt(Stmt.While stmt)
     {
-        int loopStart = _chunk.Count;
+        int loopStart = Chunk.Count;
         EmitBytecode(stmt.Condition);
 
         int line = GetLineNumber(stmt.Condition);
@@ -149,7 +148,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
             EmitBytecode(stmt.Initializer);
         }
 
-        int loopStart = _chunk.Count;
+        int loopStart = Chunk.Count;
 
         (int exitJump, int conditionLine) = (-1, -1);
         if(stmt.Condition is not null)
@@ -171,13 +170,13 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         }
 
         EmitLoop(loopStart, stmt.Line);
-        
+
         if(exitJump != -1)
         {
             PatchJump(exitJump);
             EmitByte(OpCode.Pop, conditionLine);
         }
-        
+
         EndScope();
     }
 
@@ -403,15 +402,15 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void PatchJump(int offset)
     {
-        int jump = _chunk.Count - offset - 2;
+        int jump = Chunk.Count - offset - 2;
 
         if(jump > ushort.MaxValue)
         {
             AddError("Too much code to jump over.");
         }
 
-        _chunk[offset] = (byte)((jump >> 8) & 0xFF);
-        _chunk[offset + 1] = (byte)(jump & 0xFF);
+        Chunk[offset] = (byte)((jump >> 8) & 0xFF);
+        Chunk[offset + 1] = (byte)(jump & 0xFF);
     }
 
     private int EmitJump(OpCode instruction, int line)
@@ -419,14 +418,14 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         EmitByte(instruction, line);
         EmitByte(0xFF, line);
         EmitByte(0xFF, line);
-        return _chunk.Count - 2;
+        return Chunk.Count - 2;
     }
 
     private void EmitLoop(int loopStart, int line)
     {
         EmitByte(OpCode.Loop, line);
 
-        int offset = _chunk.Count - loopStart + 2;
+        int offset = Chunk.Count - loopStart + 2;
 
         if(offset > ushort.MaxValue)
         {
@@ -548,13 +547,13 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private void EmitByte(OpCode opCode, int line)
     {
-        _chunk.WriteChunk(opCode, line);
+        Chunk.WriteChunk(opCode, line);
         latestLine = line;
     }
 
     private void EmitByte(byte val, int line)
     {
-        _chunk.WriteChunk(val, line);
+        Chunk.WriteChunk(val, line);
         latestLine = line;
     }
 
@@ -575,7 +574,7 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
 
     private byte MakeConstant(LoxValue value)
     {
-        int constant = _chunk.AddConstant(value);
+        int constant = Chunk.AddConstant(value);
         if(constant > byte.MaxValue)
         {
             AddError("Too many constants in one chunk.");
@@ -588,8 +587,8 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
     private void EmitConstant(LoxValue value, int line)
     {
         byte constant = MakeConstant(value);
-        _chunk.WriteChunk(OpCode.Constant, line);
-        _chunk.WriteChunk(constant, line);
+        Chunk.WriteChunk(OpCode.Constant, line);
+        Chunk.WriteChunk(constant, line);
     }
 
     private int GetLineNumber(Expr expr) // Try to get the line number of an Expr by checking the actual type. It would be better to save the line number in the Expr and Stmt records, but that would require many changes in the parser.
@@ -634,9 +633,17 @@ internal class Compiler
     internal int ScopeDepth { get; set; }
     internal int LocalCount { get; set; }
 
-    public Compiler()
+    internal ObjFunction Function { get; set; }
+    internal FunctionType FunctionType { get; set; }
+
+    public Compiler(FunctionType type)
     {
         Locals = new Local[MAX_LOCAL_COUNT];
+        FunctionType = type;
+        Function = new(0, "");
+
+        Local local = new() {Depth = 0, Name = new(0, "", null, 0)};
+        Locals[LocalCount++] = local;
     }
 }
 
@@ -644,4 +651,10 @@ internal class Local
 {
     internal required Token Name { get; init; }
     internal int Depth { get; set; }
+}
+
+internal enum FunctionType
+{
+    Function,
+    Script
 }
