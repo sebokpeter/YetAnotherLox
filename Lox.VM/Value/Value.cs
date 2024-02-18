@@ -196,7 +196,6 @@ internal readonly struct Obj
 
 internal readonly struct ObjFunction
 {
-    
     internal int Arity { get; init; }
     internal string Name { get; init; }
     internal Chunk.Chunk Chunk { get; init; }

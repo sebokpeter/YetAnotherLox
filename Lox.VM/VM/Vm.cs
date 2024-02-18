@@ -88,12 +88,12 @@ internal class Vm : IDisposable
 
     private (bool compileSuccess, ObjFunction? chunk) CompileStatements(List<Stmt> stmts)
     {
-        BytecodeCompiler emitter = new(stmts);
-        ObjFunction function = emitter.EmitBytecode();
+        BytecodeCompiler compiler = new(stmts);
+        ObjFunction function = compiler.Compile();
 
-        if(emitter.HadError)
+        if(compiler.HadError)
         {
-            Errors.AddRange(emitter.Errors);
+            Errors.AddRange(compiler.Errors);
             return (false, null);
         }
 

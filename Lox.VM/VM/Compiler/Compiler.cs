@@ -18,11 +18,13 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     private readonly ObjFunction _function;
 
     private const ushort MAX_LOCAL_COUNT = byte.MaxValue + 1;
-    internal readonly Local[] _locals; 
+    internal readonly Local[] _locals;
     internal int scopeDepth;
     internal int localCount;
 
     private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
+
+    private readonly FunctionType _functionType;
 
     public BytecodeCompiler(List<Stmt> stmts)
     {
@@ -30,9 +32,20 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _errors = [];
         _function = ObjFunction.TopLevel();
         _locals = new Local[MAX_LOCAL_COUNT];
+        _functionType = FunctionType.Script;
     }
 
-    public ObjFunction EmitBytecode()
+    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName, int scopeDepth)
+    {
+        _statements = [];
+        _errors = compiler._errors;
+        _function = new(arity, fnName);
+        _locals = new Local[MAX_LOCAL_COUNT];
+        _functionType = type;
+        this.scopeDepth = scopeDepth;
+    }
+
+    public ObjFunction Compile()
     {
         // TODO
         foreach(Stmt stmt in _statements)
@@ -42,6 +55,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         // TODO: remove temporary return
         EmitByte(OpCode.Return, _statements.Count);
+        return _function;
+    }
+
+    private ObjFunction CompileFunction(Stmt.Function function) // TODO: remove hack
+    {
+        foreach(Token param in function.Params)
+        {
+            AddLocal(param);
+            MarkInitialized();
+        }
+
+        EmitBytecode(function.Body);
         return _function;
     }
 
@@ -186,24 +211,23 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         DeclareVariable(stmt);
         MarkInitialized();
-        Function(FunctionType.Function, stmt.Body);
+        Function(FunctionType.Function, stmt);
         DefineVariable(stmt);
     }
 
-    private void Function(FunctionType type, List<Stmt> body)
+    private void Function(FunctionType type, Stmt.Function function)
     {
-        // current = new(FunctionType.Function, current);
-        // BeginScope();
+        int arity = function.Params.Count;
+        string name = function.Name.Lexeme;
 
-        // EmitBytecode(body);
-        // EmitByte(OpCode.Return);
+        BeginScope();
 
-        // EndScope();
+        BytecodeCompiler compiler = new(this, type, arity, name, scopeDepth);
 
-        // ObjFunction function = current.Function;
-        // current = current.Enclosing!;
+        ObjFunction fun = compiler.CompileFunction(function);//Compile();
+        EndScope();
 
-        // EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(function)), latestLine);
+        EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
     }
 
 
