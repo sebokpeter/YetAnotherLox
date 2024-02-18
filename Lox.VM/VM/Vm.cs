@@ -14,22 +14,23 @@ internal class Vm : IDisposable
 {
     internal List<Error> Errors { get; init; }
 
-    private const int STACK_MAX = 256;
-
-    private Chunk.Chunk? chunk;
-
-    private ObjFunction function;
+    private const int FRAMES_MAX = 64;
+    private const int STACK_MAX = FRAMES_MAX * byte.MaxValue;
 
     private bool disposed;
-    private ushort ip;
 
-    private readonly ValueStack _stack;
+    private readonly CallFrame[] _callFrames;
+    private int frameCount;
 
+    private ref CallFrame Frame => ref _callFrames[frameCount - 1];
+
+    private readonly VmStack<LoxValue> _stack;
     private readonly Dictionary<Obj, LoxValue> _globals;
 
     public Vm()
     {
         disposed = false;
+        _callFrames = new CallFrame[FRAMES_MAX];
         _stack = new(STACK_MAX);
         _globals = [];
         Errors = [];
@@ -37,17 +38,19 @@ internal class Vm : IDisposable
 
     internal InterpretResult Interpret(string source)
     {
-        if(!Compile(source))
+        (bool success, ObjFunction? function) = Compile(source);
+        if(!success)
         {
             return InterpretResult.CompileError;
         }
 
-        InterpretResult result = Run();
+        CallFrame frame = new() {Function = function!.Value, Ip = 0, Slot = 0};
+        _callFrames[frameCount++] = frame;
 
-        return result;
+        return Run();
     }
 
-    private bool Compile(string source)
+    private (bool success, ObjFunction? function) Compile(string source)
     {
         ResetVm();
 
@@ -55,14 +58,14 @@ internal class Vm : IDisposable
 
         if(!scanSuccess)
         {
-            return false;
+            return (false, null);
         }
 
         (bool parseSuccess, List<Stmt>? statements) = Parse(tokens!);
 
         if(!parseSuccess)
         {
-            return false;
+            return (false, null);
         }
 
         // TODO: Emit bytecode based on AST
@@ -70,16 +73,16 @@ internal class Vm : IDisposable
 
         if(!compileSuccess)
         {
-            return false;
+            return (false, null);
         }
 
 
 #if DEBUG_PRINT_CODE
         function!.Value.Chunk.Disassemble("Code");
+        Console.WriteLine("================");
 #endif
 
-        this.function = (ObjFunction)function!;
-        return true;
+        return (true, function);
     }
 
     private (bool compileSuccess, ObjFunction? chunk) CompileStatements(List<Stmt> stmts)
@@ -126,29 +129,27 @@ internal class Vm : IDisposable
 
     private InterpretResult Run()
     {
-        // TODO: Handle line numbers correctly
-
         while(true)
         {
 #if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
-            chunk!.DisassembleInstruction(ip);
+            Frame.Function.Chunk.DisassembleInstruction(Frame.Ip);
 #endif
 
-            OpCode instruction = (OpCode)ReadByte();
+            OpCode instruction = (OpCode)Frame.ReadByte();
 
             switch(instruction)
             {
                 case Return:
                     return InterpretResult.Ok;
                 case Constant:
-                    LoxValue constant = ReadConstant();
+                    LoxValue constant = Frame.ReadConstant();
                     _stack.Push(constant);
                     break;
                 case Negate:
                     if(!_stack.Peek(0).IsNumber)
                     {
-                        AddRuntimeError("Operand must be a number.", chunk!.Lines.Last());
+                        AddRuntimeError("Operand must be a number.");
                         return InterpretResult.RuntimeError;
                     }
                     _stack.Push(LoxValue.Number(-_stack.Pop().AsNumber));
@@ -195,50 +196,50 @@ internal class Vm : IDisposable
                     _stack.Pop();
                     break;
                 case DefineGlobal:
-                    Obj name = ReadConstant().AsObj;
+                    Obj name = Frame.ReadConstant().AsObj;
                     _globals[name] = _stack.Peek(0);
                     _stack.Pop();
                     break;
                 case GetGlobal:
-                    Obj varName = ReadConstant().AsObj;
+                    Obj varName = Frame.ReadConstant().AsObj;
                     if(!_globals.TryGetValue(varName, out LoxValue value))
                     {
-                        AddRuntimeError($"Undefined variable {varName.AsString}.", chunk!.Lines.Last());
+                        AddRuntimeError($"Undefined variable {varName.AsString}.");
                         return InterpretResult.RuntimeError;
                     }
                     _stack.Push(value);
                     break;
                 case SetGlobal:
-                    Obj globalName = ReadConstant().AsObj;
+                    Obj globalName = Frame.ReadConstant().AsObj;
                     if(!_globals.ContainsKey(globalName))
                     {
-                        AddRuntimeError($"Undefined variable {globalName.AsString}.", chunk!.Lines.Last());
+                        AddRuntimeError($"Undefined variable {globalName.AsString}.");
                         return InterpretResult.RuntimeError;
                     }
                     _globals[globalName] = _stack.Peek(0);
                     break;
                 case GetLocal:
-                    byte getSlot = ReadByte();
-                    _stack.Push(_stack[getSlot]);
+                    byte getSlot = Frame.ReadByte();
+                    _stack.Push(_stack[Frame.Slot - 1 + getSlot]);
                     break;
                 case SetLocal:
-                    byte setSlot = ReadByte();
-                    _stack[setSlot] = _stack.Peek(0);
+                    byte setSlot = Frame.ReadByte();
+                    _stack[Frame.Slot - 1 + setSlot] = _stack.Peek(0);
                     break;
                 case JumpIfFalse:
-                    ushort offset = ReadShort();
+                    ushort offset = Frame.ReadShort();
                     if(IsFalsey(_stack.Peek(0)))
                     {
-                        ip += offset;
+                        Frame.Ip += offset;
                     }
                     break;
                 case Jump:
-                    ushort jumpOffset = ReadShort();
-                    ip += jumpOffset;
+                    ushort jumpOffset = Frame.ReadShort();
+                    Frame.Ip += jumpOffset;
                     break;
                 case Loop:
-                    ushort loopOffset = ReadShort();
-                    ip -= loopOffset;
+                    ushort loopOffset = Frame.ReadShort();
+                    Frame.Ip -= loopOffset;
                     break;
                 default:
                     throw new UnreachableException();
@@ -281,7 +282,7 @@ internal class Vm : IDisposable
     {
         if(!b.IsBool)
         {
-            AddRuntimeError("Both operands must be booleans.", chunk!.Lines.Last());
+            AddRuntimeError("Both operands must be booleans.");
             return false;
         }
 
@@ -304,7 +305,7 @@ internal class Vm : IDisposable
     {
         if(!b.IsNumber)
         {
-            AddRuntimeError("Both operands must be numbers.", chunk!.Lines.Last());
+            AddRuntimeError("Both operands must be numbers.");
             return false;
         }
 
@@ -341,15 +342,6 @@ internal class Vm : IDisposable
         }
     }
 
-    private LoxValue ReadConstant() => chunk!.Constants[ReadByte()];
-
-    private byte ReadByte() => chunk![ip++];
-
-    private ushort ReadShort()
-    {
-        ip += 2;
-        return (ushort)(chunk![ip - 2] << 8 | chunk[ip - 1]);
-    }
 
     public void Dispose() // Implement IDisposable instead of freeVM(), even though there are no unmanaged resources
     {
@@ -374,12 +366,32 @@ internal class Vm : IDisposable
 
     private void ResetVm()
     {
-        chunk?.FreeChunk();
         Errors.Clear();
-        ip = 0;
     }
 
-    private void AddRuntimeError(string message, int line) => Errors.Add(new RuntimeError(message, line, null));
+    private void AddRuntimeError(string message) 
+    {
+        CallFrame callFrame = _callFrames[frameCount - 1];
+        int instruction = callFrame.Ip - 1;
+        Errors.Add(new RuntimeError(message, callFrame.Function.Chunk[instruction], null));
+    }
+}
+
+// TODO: Test performance with class and readonly struct
+// This is a mutable value type - try to make it immutable?
+internal struct CallFrame
+{
+    internal ObjFunction Function { get; init; }
+    internal ushort Ip { get; set; }
+    internal ushort Slot { get; init; }
+
+    internal byte ReadByte() => Function.Chunk[Ip++];
+    internal LoxValue ReadConstant() => Function.Chunk.Constants[ReadByte()];
+    internal ushort ReadShort() 
+    {
+        Ip += 2;
+        return (ushort)(Function.Chunk[Ip - 2] << 8 | Function.Chunk[Ip - 1]);
+    }
 }
 
 internal enum InterpretResult

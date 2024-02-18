@@ -617,7 +617,11 @@ internal class BytecodeEmitter : Expr.IVoidVisitor, Stmt.IVoidVisitor
         {
             return postfix.Operator.Line;
         }
-
+        else if(expr is Expr.Variable variable)
+        {
+            return variable.Name.Line;
+        }
+        
         throw new NotImplementedException($"{nameof(GetLineNumber)} is not implemented for {expr.GetType()}.");
     }
 

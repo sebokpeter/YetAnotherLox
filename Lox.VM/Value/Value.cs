@@ -111,6 +111,10 @@ internal readonly struct LoxValue
         {
             return new LoxValue(Obj.String(s));
         }
+        else if(o is ObjFunction obj)
+        {
+            return new LoxValue(Obj.Function(obj));
+        }
 
         throw new NotImplementedException();   
     }

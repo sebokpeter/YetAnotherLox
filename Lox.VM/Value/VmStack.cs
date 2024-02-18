@@ -18,6 +18,8 @@ internal class VmStack<T> : IEnumerable<T>
 
     private int stackTop;
 
+    internal int Count => stackTop;
+
     public VmStack(int maxSize)
     {
         _size = maxSize;

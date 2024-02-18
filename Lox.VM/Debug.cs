@@ -5,9 +5,9 @@ namespace LoxVM;
 
 internal static class Debug
 {
-    internal static void PrintStack(this ValueStack stack)
+    internal static void PrintStack<T>(this VmStack<T> stack)
     {
-        foreach (LoxValue loxValue in stack)
+        foreach (T loxValue in stack)
         {
             Console.WriteLine($"\t[{loxValue}]");
         }
