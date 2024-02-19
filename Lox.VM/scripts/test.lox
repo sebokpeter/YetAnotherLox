@@ -1,9 +1,7 @@
-fun a() { b(); }
-fun b() { c(); }
-fun c() {
-    print "Hello";
-    print "World";
-  c("too", "many");
+fun f() {
+    fun g() {}
+
+    print g;
 }
 
-a();
+f();

@@ -59,8 +59,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             EmitBytecode(stmt);
         }
 
-        // TODO: remove temporary return
-        EmitByte(OpCode.Return, _statements.Count);
+        EmitByte(OpCode.Nil);
+        EmitByte(OpCode.Return);
         return _function;
     }
 
@@ -112,8 +112,21 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitReturnStmt(Stmt.Return stmt)
     {
-        throw new NotImplementedException();
-        //EmitByte(OpCode.Return, stmt.Keyword.Line);
+        if(_functionType == FunctionType.Script)
+        {
+            AddError("Cannot return from top-level code.", stmt.Keyword);
+        }
+
+        if(stmt.Value is not null)
+        {
+            EmitBytecode(stmt.Value);
+        }
+        else 
+        {
+            EmitByte(OpCode.Nil, stmt.Keyword.Line);
+        }
+
+        EmitByte(OpCode.Return, stmt.Keyword.Line);
     }
 
     public void VisitPrintStmt(Stmt.Print stmt)

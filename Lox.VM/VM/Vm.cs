@@ -145,7 +145,16 @@ internal class Vm : IDisposable
             switch(instruction)
             {
                 case Return:
-                    return InterpretResult.Ok;
+                    LoxValue result = _stack.Pop();
+                    frameCount--;
+                    if(frameCount == 0)
+                    {
+                        _stack.Pop();
+                        return InterpretResult.Ok;
+                    }
+                    _stack.StackTop = Frame.Slot + 1;
+                    _stack.Push(result);
+                    break;
                 case Constant:
                     LoxValue constant = Frame.ReadConstant();
                     _stack.Push(constant);
@@ -289,7 +298,7 @@ internal class Vm : IDisposable
             return false;
         }
 
-        CallFrame callFrame = new() { Function = function, Ip = 0, Slot = (ushort)(_stack.Count - argCount - 1) };
+        CallFrame callFrame = new() { Function = function, Ip = 0, Slot = (ushort)(_stack.StackTop - argCount - 1) };
         callFrames[frameCount++] = callFrame;
         return true;
     }

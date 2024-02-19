@@ -16,29 +16,27 @@ internal class VmStack<T> : IEnumerable<T>
     private readonly int _size;
     private readonly T[] _stack;
 
-    private int stackTop;
-
-    internal int Count => stackTop;
+    internal int StackTop {get; set;}
 
     public VmStack(int maxSize)
     {
         _size = maxSize;
         _stack = new T[_size];
 
-        stackTop = 0;
+        StackTop = 0;
     }
 
     /// <summary>
     /// Push a <typeparamref name="T"/> to the top of the stack.
     /// </summary>
     /// <param name="value">The value to be pushed to the top of the stack.</param>
-    internal void Push(T value) => _stack[stackTop++] = value;
+    internal void Push(T value) => _stack[StackTop++] = value;
 
     /// <summary>
     /// Remove and return the <typeparamref name="T"/> on the top of the stack.
     /// </summary>
     /// <returns>The <typeparamref name="T"/> on the top of the stack.</returns>
-    internal T Pop() => _stack[--stackTop];
+    internal T Pop() => _stack[--StackTop];
 
     /// <summary>
     /// Return (but do not remove) the <typeparamref name="T"/> at the specified distance. 
@@ -46,11 +44,11 @@ internal class VmStack<T> : IEnumerable<T>
     /// </summary>
     /// <param name="distance">The distance from the top of the stack.</param>
     /// <returns>The element at the specified distance.</returns>
-    internal T Peek(int distance) => _stack[stackTop - 1 - distance];
+    internal T Peek(int distance) => _stack[StackTop - 1 - distance];
 
-    internal void Reset() => stackTop = 0;
+    internal void Reset() => StackTop = 0;
 
-    public IEnumerator<T> GetEnumerator() => new VmStackEnumerator<T>(_stack, stackTop);
+    public IEnumerator<T> GetEnumerator() => new VmStackEnumerator<T>(_stack, StackTop);
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
