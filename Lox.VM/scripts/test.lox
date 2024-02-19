@@ -1,14 +1,14 @@
-fun f(a, b) {
-    fun g() {
-        print "Hello";
-    }
-    
-    print g;
-    g();
-
-    print g();
-    print "World";
-    return a + b;
+fun fib(n) {
+    if (n < 2) return n;
+    return fib(n - 2) + fib(n - 1);
 }
 
-print f(3,3);
+var f = 20;
+var start = clock();
+print "Starting at: " + start;
+print "Fib " + f + " = " + fib(f);
+var end = clock();
+print "Ending at: " + end;
+print "Took: " + (end - start) + " ms.";
+
+print "";

@@ -116,18 +116,22 @@ internal readonly struct LoxValue
         {
             return new LoxValue(Obj.Function(obj));
         }
+        else if(o is ObjNativeFn objNativeFn)
+        {
+            return new LoxValue(Obj.Native(objNativeFn));
+        }
 
-        throw new NotImplementedException();   
+        throw new NotImplementedException();
     }
 
     public override readonly string ToString()
     {
         return Type switch
         {
-            ValueType.Bool      => AsBool.ToString(),
-            ValueType.Nil       => "nil",
-            ValueType.Number    => AsNumber.ToString(),
-            ValueType.Obj       => _internalObject!.ToString()!,
+            ValueType.Bool => AsBool.ToString(),
+            ValueType.Nil => "nil",
+            ValueType.Number => AsNumber.ToString(),
+            ValueType.Obj => _internalObject!.ToString()!,
             _ => throw new UnreachableException()
         };
     }
@@ -151,9 +155,14 @@ internal readonly struct Obj
     public bool IsString => Type == ObjType.String;
 
     /// <summary>
-    /// Returns true, if the lox runtime of this <see cref="Obj"/> is function.
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is function.
     /// </summary>
     public bool IsFunction => Type == ObjType.Function;
+
+    /// <summary>
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a native function.
+    /// </summary>
+    public bool IsNative => Type == ObjType.Native;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
@@ -164,6 +173,11 @@ internal readonly struct Obj
     /// Treat this <see cref="Obj"/> as a <see cref="ObjFunction"/>.
     /// </summary>
     public ObjFunction AsFunction => (ObjFunction)_obj;
+
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjNativeFn"/>.
+    /// </summary>
+    public ObjNativeFn AsNativeFn => (ObjNativeFn)_obj;
 
     private Obj(string s)
     {
@@ -176,6 +190,13 @@ internal readonly struct Obj
         _obj = objFunction;
         Type = ObjType.Function;
     }
+
+    private Obj(ObjNativeFn nativeFn)
+    {
+        _obj = nativeFn;
+        Type = ObjType.Native;
+    }
+
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime type is string, and the value is <paramref name="s"/>.
@@ -191,6 +212,12 @@ internal readonly struct Obj
     /// <returns></returns>
     public static Obj Function(ObjFunction objFunction) => new(objFunction);
 
+    /// <summary>
+    /// Return a new <see cref="Obj"/>, where the lox runtime type is a native function, and the value is <paramref name="native"/>.
+    /// </summary>
+    /// <param name="objFunction">The lox runtime value, a native lox function.</param>
+    /// <returns></returns>
+    public static Obj Native(ObjNativeFn native) => new(native);
     public override string ToString() => _obj.ToString()!;
 }
 
@@ -200,17 +227,27 @@ internal readonly struct ObjFunction
     internal string Name { get; init; }
     internal Chunk.Chunk Chunk { get; init; }
 
-    public ObjFunction(int arity, string name)
+    private ObjFunction(int arity, string name)
     {
         Arity = arity;
         Name = name;
         Chunk = new();
     }
 
-    public static ObjFunction TopLevel() => new(0, "");
+    internal static ObjFunction TopLevel() => new(0, "");
 
     public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
 }
+
+internal struct ObjNativeFn
+{
+    internal int Arity { get; init; }
+    internal string Name { get; init; }
+    internal Func<int, LoxValue> Func {get; set;}
+
+    public override readonly string ToString() => $"<native fn {Name}>";
+}
+
 
 internal enum ValueType
 {
@@ -224,4 +261,5 @@ internal enum ObjType
 {
     Function,
     String,
+    Native,
 }

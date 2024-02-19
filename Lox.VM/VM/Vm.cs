@@ -28,6 +28,8 @@ internal class Vm : IDisposable
     private readonly VmStack<LoxValue> _stack;
     private readonly Dictionary<Obj, LoxValue> _globals;
 
+    private readonly Stopwatch _stopwatch;
+
     public Vm()
     {
         disposed = false;
@@ -35,6 +37,16 @@ internal class Vm : IDisposable
         _stack = new(STACK_MAX);
         _globals = [];
         Errors = [];
+        _stopwatch = new();
+
+        DefineNative("clock", (_) => LoxValue.Number(_stopwatch.ElapsedMilliseconds), 0);
+        DefineNative("add", (argNum) =>
+        {
+            LoxValue a = _stack[argNum];
+            LoxValue b = _stack[argNum + 1];
+            _stack.PrintStack();
+            return LoxValue.Number(a.AsNumber - b.AsNumber);
+        }, 2);
     }
 
     internal InterpretResult Interpret(string source)
@@ -44,6 +56,8 @@ internal class Vm : IDisposable
         {
             return InterpretResult.CompileError;
         }
+
+        _stopwatch.Restart();
 
         _stack.Push(LoxValue.Object(function!.Value));
         CallFn(function!.Value, 0);
@@ -273,12 +287,28 @@ internal class Vm : IDisposable
             {
                 case ObjType.Function:
                     return CallFn(callee.AsFunction, argCount);
+                case ObjType.Native:
+                    return CallNative(callee.AsNativeFn, argCount);
                 default:
                     break;
             }
         }
         AddRuntimeError("Can only call functions and classes.");
         return false;
+    }
+
+    private bool CallNative(ObjNativeFn nativeFn, int argCount)
+    {
+        if(argCount != nativeFn.Arity)
+        {
+            AddRuntimeError($"Expected {nativeFn.Arity} arguments but got {argCount}.");
+            return false;
+        }
+
+        LoxValue result = nativeFn.Func.Invoke(_stack.StackTop - argCount);
+        _stack.StackTop -= argCount + 1;
+        _stack.Push(result);
+        return true;
     }
 
     private bool CallFn(ObjFunction function, int argCount)
@@ -435,6 +465,15 @@ internal class Vm : IDisposable
 
         CallFrame callFrame = callFrames[frameCount - 1];
         Errors.Add(new RuntimeError(message, callFrame.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
+    }
+
+    private void DefineNative(string name, Func<int, LoxValue> native, int arity)
+    {
+        Obj nameObj = LoxValue.Object(name).AsObj;
+        ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Func = native };
+        LoxValue natFn = LoxValue.Object(objNativeFn);
+        _globals.Add(nameObj, natFn);
+
     }
 }
 
