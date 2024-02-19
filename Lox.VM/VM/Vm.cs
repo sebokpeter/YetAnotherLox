@@ -45,9 +45,6 @@ internal class Vm : IDisposable
             return InterpretResult.CompileError;
         }
 
-        //CallFrame frame = new() { Function = function!.Value, Ip = 0, Slot = 0 };
-        //_callFrames[frameCount++] = frame;
-
         _stack.Push(LoxValue.Object(function!.Value));
         CallFn(function!.Value, 0);
 
@@ -145,6 +142,7 @@ internal class Vm : IDisposable
             switch(instruction)
             {
                 case Return:
+                    int newTop = Frame.Slot;
                     LoxValue result = _stack.Pop();
                     frameCount--;
                     if(frameCount == 0)
@@ -152,7 +150,7 @@ internal class Vm : IDisposable
                         _stack.Pop();
                         return InterpretResult.Ok;
                     }
-                    _stack.StackTop = Frame.Slot + 1;
+                    _stack.StackTop = newTop;
                     _stack.Push(result);
                     break;
                 case Constant:
@@ -210,8 +208,7 @@ internal class Vm : IDisposable
                     break;
                 case DefineGlobal:
                     Obj name = Frame.ReadConstant().AsObj;
-                    _globals[name] = _stack.Peek(0);
-                    _stack.Pop();
+                    _globals[name] = _stack.Pop();
                     break;
                 case GetGlobal:
                     Obj varName = Frame.ReadConstant().AsObj;

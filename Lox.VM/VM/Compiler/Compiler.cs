@@ -37,10 +37,10 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _functionType = FunctionType.Script;
     }
 
-    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName)
+    public BytecodeCompiler(FunctionType type, int arity, string fnName)
     {
         _statements = [];
-        _errors = compiler._errors;
+        _errors = [];
 
         _functionType = type;
         localCount = 0;
@@ -59,12 +59,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             EmitBytecode(stmt);
         }
 
-        EmitByte(OpCode.Nil);
-        EmitByte(OpCode.Return);
+        EmitReturn();
         return _function;
     }
 
-    private ObjFunction CompileFunction(Stmt.Function function) // TODO: remove hack
+    private ObjFunction CompileFunction(Stmt.Function function)
     {
         BeginScope();
         foreach(Token param in function.Params)
@@ -74,6 +73,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
 
         EmitBytecode(function.Body);
+
+        EmitReturn();
+
         return _function;
     }
 
@@ -117,16 +119,15 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             AddError("Cannot return from top-level code.", stmt.Keyword);
         }
 
-        if(stmt.Value is not null)
+        if(stmt.Value is null)
+        {
+            EmitReturn();
+        }
+        else
         {
             EmitBytecode(stmt.Value);
+            EmitByte(OpCode.Return, stmt.Keyword.Line);
         }
-        else 
-        {
-            EmitByte(OpCode.Nil, stmt.Keyword.Line);
-        }
-
-        EmitByte(OpCode.Return, stmt.Keyword.Line);
     }
 
     public void VisitPrintStmt(Stmt.Print stmt)
@@ -237,54 +238,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitFunctionStmt(Stmt.Function stmt)
     {
-        // DeclareVariable(stmt.Name);
-        // MarkInitialized();
-        // Function(FunctionType.Function, stmt);
-        // DefineVariable(stmt.Name);
-
-        int global = ParseVariable(stmt.Name);
+        DeclareVariable(stmt.Name);
         MarkInitialized();
         Function(FunctionType.Function, stmt);
-        DefineVariable(global);
+        DefineVariable(stmt.Name);
     }
-
-    private void DefineVariable(int global)
-    {
-        if(scopeDepth > 0)
-        {
-            MarkInitialized();
-            return;
-        }
-
-        EmitBytes(OpCode.DefineGlobal, (byte)global, latestLine);
-    }
-
-    private int ParseVariable(Token name)
-    {
-        DeclareVariable(name);
-
-        if(scopeDepth > 0)
-        {
-            return 0;
-        }
-
-        return IdentifierConstant(name);
-    }
-
-    private int IdentifierConstant(Token name) => MakeConstant(LoxValue.Object(name.Lexeme));
-
-    private void Function(FunctionType type, Stmt.Function function)
-    {
-        int arity = function.Params.Count;
-        string name = function.Name.Lexeme;
-
-        BytecodeCompiler compiler = new(this, type, arity, name);
-
-        ObjFunction fun = compiler.CompileFunction(function);
-
-        EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
-    }
-
 
     #endregion
 
@@ -506,7 +464,20 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     #region Utilities
 
-    # region Variable Declaration
+    private void Function(FunctionType type, Stmt.Function function)
+    {
+        int arity = function.Params.Count;
+        string name = function.Name.Lexeme;
+
+        BytecodeCompiler compiler = new(type, arity, name);
+
+        ObjFunction fun = compiler.CompileFunction(function);
+        _errors.AddRange(compiler._errors);
+
+        EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
+    }
+
+    #region Variable Declaration
 
     #region Jumping And Looping
 
@@ -708,6 +679,12 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         byte constant = MakeConstant(value);
         _function.Chunk.WriteChunk(OpCode.Constant, line);
         _function.Chunk.WriteChunk(constant, line);
+    }
+
+    private void EmitReturn()
+    {
+        EmitByte(OpCode.Nil);
+        EmitByte(OpCode.Return);
     }
 
     private int GetLineNumber(Expr expr) // Try to get the line number of an Expr by checking the actual type. It would be better to save the line number in the Expr and Stmt records, but that would require many changes in the parser.

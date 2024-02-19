@@ -1,7 +1,14 @@
-fun f() {
-    fun g() {}
-
+fun f(a, b) {
+    fun g() {
+        print "Hello";
+    }
+    
     print g;
+    g();
+
+    print g();
+    print "World";
+    return a + b;
 }
 
-f();
+print f(3,3);
