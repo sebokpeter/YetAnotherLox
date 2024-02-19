@@ -16,6 +16,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     private readonly List<Stmt> _statements;
 
     private readonly ObjFunction _function;
+    private readonly FunctionType _functionType;
 
     private const ushort MAX_LOCAL_COUNT = byte.MaxValue + 1;
     internal readonly Local[] _locals;
@@ -24,25 +25,30 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
 
-    private readonly FunctionType _functionType;
-
     public BytecodeCompiler(List<Stmt> stmts)
     {
         _statements = stmts;
         _errors = [];
+
         _function = ObjFunction.TopLevel();
         _locals = new Local[MAX_LOCAL_COUNT];
+        _locals[localCount++] = new() { Depth = 0, Name = "" };
+
         _functionType = FunctionType.Script;
     }
 
-    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName, int scopeDepth)
+    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName)
     {
         _statements = [];
         _errors = compiler._errors;
-        _function = new(arity, fnName);
-        _locals = new Local[MAX_LOCAL_COUNT];
+
         _functionType = type;
-        this.scopeDepth = scopeDepth;
+        localCount = 0;
+        scopeDepth = 0;
+
+        _locals = new Local[MAX_LOCAL_COUNT];
+        _function = new() { Arity = arity, Name = fnName, Chunk = new() };
+        _locals[localCount++] = new() { Depth = 0, Name = "" };
     }
 
     public ObjFunction Compile()
@@ -60,6 +66,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private ObjFunction CompileFunction(Stmt.Function function) // TODO: remove hack
     {
+        BeginScope();
         foreach(Token param in function.Params)
         {
             AddLocal(param);
@@ -87,6 +94,14 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             EmitBytecode(stmt);
         }
     }
+
+    private void EmitBytecode(IEnumerable<Expr> exprs)
+    {
+        foreach(Expr expr in exprs)
+        {
+            EmitBytecode(expr);
+        }
+    }
     #region Statements
 
     public void VisitExpressionStmt(Stmt.Expression stmt)
@@ -109,7 +124,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitVarStmt(Stmt.Var stmt)
     {
-        DeclareVariable(stmt);
+        DeclareVariable(stmt.Name);
 
         if(stmt.Initializer is not null)
         {
@@ -120,7 +135,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             EmitByte(OpCode.Nil, stmt.Name.Line);
         }
 
-        DefineVariable(stmt);
+        DefineVariable(stmt.Name);
     }
 
     public void VisitBlockStmt(Stmt.Block stmt)
@@ -209,23 +224,50 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitFunctionStmt(Stmt.Function stmt)
     {
-        DeclareVariable(stmt);
+        // DeclareVariable(stmt.Name);
+        // MarkInitialized();
+        // Function(FunctionType.Function, stmt);
+        // DefineVariable(stmt.Name);
+
+        int global = ParseVariable(stmt.Name);
         MarkInitialized();
         Function(FunctionType.Function, stmt);
-        DefineVariable(stmt);
+        DefineVariable(global);
     }
+
+    private void DefineVariable(int global)
+    {
+        if(scopeDepth > 0)
+        {
+            MarkInitialized();
+            return;
+        }
+
+        EmitBytes(OpCode.DefineGlobal, (byte)global, latestLine);
+    }
+
+    private int ParseVariable(Token name)
+    {
+        DeclareVariable(name);
+
+        if(scopeDepth > 0)
+        {
+            return 0;
+        }
+
+        return IdentifierConstant(name);
+    }
+
+    private int IdentifierConstant(Token name) => MakeConstant(LoxValue.Object(name.Lexeme));
 
     private void Function(FunctionType type, Stmt.Function function)
     {
         int arity = function.Params.Count;
         string name = function.Name.Lexeme;
 
-        BeginScope();
+        BytecodeCompiler compiler = new(this, type, arity, name);
 
-        BytecodeCompiler compiler = new(this, type, arity, name, scopeDepth);
-
-        ObjFunction fun = compiler.CompileFunction(function);//Compile();
-        EndScope();
+        ObjFunction fun = compiler.CompileFunction(function);
 
         EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
     }
@@ -378,6 +420,20 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
+    public void VisitCallExpr(Expr.Call expr)
+    {
+        int count = expr.Arguments.Count;
+        if(count > 255)
+        {
+            AddError("Can't have more than 255 parameters.", expr.Paren);
+        }
+
+        EmitBytecode(expr.Callee);
+
+        EmitBytecode(expr.Arguments);
+        EmitBytes(OpCode.Call, (byte)count, expr.Paren.Line);
+    }
+
     #endregion
 
     public void VisitClassStmt(Stmt.Class stmt)
@@ -391,11 +447,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     public void VisitContinueStmt(Stmt.Continue stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitCallExpr(Expr.Call expr)
     {
         throw new NotImplementedException();
     }
@@ -497,20 +548,15 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
-    private void DefineVariable(Stmt stmt)
+    private void DefineVariable(Token name)
     {
-        if(stmt is not (Stmt.Var or Stmt.Function))
-        {
-            throw new ArgumentException($"Can only define variables and functions", nameof(stmt));
-        }
-
         if(scopeDepth > 0)
         {
             MarkInitialized();
             return;
         }
 
-        DefineGlobal(stmt);
+        DefineGlobal(name);
     }
 
 
@@ -523,60 +569,27 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _locals[localCount - 1].Depth = scopeDepth;
     }
 
-    private void DefineGlobal(Stmt stmt)
+    private void DefineGlobal(Token name)
     {
-        if(stmt is not (Stmt.Var or Stmt.Function))
-        {
-            throw new ArgumentException($"Can only define variables and functions.", nameof(stmt));
-        }
+        byte global = MakeConstant(LoxValue.Object(name.Lexeme));
 
-        int line;
-        string name;
-
-        if(stmt is Stmt.Var var)
-        {
-            line = var.Name.Line;
-            name = var.Name.Lexeme;
-        }
-        else if(stmt is Stmt.Function fun)
-        {
-            line = fun.Name.Line;
-            name = fun.Name.Lexeme;
-        }
-        else
-        {
-            throw new UnreachableException();
-        }
-
-        byte global = MakeConstant(LoxValue.Object(name));
-
-        EmitBytes(OpCode.DefineGlobal, global, line);
+        EmitBytes(OpCode.DefineGlobal, global, name.Line);
     }
 
 
-    private void DeclareVariable(Stmt.Var stmt)
+    private void DeclareVariable(Token name)
     {
         if(scopeDepth == 0)
         {
             return;
         }
 
-        AddLocal(stmt.Name);
-    }
-
-    private void DeclareVariable(Stmt.Function stmt)
-    {
-        if(scopeDepth == 0)
-        {
-            return;
-        }
-
-        AddLocal(stmt.Name);
+        AddLocal(name);
     }
 
     private void AddLocal(Token name)
     {
-        if(localCount == BytecodeCompiler.MAX_LOCAL_COUNT)
+        if(localCount == MAX_LOCAL_COUNT)
         {
             AddError("Too many local variables in function.", name);
             return;
@@ -591,13 +604,13 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
                 break;
             }
 
-            if(l.Name.Lexeme == name.Lexeme)
+            if(l.Name == name.Lexeme)
             {
                 AddError("Already a variable with this name in this scope.", name);
             }
         }
 
-        Local local = new() { Name = name, Depth = -1 };
+        Local local = new() { Name = name.Lexeme, Depth = -1 };
         _locals[localCount++] = local;
     }
 
@@ -607,7 +620,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         {
             Local local = _locals[i];
 
-            if(name.Lexeme == local.Name.Lexeme)
+            if(name.Lexeme == local.Name)
             {
                 if(local.Depth == -1)
                 {
@@ -725,7 +738,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
 internal class Local
 {
-    internal required Token Name { get; init; }
+    internal required string Name { get; init; }
     internal int Depth { get; set; }
 }
 

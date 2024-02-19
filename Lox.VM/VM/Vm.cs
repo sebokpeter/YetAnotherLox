@@ -20,10 +20,10 @@ internal class Vm : IDisposable
 
     private bool disposed;
 
-    private readonly CallFrame[] _callFrames;
+    private CallFrame[] callFrames;
     private int frameCount;
 
-    private ref CallFrame Frame => ref _callFrames[frameCount - 1];
+    private ref CallFrame Frame => ref callFrames[frameCount - 1];
 
     private readonly VmStack<LoxValue> _stack;
     private readonly Dictionary<Obj, LoxValue> _globals;
@@ -31,7 +31,7 @@ internal class Vm : IDisposable
     public Vm()
     {
         disposed = false;
-        _callFrames = new CallFrame[FRAMES_MAX];
+        callFrames = new CallFrame[FRAMES_MAX];
         _stack = new(STACK_MAX);
         _globals = [];
         Errors = [];
@@ -45,8 +45,11 @@ internal class Vm : IDisposable
             return InterpretResult.CompileError;
         }
 
-        CallFrame frame = new() {Function = function!.Value, Ip = 0, Slot = 0};
-        _callFrames[frameCount++] = frame;
+        //CallFrame frame = new() { Function = function!.Value, Ip = 0, Slot = 0 };
+        //_callFrames[frameCount++] = frame;
+
+        _stack.Push(LoxValue.Object(function!.Value));
+        CallFn(function!.Value, 0);
 
         return Run();
     }
@@ -79,7 +82,7 @@ internal class Vm : IDisposable
 
 
 #if DEBUG_PRINT_CODE
-        function!.Value.Chunk.Disassemble("Code");
+        function!.Value.Chunk.Disassemble(String.IsNullOrEmpty(function!.Value.Name)? "script" : function.Value.Name);
         Console.WriteLine("================");
 #endif
 
@@ -242,10 +245,54 @@ internal class Vm : IDisposable
                     ushort loopOffset = Frame.ReadShort();
                     Frame.Ip -= loopOffset;
                     break;
+                case Call:
+                    int argCount = Frame.ReadByte();
+                    if(!CallValue(_stack.Peek(argCount), argCount))
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+                    //frameCount--;
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool CallValue(LoxValue c, int argCount)
+    {
+        if(c.IsObj)
+        {
+            Obj callee = c.AsObj;
+            switch(callee.Type)
+            {
+                case ObjType.Function:
+                    return CallFn(callee.AsFunction, argCount);
+                default:
+                    break;
+            }
+        }
+        AddRuntimeError("Can only call functions and classes.");
+        return false;
+    }
+
+    private bool CallFn(ObjFunction function, int argCount)
+    {
+        if(argCount != function.Arity)
+        {
+            AddRuntimeError($"Expected {function.Arity} arguments but got {argCount}.");
+            return false;
+        }
+
+        if(frameCount == FRAMES_MAX)
+        {
+            AddRuntimeError("Stack overflow.");
+            return false;
+        }
+
+        CallFrame callFrame = new() { Function = function, Ip = 0, Slot = (ushort)(_stack.Count - argCount - 1) };
+        callFrames[frameCount++] = callFrame;
+        return true;
     }
 
     private static bool IsFalsey(LoxValue loxValue) => loxValue.IsNil || (loxValue.IsBool && !loxValue.AsBool);
@@ -368,11 +415,13 @@ internal class Vm : IDisposable
     private void ResetVm()
     {
         Errors.Clear();
+        callFrames = new CallFrame[STACK_MAX];
+        _stack.Reset();
     }
 
-    private void AddRuntimeError(string message) 
+    private void AddRuntimeError(string message)
     {
-        CallFrame callFrame = _callFrames[frameCount - 1];
+        CallFrame callFrame = callFrames[frameCount - 1];
         int instruction = callFrame.Ip - 1;
         Errors.Add(new RuntimeError(message, callFrame.Function.Chunk[instruction], null));
     }
@@ -388,7 +437,7 @@ internal struct CallFrame
 
     internal byte ReadByte() => Function.Chunk[Ip++];
     internal LoxValue ReadConstant() => Function.Chunk.Constants[ReadByte()];
-    internal ushort ReadShort() 
+    internal ushort ReadShort()
     {
         Ip += 2;
         return (ushort)(Function.Chunk[Ip - 2] << 8 | Function.Chunk[Ip - 1]);

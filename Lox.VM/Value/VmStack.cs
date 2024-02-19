@@ -48,6 +48,8 @@ internal class VmStack<T> : IEnumerable<T>
     /// <returns>The element at the specified distance.</returns>
     internal T Peek(int distance) => _stack[stackTop - 1 - distance];
 
+    internal void Reset() => stackTop = 0;
+
     public IEnumerator<T> GetEnumerator() => new VmStackEnumerator<T>(_stack, stackTop);
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
