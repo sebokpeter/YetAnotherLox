@@ -27,7 +27,7 @@ public record ScanError(string Message, int Line) : Error(Message)
 }
 
 /// <summary>
-/// Type representing errors that occurred during parsing. 
+/// Type representing errors that occurred during parsing.
 /// </summary>
 /// <param name="Message">The error message.</param>
 /// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
@@ -41,7 +41,7 @@ public record ParseError(string Message, Token? Location) : Error(Message)
 }
 
 /// <summary>
-/// Type representing errors that occurred during the variable resolution pass. 
+/// Type representing errors that occurred during the variable resolution pass.
 /// </summary>
 /// <param name="Message">The error message.</param>
 /// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
@@ -55,14 +55,14 @@ public record ResolveError(string Message, Token? Location) : Error(Message)
 }
 
 /// <summary>
-/// Type representing errors that occurred during the bytecode emission pass. 
+/// Type representing errors that occurred during the bytecode emission pass.
 /// </summary>
 /// <param name="Message">The error message.</param>
 /// <param name="Location">The <see cref="Token"/> where the error occurred.</param>
-public record BytecodeEmitterError(string Message, Token? Location) : Error(Message)
+public record CompilerError(string Message, Token? Location) : Error(Message)
 {
     /// <summary>
-    /// Generate a string that describes this <see cref="BytecodeEmitterError"/>. If <see cref="BytecodeEmitterError.Location"/> is not null, also include the line in the source where the error occurred.
+    /// Generate a string that describes this <see cref="CompilerError"/>. If <see cref="CompilerError.Location"/> is not null, also include the line in the source where the error occurred.
     /// </summary>
     /// <returns></returns>
     internal override string GenerateReportString() => Location is null ? $"Compiler Error: {Message}" : $"[line {Location.Line}] Compiler Error {Location.GetLocationString()}: {Message}";
@@ -74,7 +74,7 @@ public record BytecodeEmitterError(string Message, Token? Location) : Error(Mess
 /// <param name="Message">The error message.</param>
 /// <param name="Line">The line number where the error occurred.</param>
 /// <param name="Token">The <see cref="Token"/> where the error occurred.</param>
-public record RuntimeError(string Message, int? Line, Token? Token) : Error(Message)
+public record RuntimeError(string Message, int? Line, Token? Token, StackTrace? Trace = null) : Error(Message)
 {
     /// <summary>
     /// Generate a string that describes this <see cref="RuntimeError"/>. If at least one of the members <see cref="RuntimeError.Line"/> or <see cref="RuntimeError.Token"/> is not null, also include the location of the error in the source.
@@ -82,18 +82,28 @@ public record RuntimeError(string Message, int? Line, Token? Token) : Error(Mess
     /// <returns></returns>
     internal override string GenerateReportString()
     {
+        string message;
+
         if(Line is null && Token is null)
         {
-            return $"Runtime Error: {Message}";
+            message = $"Runtime Error: {Message}";
         }
         else if(Token is null)
         {
-            return $"[line {Line}] Runtime Error: {Message}";
+            message = $"[line {Line}] Runtime Error: {Message}";
         }
-        else 
+        else
         {
-            return $"[line {Token.Line}] Runtime Error {Token.GetLocationString()}: {Message}";
+            message = $"[line {Token.Line}] Runtime Error {Token.GetLocationString()}: {Message}";
         }
+
+        if(Trace is not null)
+        {
+            message += "\n";
+            message += String.Join('\n', Trace.Frames.Select(frame => $"[line {frame.Line}] in {frame.FunctionName}."));
+        }
+
+        return message;
     }
 }
 

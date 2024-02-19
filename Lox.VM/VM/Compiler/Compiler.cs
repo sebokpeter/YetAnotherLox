@@ -10,8 +10,8 @@ namespace LoxVM.Compiler;
 internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 {
     internal bool HadError => _errors.Count > 0;
-    internal IEnumerable<BytecodeEmitterError> Errors => _errors;
-    private readonly List<BytecodeEmitterError> _errors;
+    internal IEnumerable<CompilerError> Errors => _errors;
+    private readonly List<CompilerError> _errors;
 
     private readonly List<Stmt> _statements;
 

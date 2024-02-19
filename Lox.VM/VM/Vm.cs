@@ -82,7 +82,7 @@ internal class Vm : IDisposable
 
 
 #if DEBUG_PRINT_CODE
-        function!.Value.Chunk.Disassemble(String.IsNullOrEmpty(function!.Value.Name)? "script" : function.Value.Name);
+        function!.Value.Chunk.Disassemble(String.IsNullOrEmpty(function!.Value.Name) ? "script" : function.Value.Name);
         Console.WriteLine("================");
 #endif
 
@@ -251,7 +251,6 @@ internal class Vm : IDisposable
                     {
                         return InterpretResult.RuntimeError;
                     }
-                    //frameCount--;
                     break;
                 default:
                     throw new UnreachableException();
@@ -421,9 +420,15 @@ internal class Vm : IDisposable
 
     private void AddRuntimeError(string message)
     {
+        IEnumerable<Frame> frames = callFrames.Take(frameCount - 1).Reverse().Select(frame =>
+        {
+            ObjFunction function = frame.Function;
+
+            return new Frame(function.Chunk.Lines[frame.Ip], String.IsNullOrEmpty(function.Name) ? "script" : function.Name + "()");
+        });
+
         CallFrame callFrame = callFrames[frameCount - 1];
-        int instruction = callFrame.Ip - 1;
-        Errors.Add(new RuntimeError(message, callFrame.Function.Chunk[instruction], null));
+        Errors.Add(new RuntimeError(message, callFrame.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
     }
 }
 
