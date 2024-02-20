@@ -1,21 +1,23 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
+using System.Security.AccessControl;
 
 namespace LoxVM.Value;
 
 /// <summary>
 /// Represents a Lox value at runtime.
 /// </summary>
-internal readonly struct LoxValue
+internal class LoxValue
 {
     private const long TRUE_MASK = 0x000000000000000F; // Bit mask for boolean true value
 
-    private static readonly LoxValue _nilValue = new() { Type = ValueType.Nil };  // Cache a 'nil' value, since we only need one
+    private static readonly LoxValue _nilValue = new();  // Cache a 'nil' value, since we only need one
 
     private readonly long _internalValue;
 
-    private readonly Obj _internalObject;
+    private readonly Obj? _internalObject;
 
     public ValueType Type { internal get; init; }
 
@@ -42,7 +44,7 @@ internal readonly struct LoxValue
     /// <summary>
     /// Returns true if the lox runtime type is string.
     /// </summary>
-    public bool IsString => Type == ValueType.Obj && _internalObject.Type == ObjType.String;
+    public bool IsString => Type == ValueType.Obj && _internalObject!.Type == ObjType.String;
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="double"/>.
@@ -58,6 +60,12 @@ internal readonly struct LoxValue
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="object"/>.
     /// </summary>
     public Obj AsObj => _internalObject!;
+
+    private LoxValue()
+    {
+        _internalObject = null;
+        Type = ValueType.Nil;
+    }
 
     private LoxValue(Obj o, ValueType type)
     {
@@ -138,7 +146,7 @@ internal readonly struct LoxValue
         throw new NotImplementedException();
     }
 
-    public override readonly string ToString()
+    public override string ToString()
     {
         return Type switch
         {
@@ -149,12 +157,41 @@ internal readonly struct LoxValue
             _ => throw new UnreachableException()
         };
     }
+
+    public override bool Equals(object? obj)
+    {
+        if(obj is null)
+        {
+            return false;
+        }
+
+        if(obj is not LoxValue loxValue)
+        {
+            return false;
+        }
+
+        if(loxValue.Type != Type)
+        {
+            return false;
+        }
+
+        return Type switch
+        {
+            ValueType.Bool      => _internalValue == loxValue._internalValue,
+            ValueType.Nil       => _internalValue == loxValue._internalValue,
+            ValueType.Number    => _internalValue == loxValue._internalValue,
+            ValueType.Obj       => AsObj.Equals(loxValue),
+            _                   => throw new UnreachableException()
+        };
+    }
+
+    public override int GetHashCode() => Type == ValueType.Obj? _internalObject!.GetHashCode() : _internalValue.GetHashCode();
 }
 
 /// <summary>
-/// Wrapper around a heap allocated object (e.g. string)
+/// Wrapper around lox object (e.g. string, function, etc.)
 /// </summary>
-internal readonly struct Obj
+internal class Obj
 {
     /// <summary>
     /// The lox runtime type.
@@ -184,6 +221,11 @@ internal readonly struct Obj
     public bool IsClosure => Type == ObjType.Closure;
 
     /// <summary>
+    /// Returns true, if the lox runtime type of this <see cref="Objs"/> is an upvalue.
+    /// </summary>
+    public bool IsUpValue => Type == ObjType.UpValue;
+
+    /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
     /// </summary>
     public string AsString => (string)_obj;
@@ -198,7 +240,15 @@ internal readonly struct Obj
     /// </summary>
     public ObjNativeFn AsNativeFn => (ObjNativeFn)_obj;
 
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjClosure"/>.
+    /// </summary>
     public ObjClosure AsClosure => (ObjClosure)_obj;
+
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjUpValue"/>.
+    /// </summary>
+    public ObjUpValue AsUpValue => (ObjUpValue)_obj;
 
     private Obj(string s)
     {
@@ -222,6 +272,12 @@ internal readonly struct Obj
     {
         _obj = objClosure;
         Type = ObjType.Closure;
+    }
+
+    public Obj(ObjUpValue objUpValue)
+    {
+        _obj = objUpValue;
+        Type = ObjType.UpValue;
     }
 
     /// <summary>
@@ -250,17 +306,57 @@ internal readonly struct Obj
     /// </summary>
     /// <param name="objFunction">The wrapped function.</param>
     /// <returns></returns>
-    public static Obj Closure(ObjFunction objFunction) => new(new ObjClosure {Function = objFunction});
+    public static Obj Closure(ObjFunction objFunction)
+    {
+        ObjClosure objClosure = new() { Function = objFunction, UpValues = [] };
+        return new(objClosure);
+    }
 
+    /// <summary>
+    /// Return a new <see cref="Obj"/>, where the lox runtime value is an upvalue.
+    /// </summary>
+    /// <param name="objUpValue"></param>
+    /// <returns></returns>
+    public static Obj UpValue(ObjUpValue objUpValue) => new(objUpValue);
     public override string ToString() => _obj.ToString()!;
+
+    public override bool Equals(object? obj)
+    {
+        if(obj is null)
+        {
+            return false;
+        }
+
+        if(obj is not Obj loxObj)
+        {
+            return false;
+        }
+
+        if(loxObj.Type != Type)
+        {
+            return false;
+        }
+
+        return Type switch
+        {
+            ObjType.Function    => AsFunction.Name == loxObj.AsFunction.Name && AsFunction.Arity == loxObj.AsFunction.Arity,
+            ObjType.String      => AsString == loxObj.AsString,
+            ObjType.Native      => AsNativeFn.Name == loxObj.AsNativeFn.Name && AsNativeFn.Arity == loxObj.AsNativeFn.Arity,
+            ObjType.Closure     => throw new NotImplementedException(),
+            ObjType.UpValue     => throw new NotImplementedException(),
+            _                   => throw new UnreachableException(),
+        };
+    }
+
+    public override int GetHashCode() => _obj.GetHashCode();
 }
 
-internal struct ObjFunction
+internal class ObjFunction
 {
     internal int Arity { get; init; }
     internal string Name { get; init; }
     internal Chunk.Chunk Chunk { get; init; }
-    internal int UpValueCount {get; set;}
+    internal int UpValueCount { get; set; }
 
     private ObjFunction(int arity, string name)
     {
@@ -269,25 +365,45 @@ internal struct ObjFunction
         Chunk = new();
     }
 
+    /// <summary>
+    /// Shortcut for creating the top-level function <see cref="ObjFunction.Arity"/> = 0, <see cref="ObjFunction.Name"/> = ""
+    /// </summary>
+    /// <returns></returns>
     internal static ObjFunction TopLevel() => new(0, "");
 
-    public override readonly string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
+    /// <summary>
+    /// Create a new <see cref="ObjFunction"/>, with the given arity and name.
+    /// </summary>
+    /// <param name="arity">The arity (number of parameters) of the function.</param>
+    /// <param name="name">The name of the function.</param>
+    /// <returns></returns>
+    internal static ObjFunction Function(int arity, string name) => new(arity, name);
+    public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
 }
 
-internal struct ObjNativeFn
+internal class ObjNativeFn
 {
-    internal int Arity { get; init; }
-    internal string Name { get; init; }
-    internal Func<int, LoxValue> Func { get; set; }
+    internal required int Arity { get; init; }
+    internal required string Name { get; init; }
+    internal required Func<int, LoxValue> Func { get; set; }
 
-    public override readonly string ToString() => $"<native fn {Name}>";
+    public override string ToString() => $"<native fn {Name}>";
 }
 
-internal struct ObjClosure
+internal class ObjClosure
 {
-    internal ObjFunction Function {get; set;}
+    internal required ObjFunction Function { get; set; }
+    internal required List<ObjUpValue> UpValues { get; set; }
 
-    public override readonly string ToString() => Function.ToString();
+    public override string ToString() => Function.ToString();
+}
+
+
+internal class ObjUpValue
+{
+    internal required LoxValue LoxValue { get; set; }
+
+    public override string ToString() => $"Upvalue - {LoxValue}";
 }
 
 
@@ -304,5 +420,6 @@ internal enum ObjType
     Function,
     String,
     Native,
-    Closure
+    Closure,
+    UpValue
 }

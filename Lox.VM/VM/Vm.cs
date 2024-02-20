@@ -59,7 +59,7 @@ internal class Vm : IDisposable
 
         _stopwatch.Restart();
 
-        ObjClosure closure = Obj.Closure(function!.Value).AsClosure;
+        ObjClosure closure = Obj.Closure(function!).AsClosure;
         _stack.Push(LoxValue.Object(closure));
         CallFn(closure, 0);
 
@@ -94,7 +94,7 @@ internal class Vm : IDisposable
 
 
 #if DEBUG_PRINT_CODE
-        function!.Value.Chunk.Disassemble(String.IsNullOrEmpty(function!.Value.Name) ? "script" : function.Value.Name);
+        function!.Chunk.Disassemble(String.IsNullOrEmpty(function.Name) ? "script" : function.Name);
         Console.WriteLine("================");
 #endif
 
@@ -149,7 +149,7 @@ internal class Vm : IDisposable
         {
 #if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
-            //Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
+            Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
             Console.WriteLine("-------------------------");
 #endif
 
@@ -228,7 +228,7 @@ internal class Vm : IDisposable
                     break;
                 case GetGlobal:
                     Obj varName = Frame.ReadConstant().AsObj;
-                    if(!_globals.TryGetValue(varName, out LoxValue value))
+                    if(!_globals.TryGetValue(varName, out LoxValue? value))
                     {
                         AddRuntimeError($"Undefined variable {varName.AsString}.");
                         return InterpretResult.RuntimeError;
@@ -275,14 +275,46 @@ internal class Vm : IDisposable
                     }
                     break;
                 case Closure:
-                    ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
-                    _stack.Push(LoxValue.Object(Obj.Closure(function)));
+                    CreateClosure();
+                    break;
+                case SetUpValue:
+                    byte setUpValueSlot = Frame.ReadByte();
+                    Frame.Closure.UpValues[setUpValueSlot].LoxValue = _stack.Peek(0);
+                    break;
+                case GetUpValue:
+                    byte getUpvalueSlot = Frame.ReadByte();
+                    _stack.Push(Frame.Closure.UpValues[getUpvalueSlot].LoxValue);
                     break;
                 default:
                     throw new UnreachableException();
             }
         }
     }
+
+    private void CreateClosure()
+    {
+        ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
+        LoxValue closure = LoxValue.Object(Obj.Closure(function));
+        _stack.Push(closure);
+        ObjClosure objClosure = closure.AsObj.AsClosure;
+        objClosure.UpValues = Enumerable.Range(0, function.UpValueCount).Select<int, ObjUpValue>(_ => null!).ToList();
+        for(int i = 0; i < function.UpValueCount; i++)
+        {
+            bool isLocal = Frame.ReadByte() == 1;
+            byte index = Frame.ReadByte();
+
+            if(isLocal)
+            {
+                objClosure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
+            }
+            else 
+            {
+                objClosure.UpValues[i] = Frame.Closure.UpValues[index];
+            }
+        }
+    }
+
+    private static ObjUpValue CaptureValue(LoxValue value) => new() {LoxValue = value};
 
     private bool CallValue(LoxValue c, int argCount)
     {

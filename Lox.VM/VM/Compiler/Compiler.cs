@@ -52,7 +52,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         scopeDepth = 0;
 
         _locals = new Local[MAX_LOCAL_COUNT];
-        _function = new() { Arity = arity, Name = fnName, Chunk = new() };
+        _function = ObjFunction.Function(arity, fnName);
         _locals[localCount++] = new() { Depth = 0, Name = "" };
         _upValues = new UpValue[byte.MaxValue];
     }
@@ -369,21 +369,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         int arg = ResolveLocal(expr.Name);
 
-        // if(arg == -1)
-        // {
-        //     // Did not find a local variable
-        //     // Assume it is global
-        //     ReadGlobal(expr);
-        // }
-        // else if((arg = ResolveUpValue(expr.Name)) != -1)
-        // {
-        //     ReadUpValue();
-        // }
-        // else
-        // {
-        //     EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
-        // }
-
         if(arg != -1)
         {
             EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
@@ -449,15 +434,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytecode(expr.Value);
 
         int arg = ResolveLocal(expr.Name);
-
-        // if(arg == -1)
-        // {
-        //     AssignGlobal(expr);
-        // }
-        // else
-        // {
-        //     EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
-        // }
 
         if(arg != -1)
         {
@@ -558,7 +534,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitBytes(OpCode.Closure, MakeConstant(LoxValue.Object(fun)), latestLine);
 
-        foreach(UpValue upValue in _upValues.Take(fun.UpValueCount))
+        foreach(UpValue upValue in compiler._upValues.Take(fun.UpValueCount))
         {
             EmitByte((byte)(upValue.IsLocal ? 1 : 0));
             EmitByte(upValue.Index);
