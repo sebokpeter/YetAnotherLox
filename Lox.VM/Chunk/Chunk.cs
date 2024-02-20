@@ -78,7 +78,8 @@ internal enum OpCode : byte
     JumpIfFalse,
     Jump,
     Loop,
-    Call
+    Call,
+    Closure
 }
 
 internal static class OpcodeExtensions

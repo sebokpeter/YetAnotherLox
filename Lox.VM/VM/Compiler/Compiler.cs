@@ -474,7 +474,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         ObjFunction fun = compiler.CompileFunction(function);
         _errors.AddRange(compiler._errors);
 
-        EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
+        //EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
+        EmitBytes(OpCode.Closure, MakeConstant(LoxValue.Object(fun)), latestLine);
     }
 
     #region Variable Declaration

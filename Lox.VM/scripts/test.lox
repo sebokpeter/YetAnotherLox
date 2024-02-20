@@ -1,14 +1,10 @@
-fun fib(n) {
-    if (n < 2) return n;
-    return fib(n - 2) + fib(n - 1);
+fun makeClosure() {
+  var local = "local";
+  fun closure() {
+    print local;
+  }
+  return closure;
 }
 
-var f = 20;
-var start = clock();
-print "Starting at: " + start;
-print "Fib " + f + " = " + fib(f);
-var end = clock();
-print "Ending at: " + end;
-print "Took: " + (end - start) + " ms.";
-
-print "";
+var closure = makeClosure();
+closure();

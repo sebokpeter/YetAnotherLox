@@ -59,6 +59,12 @@ internal readonly struct LoxValue
     /// </summary>
     public Obj AsObj => _internalObject!;
 
+    private LoxValue(Obj o, ValueType type)
+    {
+        _internalObject = o;
+        Type = type;
+    }
+
     private LoxValue(double d)
     {
         _internalValue = BitConverter.DoubleToInt64Bits(d);
@@ -112,13 +118,21 @@ internal readonly struct LoxValue
         {
             return new LoxValue(Obj.String(s));
         }
-        else if(o is ObjFunction obj)
+        else if(o is ObjFunction objFn)
         {
-            return new LoxValue(Obj.Function(obj));
+            return new LoxValue(Obj.Function(objFn));
         }
         else if(o is ObjNativeFn objNativeFn)
         {
             return new LoxValue(Obj.Native(objNativeFn));
+        }
+        else if(o is ObjClosure closure) // TODO: clean this up
+        {
+            return new LoxValue(Obj.Closure(closure.Function), ValueType.Obj);
+        }
+        else if(o is Obj obj)
+        {
+            return new LoxValue(obj);
         }
 
         throw new NotImplementedException();
@@ -165,6 +179,11 @@ internal readonly struct Obj
     public bool IsNative => Type == ObjType.Native;
 
     /// <summary>
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a closure.
+    /// </summary>
+    public bool IsClosure => Type == ObjType.Closure;
+
+    /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
     /// </summary>
     public string AsString => (string)_obj;
@@ -178,6 +197,8 @@ internal readonly struct Obj
     /// Treat this <see cref="Obj"/> as a <see cref="ObjNativeFn"/>.
     /// </summary>
     public ObjNativeFn AsNativeFn => (ObjNativeFn)_obj;
+
+    public ObjClosure AsClosure => (ObjClosure)_obj;
 
     private Obj(string s)
     {
@@ -197,6 +218,11 @@ internal readonly struct Obj
         Type = ObjType.Native;
     }
 
+    private Obj(ObjClosure objClosure)
+    {
+        _obj = objClosure;
+        Type = ObjType.Closure;
+    }
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime type is string, and the value is <paramref name="s"/>.
@@ -218,6 +244,14 @@ internal readonly struct Obj
     /// <param name="objFunction">The lox runtime value, a native lox function.</param>
     /// <returns></returns>
     public static Obj Native(ObjNativeFn native) => new(native);
+
+    /// <summary>
+    /// Return a new <see cref="Obj"/>, where the lox runtime value is a closure that wraps <paramref name="objFunction"/>.
+    /// </summary>
+    /// <param name="objFunction">The wrapped function.</param>
+    /// <returns></returns>
+    public static Obj Closure(ObjFunction objFunction) => new(new ObjClosure {Function = objFunction});
+
     public override string ToString() => _obj.ToString()!;
 }
 
@@ -243,9 +277,16 @@ internal struct ObjNativeFn
 {
     internal int Arity { get; init; }
     internal string Name { get; init; }
-    internal Func<int, LoxValue> Func {get; set;}
+    internal Func<int, LoxValue> Func { get; set; }
 
     public override readonly string ToString() => $"<native fn {Name}>";
+}
+
+internal struct ObjClosure
+{
+    internal ObjFunction Function {get; set;}
+
+    public override readonly string ToString() => Function.ToString();
 }
 
 
@@ -262,4 +303,5 @@ internal enum ObjType
     Function,
     String,
     Native,
+    Closure
 }

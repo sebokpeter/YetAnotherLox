@@ -68,15 +68,23 @@ internal static class Debug
             OpCode.Jump         => JumpInstruction(opCode, 1, chunk, offset),
             OpCode.Loop         => JumpInstruction(opCode, -1, chunk, offset),
             OpCode.Call         => ByteInstruction(opCode, chunk, offset),
+            OpCode.Closure      => ClosureInstruction(opCode, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
+    }
+
+    private static int ClosureInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
+    {
+        offset++;
+        byte constant = chunk[offset++];
+        Console.WriteLine($"{opCode, -19} {constant:0000} {chunk.Constants[constant]}");
+        return offset;
     }
 
     private static int ConstantInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
     {
         byte constant = chunk[offset + 1];
-        Console.Write($"{opCode,-19} {constant:0000} ");
-        Console.WriteLine(chunk.Constants[constant]);
+        Console.WriteLine($"{opCode,-19} {constant:0000} {chunk.Constants[constant]}");
         return offset + 2;
     }
 

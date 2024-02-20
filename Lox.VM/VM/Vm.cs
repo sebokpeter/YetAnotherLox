@@ -59,8 +59,9 @@ internal class Vm : IDisposable
 
         _stopwatch.Restart();
 
-        _stack.Push(LoxValue.Object(function!.Value));
-        CallFn(function!.Value, 0);
+        ObjClosure closure = Obj.Closure(function!.Value).AsClosure;
+        _stack.Push(LoxValue.Object(closure));
+        CallFn(closure, 0);
 
         return Run();
     }
@@ -148,7 +149,7 @@ internal class Vm : IDisposable
         {
 #if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
-            Frame.Function.Chunk.DisassembleInstruction(Frame.Ip);
+            Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
 #endif
 
             OpCode instruction = (OpCode)Frame.ReadByte();
@@ -272,6 +273,10 @@ internal class Vm : IDisposable
                         return InterpretResult.RuntimeError;
                     }
                     break;
+                case Closure:
+                    ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
+                    _stack.Push(LoxValue.Object(Obj.Closure(function)));
+                    break;
                 default:
                     throw new UnreachableException();
             }
@@ -285,8 +290,8 @@ internal class Vm : IDisposable
             Obj callee = c.AsObj;
             switch(callee.Type)
             {
-                case ObjType.Function:
-                    return CallFn(callee.AsFunction, argCount);
+                case ObjType.Closure:
+                    return CallFn(callee.AsClosure, argCount);
                 case ObjType.Native:
                     return CallNative(callee.AsNativeFn, argCount);
                 default:
@@ -311,11 +316,11 @@ internal class Vm : IDisposable
         return true;
     }
 
-    private bool CallFn(ObjFunction function, int argCount)
+    private bool CallFn(ObjClosure closure, int argCount)
     {
-        if(argCount != function.Arity)
+        if(argCount != closure.Function.Arity)
         {
-            AddRuntimeError($"Expected {function.Arity} arguments but got {argCount}.");
+            AddRuntimeError($"Expected {closure.Function.Arity} arguments but got {argCount}.");
             return false;
         }
 
@@ -325,7 +330,7 @@ internal class Vm : IDisposable
             return false;
         }
 
-        CallFrame callFrame = new() { Function = function, Ip = 0, Slot = (ushort)(_stack.StackTop - argCount - 1) };
+        CallFrame callFrame = new() { Closure = closure, Ip = 0, Slot = (ushort)(_stack.StackTop - argCount - 1) };
         callFrames[frameCount++] = callFrame;
         return true;
     }
@@ -458,13 +463,13 @@ internal class Vm : IDisposable
     {
         IEnumerable<Frame> frames = callFrames.Take(frameCount - 1).Reverse().Select(frame =>
         {
-            ObjFunction function = frame.Function;
+            ObjFunction function = frame.Closure.Function;
 
             return new Frame(function.Chunk.Lines[frame.Ip], String.IsNullOrEmpty(function.Name) ? "script" : function.Name + "()");
         });
 
         CallFrame callFrame = callFrames[frameCount - 1];
-        Errors.Add(new RuntimeError(message, callFrame.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
+        Errors.Add(new RuntimeError(message, callFrame.Closure.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
     }
 
     private void DefineNative(string name, Func<int, LoxValue> native, int arity)
@@ -473,7 +478,6 @@ internal class Vm : IDisposable
         ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Func = native };
         LoxValue natFn = LoxValue.Object(objNativeFn);
         _globals.Add(nameObj, natFn);
-
     }
 }
 
@@ -481,16 +485,17 @@ internal class Vm : IDisposable
 // This is a mutable value type - try to make it immutable?
 internal struct CallFrame
 {
-    internal ObjFunction Function { get; init; }
+    //internal ObjFunction Function { get; init; }
+    internal ObjClosure Closure {get; init;}
     internal ushort Ip { get; set; }
     internal ushort Slot { get; init; }
 
-    internal byte ReadByte() => Function.Chunk[Ip++];
-    internal LoxValue ReadConstant() => Function.Chunk.Constants[ReadByte()];
+    internal byte ReadByte() => Closure.Function.Chunk[Ip++];
+    internal LoxValue ReadConstant() => Closure.Function.Chunk.Constants[ReadByte()];
     internal ushort ReadShort()
     {
         Ip += 2;
-        return (ushort)(Function.Chunk[Ip - 2] << 8 | Function.Chunk[Ip - 1]);
+        return (ushort)(Closure.Function.Chunk[Ip - 2] << 8 | Closure.Function.Chunk[Ip - 1]);
     }
 }
 
