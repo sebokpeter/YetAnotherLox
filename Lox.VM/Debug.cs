@@ -1,4 +1,5 @@
 using LoxVM.Chunk;
+using LoxVM.Compiler;
 using LoxVM.Value;
 
 namespace LoxVM;
@@ -69,6 +70,8 @@ internal static class Debug
             OpCode.Loop         => JumpInstruction(opCode, -1, chunk, offset),
             OpCode.Call         => ByteInstruction(opCode, chunk, offset),
             OpCode.Closure      => ClosureInstruction(opCode, chunk, offset),
+            OpCode.GetUpValue   => ByteInstruction(opCode, chunk, offset),
+            OpCode.SetUpValue   => ByteInstruction(opCode, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
     }
@@ -78,6 +81,17 @@ internal static class Debug
         offset++;
         byte constant = chunk[offset++];
         Console.WriteLine($"{opCode, -19} {constant:0000} {chunk.Constants[constant]}");
+
+        ObjFunction function = chunk.Constants[constant].AsObj.AsFunction;        
+        for(int i = 0; i < function.UpValueCount; i++)
+        {
+            bool isLocal = chunk[offset++] == 1;
+            int index = chunk[offset++];
+            Console.WriteLine($"{offset-2:0000}\t|---------------------{(isLocal? "local" : "upvalue")} {index}"); 
+        }
+
+        function.Chunk.Disassemble(function.Name);
+
         return offset;
     }
 

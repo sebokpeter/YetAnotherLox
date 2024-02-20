@@ -149,7 +149,8 @@ internal class Vm : IDisposable
         {
 #if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
-            Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
+            //Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
+            Console.WriteLine("-------------------------");
 #endif
 
             OpCode instruction = (OpCode)Frame.ReadByte();
@@ -486,7 +487,7 @@ internal class Vm : IDisposable
 internal struct CallFrame
 {
     //internal ObjFunction Function { get; init; }
-    internal ObjClosure Closure {get; init;}
+    internal ObjClosure Closure { get; init; }
     internal ushort Ip { get; set; }
     internal ushort Slot { get; init; }
 

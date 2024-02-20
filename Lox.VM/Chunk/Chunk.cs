@@ -79,7 +79,9 @@ internal enum OpCode : byte
     Jump,
     Loop,
     Call,
-    Closure
+    Closure,
+    GetUpValue,
+    SetUpValue,
 }
 
 internal static class OpcodeExtensions

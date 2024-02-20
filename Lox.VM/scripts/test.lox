@@ -1,10 +1,13 @@
-fun makeClosure() {
-  var local = "local";
-  fun closure() {
-    print local;
+fun outer() {
+  var a = 1;
+  var b = 2;
+  fun middle() {
+    var c = 3;
+    var d = 4;
+    fun inner() {
+      print a + c + b + d;
+    }
   }
-  return closure;
 }
 
-var closure = makeClosure();
-closure();
+outer();

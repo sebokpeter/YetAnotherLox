@@ -255,11 +255,12 @@ internal readonly struct Obj
     public override string ToString() => _obj.ToString()!;
 }
 
-internal readonly struct ObjFunction
+internal struct ObjFunction
 {
     internal int Arity { get; init; }
     internal string Name { get; init; }
     internal Chunk.Chunk Chunk { get; init; }
+    internal int UpValueCount {get; set;}
 
     private ObjFunction(int arity, string name)
     {
@@ -270,7 +271,7 @@ internal readonly struct ObjFunction
 
     internal static ObjFunction TopLevel() => new(0, "");
 
-    public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
+    public override readonly string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
 }
 
 internal struct ObjNativeFn

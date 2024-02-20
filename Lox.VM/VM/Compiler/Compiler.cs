@@ -15,13 +15,16 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private readonly List<Stmt> _statements;
 
-    private readonly ObjFunction _function;
+    private ObjFunction _function;
     private readonly FunctionType _functionType;
 
     private const ushort MAX_LOCAL_COUNT = byte.MaxValue + 1;
-    internal readonly Local[] _locals;
-    internal int scopeDepth;
-    internal int localCount;
+    private readonly Local[] _locals;
+    private readonly UpValue[] _upValues;
+    private int scopeDepth;
+    private int localCount;
+
+    private readonly BytecodeCompiler? _enclosing;
 
     private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
 
@@ -33,12 +36,14 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _function = ObjFunction.TopLevel();
         _locals = new Local[MAX_LOCAL_COUNT];
         _locals[localCount++] = new() { Depth = 0, Name = "" };
+        _upValues = new UpValue[byte.MaxValue];
 
         _functionType = FunctionType.Script;
     }
 
-    public BytecodeCompiler(FunctionType type, int arity, string fnName)
+    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName)
     {
+        _enclosing = compiler;
         _statements = [];
         _errors = [];
 
@@ -49,6 +54,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _locals = new Local[MAX_LOCAL_COUNT];
         _function = new() { Arity = arity, Name = fnName, Chunk = new() };
         _locals[localCount++] = new() { Depth = 0, Name = "" };
+        _upValues = new UpValue[byte.MaxValue];
     }
 
     public ObjFunction Compile()
@@ -363,16 +369,79 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         int arg = ResolveLocal(expr.Name);
 
-        if(arg == -1)
-        {
-            // Did not find a local variable
-            // Assume it is global
-            ReadGlobal(expr);
-        }
-        else
+        // if(arg == -1)
+        // {
+        //     // Did not find a local variable
+        //     // Assume it is global
+        //     ReadGlobal(expr);
+        // }
+        // else if((arg = ResolveUpValue(expr.Name)) != -1)
+        // {
+        //     ReadUpValue();
+        // }
+        // else
+        // {
+        //     EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
+        // }
+
+        if(arg != -1)
         {
             EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
         }
+        else if((arg = ResolveUpValue(expr.Name)) != -1)
+        {
+            EmitBytes(OpCode.GetUpValue, (byte)arg, expr.Name.Line);
+        }
+        else
+        {
+            ReadGlobal(expr);
+        }
+    }
+
+    private int ResolveUpValue(Token name)
+    {
+        if(_enclosing is null)
+        {
+            return -1;
+        }
+
+        int local = _enclosing.ResolveLocal(name);
+        if(local != -1)
+        {
+            return AddUpValue((byte)local, true, name);
+        }
+
+        int upValue = _enclosing.ResolveUpValue(name);
+        if(upValue != -1)
+        {
+            return AddUpValue((byte)upValue, false, name);
+        }
+
+        return -1;
+    }
+
+    private int AddUpValue(byte index, bool isLocal, Token name)
+    {
+        int upValueCount = _function.UpValueCount;
+
+        for(int i = 0; i < upValueCount; i++)
+        {
+            UpValue upValue = _upValues[i];
+            if(upValue.Index == index && upValue.IsLocal == isLocal)
+            {
+                return i;
+            }
+        }
+
+        if(upValueCount == byte.MaxValue)
+        {
+            AddError("Too many closure variables in function.", name);
+            return 0;
+        }
+
+        UpValue upVal = new() {Index = index, IsLocal = isLocal};
+        _upValues[upValueCount] = upVal;
+        return _function.UpValueCount++;
     }
 
     public void VisitAssignExpr(Expr.Assign expr)
@@ -381,13 +450,26 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         int arg = ResolveLocal(expr.Name);
 
-        if(arg == -1)
+        // if(arg == -1)
+        // {
+        //     AssignGlobal(expr);
+        // }
+        // else
+        // {
+        //     EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
+        // }
+
+        if(arg != -1)
         {
-            AssignGlobal(expr);
+            EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
+        }
+        else if((arg = ResolveUpValue(expr.Name)) != -1)
+        {
+            EmitBytes(OpCode.SetUpValue, (byte)arg, expr.Name.Line);
         }
         else
         {
-            EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
+            AssignGlobal(expr);
         }
     }
 
@@ -469,13 +551,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         int arity = function.Params.Count;
         string name = function.Name.Lexeme;
 
-        BytecodeCompiler compiler = new(type, arity, name);
+        BytecodeCompiler compiler = new(this, type, arity, name);
 
         ObjFunction fun = compiler.CompileFunction(function);
         _errors.AddRange(compiler._errors);
 
-        //EmitBytes(OpCode.Constant, MakeConstant(LoxValue.Object(fun)), latestLine);
         EmitBytes(OpCode.Closure, MakeConstant(LoxValue.Object(fun)), latestLine);
+
+        foreach(UpValue upValue in _upValues.Take(fun.UpValueCount))
+        {
+            EmitByte((byte)(upValue.IsLocal ? 1 : 0));
+            EmitByte(upValue.Index);
+        }
     }
 
     #region Variable Declaration
@@ -642,12 +729,14 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         latestLine = line;
     }
 
+
     private void EmitByte(byte val, int line)
     {
         _function.Chunk.WriteChunk(val, line);
         latestLine = line;
     }
 
+    private void EmitByte(byte val) => _function.Chunk.WriteChunk(val, latestLine);
     private void EmitBytes(OpCode opCode, byte val, int line)
     {
         EmitByte(opCode, line);
@@ -731,6 +820,12 @@ internal class Local
 {
     internal required string Name { get; init; }
     internal int Depth { get; set; }
+}
+
+internal readonly struct UpValue
+{
+    internal byte Index { get; init; }
+    internal bool IsLocal { get; init; }
 }
 
 internal enum FunctionType
