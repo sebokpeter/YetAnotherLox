@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 namespace LoxVM.Value;
 
@@ -233,6 +234,11 @@ internal class Obj
     internal bool IsClass => Type == ObjType.Class;
 
     /// <summary>
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a class instance.
+    /// </summary>
+    internal bool IsInstance => Type == ObjType.Instance;
+
+    /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
     /// </summary>
     internal string AsString => (string)_obj;
@@ -261,6 +267,11 @@ internal class Obj
     /// Treat this <see cref="Obj"/> as a <see cref="ObjClass"/>.
     /// </summary>
     internal ObjClass AsClass => (ObjClass)_obj;
+
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjInstance"/>.
+    /// </summary>
+    internal ObjInstance AsInstance => (ObjInstance)_obj;
 
     private Obj(string s)
     {
@@ -296,6 +307,12 @@ internal class Obj
     {
         _obj = objClass;
         Type = ObjType.Class;
+    }
+
+    private Obj(ObjInstance objInstance)
+    {
+        _obj = objInstance;
+        Type = ObjType.Instance;
     }
 
     /// <summary>
@@ -338,11 +355,18 @@ internal class Obj
     internal static Obj UpValue(ObjUpValue objUpValue) => new(objUpValue);
 
     /// <summary>
-    /// Return a new <see cref="Obj"/>, where the lox runtime value us a class.
+    /// Return a new <see cref="Obj"/>, where the lox runtime value is a class.
     /// </summary>
     /// <param name="objClass"></param>
     /// <returns></returns>
     internal static Obj Class(ObjClass objClass) => new(objClass);
+
+    /// <summary>
+    /// Return a new <see cref="Obj"/>, where the lox runtime value is a class instance.
+    /// </summary>
+    /// <param name="objInstance"></param>
+    /// <returns></returns>
+    internal static Obj Instance(ObjInstance objInstance) => new(objInstance);
 
     public override string ToString() => _obj.ToString()!;
 
@@ -441,6 +465,14 @@ internal class ObjClass
     public override string ToString() => $"<class {Name}>";
 }
 
+internal class ObjInstance
+{
+    internal required ObjClass ObjClass { get; init; }
+    internal required Dictionary<string, Obj> Fields { get; init; }
+
+    public override string ToString() => $"<{ObjClass.Name} instance>";
+}
+
 
 internal enum ValueType
 {
@@ -457,5 +489,6 @@ internal enum ObjType
     Native,
     Closure,
     UpValue,
-    Class
+    Class,
+    Instance
 }

@@ -1,3 +1,14 @@
 class Test {}
 
 print Test;
+print Test();
+
+var t = Test();
+print t;
+
+fun f() {
+  var tt = Test();
+  print tt;
+}
+
+f();

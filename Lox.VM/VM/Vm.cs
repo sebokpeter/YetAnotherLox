@@ -372,6 +372,10 @@ internal class Vm : IDisposable
             Obj callee = c.AsObj;
             switch(callee.Type)
             {
+                case ObjType.Class:
+                    ObjClass objClass = callee.AsClass;
+                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(new ObjInstance() {Fields = [], ObjClass = objClass}));
+                    return true;
                 case ObjType.Closure:
                     return CallFn(callee.AsClosure, argCount);
                 case ObjType.Native:
