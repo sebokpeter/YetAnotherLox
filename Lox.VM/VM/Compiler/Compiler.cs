@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Diagnostics;
 using Generated;
 using LoxVM.Chunk;
@@ -35,7 +36,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         _function = ObjFunction.TopLevel();
         _locals = new Local[MAX_LOCAL_COUNT];
-        _locals[localCount++] = new() { Depth = 0, Name = "" };
+        _locals[localCount++] = new() { Depth = 0, Name = "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
 
         _functionType = FunctionType.Script;
@@ -53,7 +54,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         _locals = new Local[MAX_LOCAL_COUNT];
         _function = ObjFunction.Function(arity, fnName);
-        _locals[localCount++] = new() { Depth = 0, Name = "" };
+        _locals[localCount++] = new() { Depth = 0, Name = "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
     }
 
@@ -393,6 +394,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         int local = _enclosing.ResolveLocal(name);
         if(local != -1)
         {
+            _enclosing._locals[local].IsCaptured = true;
             return AddUpValue((byte)local, true, name);
         }
 
@@ -424,7 +426,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             return 0;
         }
 
-        UpValue upVal = new() {Index = index, IsLocal = isLocal};
+        UpValue upVal = new() { Index = index, IsLocal = isLocal };
         _upValues[upValueCount] = upVal;
         return _function.UpValueCount++;
     }
@@ -591,7 +593,15 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         while(localCount > 0 && _locals[localCount - 1].Depth > scopeDepth)
         {
-            EmitByte(OpCode.Pop);
+            if(_locals[localCount - 1].IsCaptured)
+            {
+                EmitByte(OpCode.CloseUpValue);
+            }
+            else
+            {
+                EmitByte(OpCode.Pop);
+
+            }
             localCount--;
         }
     }
@@ -658,7 +668,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             }
         }
 
-        Local local = new() { Name = name.Lexeme, Depth = -1 };
+        Local local = new() { Name = name.Lexeme, Depth = -1, IsCaptured = false };
         _locals[localCount++] = local;
     }
 
@@ -796,6 +806,7 @@ internal class Local
 {
     internal required string Name { get; init; }
     internal int Depth { get; set; }
+    internal bool IsCaptured { get; set; }
 }
 
 internal readonly struct UpValue

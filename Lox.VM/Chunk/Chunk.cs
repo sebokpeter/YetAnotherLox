@@ -82,6 +82,7 @@ internal enum OpCode : byte
     Closure,
     GetUpValue,
     SetUpValue,
+    CloseUpValue,
 }
 
 internal static class OpcodeExtensions

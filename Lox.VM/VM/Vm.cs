@@ -30,6 +30,8 @@ internal class Vm : IDisposable
 
     private readonly Stopwatch _stopwatch;
 
+    private ObjUpValue? openUpValues;
+
     public Vm()
     {
         disposed = false;
@@ -160,6 +162,7 @@ internal class Vm : IDisposable
                 case Return:
                     int newTop = Frame.Slot;
                     LoxValue result = _stack.Pop();
+                    CloseUpValues(newTop);
                     frameCount--;
                     if(frameCount == 0)
                     {
@@ -285,9 +288,26 @@ internal class Vm : IDisposable
                     byte getUpvalueSlot = Frame.ReadByte();
                     _stack.Push(Frame.Closure.UpValues[getUpvalueSlot].LoxValue);
                     break;
+                case CloseUpValue:
+                    CloseUpValues(_stack.StackTop-1);
+                    _stack.Pop();
+                    break;
                 default:
                     throw new UnreachableException();
             }
+        }
+    }
+
+    private void CloseUpValues(int locationOnStack)
+    {
+        LoxValue value = _stack[locationOnStack];
+
+        while(openUpValues is not null && locationOnStack > _stack.StackTop)
+        {
+            ObjUpValue upValue = openUpValues;
+            upValue.Closed = value;
+            upValue.LoxValue = value;
+            openUpValues = upValue.Next;
         }
     }
 
@@ -307,14 +327,40 @@ internal class Vm : IDisposable
             {
                 objClosure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
             }
-            else 
+            else
             {
                 objClosure.UpValues[i] = Frame.Closure.UpValues[index];
             }
         }
     }
 
-    private static ObjUpValue CaptureValue(LoxValue value) => new() {LoxValue = value};
+    private ObjUpValue CaptureValue(LoxValue value)
+    {
+        ObjUpValue? prevUpValue = null;
+        ObjUpValue? upValue = openUpValues;
+        while(upValue is not null)
+        {
+            prevUpValue = upValue;
+            upValue = upValue.Next;
+        }
+
+        if(upValue is not null && upValue.LoxValue == value)
+        {
+            return upValue;
+        }
+
+        ObjUpValue createdUpValue = new() { LoxValue = value, Next = upValue };
+        if(prevUpValue is null)
+        {
+            openUpValues = createdUpValue;
+        } 
+        else 
+        {
+            prevUpValue.Next = createdUpValue;
+        }
+
+        return createdUpValue;
+    }
 
     private bool CallValue(LoxValue c, int argCount)
     {
@@ -490,6 +536,7 @@ internal class Vm : IDisposable
         Errors.Clear();
         callFrames = new CallFrame[STACK_MAX];
         _stack.Reset();
+        openUpValues = null;
     }
 
     private void AddRuntimeError(string message)

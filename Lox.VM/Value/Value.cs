@@ -19,47 +19,53 @@ internal class LoxValue
 
     private readonly Obj? _internalObject;
 
-    public ValueType Type { internal get; init; }
+    internal ValueType Type { get; init; }
 
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is <see cref="null"/>.
     /// </summary>
-    public bool IsNil => Type == ValueType.Nil;
+    internal bool IsNil => Type == ValueType.Nil;
 
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is <see cref="double"/>.
     /// </summary>
-    public bool IsNumber => Type == ValueType.Number;
+    internal bool IsNumber => Type == ValueType.Number;
 
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is <see cref="bool"/>.
     /// </summary>
-    public bool IsBool => Type == ValueType.Bool;
+    internal bool IsBool => Type == ValueType.Bool;
 
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is an object .
     /// </summary>
-    public bool IsObj => Type == ValueType.Obj;
+    internal bool IsObj => Type == ValueType.Obj;
 
     /// <summary>
     /// Returns true if the lox runtime type is string.
     /// </summary>
-    public bool IsString => Type == ValueType.Obj && _internalObject!.Type == ObjType.String;
+    internal bool IsString => Type == ValueType.Obj && _internalObject!.Type == ObjType.String;
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="double"/>.
     /// </summary>
-    public double AsNumber => BitConverter.Int64BitsToDouble(_internalValue);
+    internal double AsNumber => BitConverter.Int64BitsToDouble(_internalValue);
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="bool"/>.
     /// </summary>
-    public bool AsBool => (_internalValue & TRUE_MASK) == TRUE_MASK;
+    internal bool AsBool => (_internalValue & TRUE_MASK) == TRUE_MASK;
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="object"/>.
     /// </summary>
-    public Obj AsObj => _internalObject!;
+    internal Obj AsObj => _internalObject!;
+
+    private LoxValue(long val, ValueType type)
+    {
+        _internalValue = val;
+        Type = type;
+    }
 
     private LoxValue()
     {
@@ -99,28 +105,28 @@ internal class LoxValue
     /// Return a <see cref="LoxValue"/> where the lox runtime value is 'nil'.
     /// </summary>
     /// <returns></returns>
-    public static LoxValue Nil() => _nilValue;
+    internal static LoxValue Nil() => _nilValue;
 
     /// <summary>
     /// Return a <see cref="LoxValue"/> where the lox runtime type is 'number', and the value is <paramref name="d"/>.
     /// </summary>
     /// <param name="d">The lox runtime value.</param>
     /// <returns></returns>
-    public static LoxValue Number(double d) => new(d);
+    internal static LoxValue Number(double d) => new(d);
 
     /// <summary>
     /// Return a <see cref="LoxValue"/>, where the lox runtime type is 'bool', and the value is <paramref name="b"/>.
     /// </summary>
     /// <param name="b">The lox runtime value.</param>
     /// <returns></returns>
-    public static LoxValue Bool(bool b) => new(b);
+    internal static LoxValue Bool(bool b) => new(b);
 
     /// <summary>
     /// Return a <see cref="LoxValue"/>, where the lox runtime type is 'obj' (e.g. string), and the value is <paramref name="o"/>.
     /// </summary>
     /// <param name="o">The runtime value.</param>
     /// <returns></returns>
-    public static LoxValue Object(object o)
+    internal static LoxValue Object(object o)
     {
         if(o is string s)
         {
@@ -145,6 +151,22 @@ internal class LoxValue
 
         throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Clone this <see cref="LoxValue"/>, to create a new object.
+    /// </summary>
+    /// <returns></returns>
+    // internal LoxValue Clone()
+    // {
+    //     if(Type == ValueType.Obj)
+    //     {
+    //         return new(_internalObject!.Clone());
+    //     }
+    //     else
+    //     {
+    //         return new(_internalValue, Type);
+    //     }
+    // }   
 
     public override string ToString()
     {
@@ -177,15 +199,15 @@ internal class LoxValue
 
         return Type switch
         {
-            ValueType.Bool      => _internalValue == loxValue._internalValue,
-            ValueType.Nil       => _internalValue == loxValue._internalValue,
-            ValueType.Number    => _internalValue == loxValue._internalValue,
-            ValueType.Obj       => AsObj.Equals(loxValue),
-            _                   => throw new UnreachableException()
+            ValueType.Bool => _internalValue == loxValue._internalValue,
+            ValueType.Nil => _internalValue == loxValue._internalValue,
+            ValueType.Number => _internalValue == loxValue._internalValue,
+            ValueType.Obj => AsObj.Equals(loxValue),
+            _ => throw new UnreachableException()
         };
     }
 
-    public override int GetHashCode() => Type == ValueType.Obj? _internalObject!.GetHashCode() : _internalValue.GetHashCode();
+    public override int GetHashCode() => Type == ValueType.Obj ? _internalObject!.GetHashCode() : _internalValue.GetHashCode();
 }
 
 /// <summary>
@@ -196,59 +218,65 @@ internal class Obj
     /// <summary>
     /// The lox runtime type.
     /// </summary>
-    public ObjType Type { internal get; init; }
+    internal ObjType Type { get; init; }
 
     private readonly object _obj;
 
     /// <summary>
     /// Returns true, if the lox runtime type of this <see cref="Obj"/> is string.
     /// </summary>
-    public bool IsString => Type == ObjType.String;
+    internal bool IsString => Type == ObjType.String;
 
     /// <summary>
     /// Returns true, if the lox runtime type of this <see cref="Obj"/> is function.
     /// </summary>
-    public bool IsFunction => Type == ObjType.Function;
+    internal bool IsFunction => Type == ObjType.Function;
 
     /// <summary>
     /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a native function.
     /// </summary>
-    public bool IsNative => Type == ObjType.Native;
+    internal bool IsNative => Type == ObjType.Native;
 
     /// <summary>
     /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a closure.
     /// </summary>
-    public bool IsClosure => Type == ObjType.Closure;
+    internal bool IsClosure => Type == ObjType.Closure;
 
     /// <summary>
     /// Returns true, if the lox runtime type of this <see cref="Objs"/> is an upvalue.
     /// </summary>
-    public bool IsUpValue => Type == ObjType.UpValue;
+    internal bool IsUpValue => Type == ObjType.UpValue;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
     /// </summary>
-    public string AsString => (string)_obj;
+    internal string AsString => (string)_obj;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a <see cref="ObjFunction"/>.
     /// </summary>
-    public ObjFunction AsFunction => (ObjFunction)_obj;
+    internal ObjFunction AsFunction => (ObjFunction)_obj;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a <see cref="ObjNativeFn"/>.
     /// </summary>
-    public ObjNativeFn AsNativeFn => (ObjNativeFn)_obj;
+    internal ObjNativeFn AsNativeFn => (ObjNativeFn)_obj;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a <see cref="ObjClosure"/>.
     /// </summary>
-    public ObjClosure AsClosure => (ObjClosure)_obj;
+    internal ObjClosure AsClosure => (ObjClosure)_obj;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a <see cref="ObjUpValue"/>.
     /// </summary>
-    public ObjUpValue AsUpValue => (ObjUpValue)_obj;
+    internal ObjUpValue AsUpValue => (ObjUpValue)_obj;
+
+    private Obj(object o, ObjType type)
+    {
+        _obj = o;
+        Type = type;
+    }
 
     private Obj(string s)
     {
@@ -274,7 +302,7 @@ internal class Obj
         Type = ObjType.Closure;
     }
 
-    public Obj(ObjUpValue objUpValue)
+    internal Obj(ObjUpValue objUpValue)
     {
         _obj = objUpValue;
         Type = ObjType.UpValue;
@@ -285,28 +313,28 @@ internal class Obj
     /// </summary>
     /// <param name="s">The lox runtime value.</param>
     /// <returns></returns>
-    public static Obj String(string s) => new(s);
+    internal static Obj String(string s) => new(s);
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime type is function, and the value is <paramref name="objFunction"/>.
     /// </summary>
     /// <param name="objFunction">The lox runtime value, a lox function.</param>
     /// <returns></returns>
-    public static Obj Function(ObjFunction objFunction) => new(objFunction);
+    internal static Obj Function(ObjFunction objFunction) => new(objFunction);
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime type is a native function, and the value is <paramref name="native"/>.
     /// </summary>
     /// <param name="objFunction">The lox runtime value, a native lox function.</param>
     /// <returns></returns>
-    public static Obj Native(ObjNativeFn native) => new(native);
+    internal static Obj Native(ObjNativeFn native) => new(native);
 
     /// <summary>
     /// Return a new <see cref="Obj"/>, where the lox runtime value is a closure that wraps <paramref name="objFunction"/>.
     /// </summary>
     /// <param name="objFunction">The wrapped function.</param>
     /// <returns></returns>
-    public static Obj Closure(ObjFunction objFunction)
+    internal static Obj Closure(ObjFunction objFunction)
     {
         ObjClosure objClosure = new() { Function = objFunction, UpValues = [] };
         return new(objClosure);
@@ -317,7 +345,25 @@ internal class Obj
     /// </summary>
     /// <param name="objUpValue"></param>
     /// <returns></returns>
-    public static Obj UpValue(ObjUpValue objUpValue) => new(objUpValue);
+    internal static Obj UpValue(ObjUpValue objUpValue) => new(objUpValue);
+
+    /// <summary>
+    /// Clone this <see cref="Obj"/> to create a new value.
+    /// </summary>
+    /// <returns></returns>
+    // internal Obj Clone()
+    // {
+    //     return Type switch
+    //     {
+    //         ObjType.Function    => throw new NotImplementedException(),
+    //         ObjType.String      => new(_obj, ObjType.String),
+    //         ObjType.Native      => throw new NotImplementedException(),
+    //         ObjType.Closure     => throw new NotImplementedException(),
+    //         ObjType.UpValue     => throw new NotImplementedException(),
+    //         _                   => throw new UnreachableException(),
+    //     };
+    // }
+
     public override string ToString() => _obj.ToString()!;
 
     public override bool Equals(object? obj)
@@ -339,12 +385,12 @@ internal class Obj
 
         return Type switch
         {
-            ObjType.Function    => AsFunction.Name == loxObj.AsFunction.Name && AsFunction.Arity == loxObj.AsFunction.Arity,
-            ObjType.String      => AsString == loxObj.AsString,
-            ObjType.Native      => AsNativeFn.Name == loxObj.AsNativeFn.Name && AsNativeFn.Arity == loxObj.AsNativeFn.Arity,
-            ObjType.Closure     => throw new NotImplementedException(),
-            ObjType.UpValue     => throw new NotImplementedException(),
-            _                   => throw new UnreachableException(),
+            ObjType.Function => AsFunction.Name == loxObj.AsFunction.Name && AsFunction.Arity == loxObj.AsFunction.Arity,
+            ObjType.String => AsString == loxObj.AsString,
+            ObjType.Native => AsNativeFn.Name == loxObj.AsNativeFn.Name && AsNativeFn.Arity == loxObj.AsNativeFn.Arity,
+            ObjType.Closure => throw new NotImplementedException(),
+            ObjType.UpValue => throw new NotImplementedException(),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -402,6 +448,8 @@ internal class ObjClosure
 internal class ObjUpValue
 {
     internal required LoxValue LoxValue { get; set; }
+    internal ObjUpValue? Next { get; set; }
+    internal LoxValue Closed {get; set;} = LoxValue.Nil();
 
     public override string ToString() => $"Upvalue - {LoxValue}";
 }
