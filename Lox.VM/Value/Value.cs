@@ -1,8 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
-using System.Security.AccessControl;
 
 namespace LoxVM.Value;
 
@@ -152,22 +148,6 @@ internal class LoxValue
         throw new NotImplementedException();
     }
 
-    /// <summary>
-    /// Clone this <see cref="LoxValue"/>, to create a new object.
-    /// </summary>
-    /// <returns></returns>
-    // internal LoxValue Clone()
-    // {
-    //     if(Type == ValueType.Obj)
-    //     {
-    //         return new(_internalObject!.Clone());
-    //     }
-    //     else
-    //     {
-    //         return new(_internalValue, Type);
-    //     }
-    // }   
-
     public override string ToString()
     {
         return Type switch
@@ -243,9 +223,14 @@ internal class Obj
     internal bool IsClosure => Type == ObjType.Closure;
 
     /// <summary>
-    /// Returns true, if the lox runtime type of this <see cref="Objs"/> is an upvalue.
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is an upvalue.
     /// </summary>
     internal bool IsUpValue => Type == ObjType.UpValue;
+
+    /// <summary>
+    /// Returns true, if the lox runtime type of this <see cref="Obj"/> is a class.
+    /// </summary>
+    internal bool IsClass => Type == ObjType.Class;
 
     /// <summary>
     /// Treat this <see cref="Obj"/> as a string.
@@ -272,11 +257,10 @@ internal class Obj
     /// </summary>
     internal ObjUpValue AsUpValue => (ObjUpValue)_obj;
 
-    private Obj(object o, ObjType type)
-    {
-        _obj = o;
-        Type = type;
-    }
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as a <see cref="ObjClass"/>.
+    /// </summary>
+    internal ObjClass AsClass => (ObjClass)_obj;
 
     private Obj(string s)
     {
@@ -302,10 +286,16 @@ internal class Obj
         Type = ObjType.Closure;
     }
 
-    internal Obj(ObjUpValue objUpValue)
+    private Obj(ObjUpValue objUpValue)
     {
         _obj = objUpValue;
         Type = ObjType.UpValue;
+    }
+
+    private Obj(ObjClass objClass)
+    {
+        _obj = objClass;
+        Type = ObjType.Class;
     }
 
     /// <summary>
@@ -348,21 +338,11 @@ internal class Obj
     internal static Obj UpValue(ObjUpValue objUpValue) => new(objUpValue);
 
     /// <summary>
-    /// Clone this <see cref="Obj"/> to create a new value.
+    /// Return a new <see cref="Obj"/>, where the lox runtime value us a class.
     /// </summary>
+    /// <param name="objClass"></param>
     /// <returns></returns>
-    // internal Obj Clone()
-    // {
-    //     return Type switch
-    //     {
-    //         ObjType.Function    => throw new NotImplementedException(),
-    //         ObjType.String      => new(_obj, ObjType.String),
-    //         ObjType.Native      => throw new NotImplementedException(),
-    //         ObjType.Closure     => throw new NotImplementedException(),
-    //         ObjType.UpValue     => throw new NotImplementedException(),
-    //         _                   => throw new UnreachableException(),
-    //     };
-    // }
+    internal static Obj Class(ObjClass objClass) => new(objClass);
 
     public override string ToString() => _obj.ToString()!;
 
@@ -449,9 +429,16 @@ internal class ObjUpValue
 {
     internal required LoxValue LoxValue { get; set; }
     internal ObjUpValue? Next { get; set; }
-    internal LoxValue Closed {get; set;} = LoxValue.Nil();
+    internal LoxValue Closed { get; set; } = LoxValue.Nil();
 
     public override string ToString() => $"Upvalue - {LoxValue}";
+}
+
+internal class ObjClass
+{
+    internal required string Name { get; init; }
+
+    public override string ToString() => $"<class {Name}>";
 }
 
 
@@ -469,5 +456,6 @@ internal enum ObjType
     String,
     Native,
     Closure,
-    UpValue
+    UpValue,
+    Class
 }

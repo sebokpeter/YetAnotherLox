@@ -292,6 +292,9 @@ internal class Vm : IDisposable
                     CloseUpValues(_stack.StackTop-1);
                     _stack.Pop();
                     break;
+                case Class:
+                    _stack.Push(LoxValue.Object(Obj.Class(new() {Name = Frame.ReadString()})));
+                    break;
                 default:
                     throw new UnreachableException();
             }
@@ -577,6 +580,7 @@ internal struct CallFrame
         Ip += 2;
         return (ushort)(Closure.Function.Chunk[Ip - 2] << 8 | Closure.Function.Chunk[Ip - 1]);
     }
+    internal string ReadString() => ReadConstant().AsObj.AsString;
 }
 
 internal enum InterpretResult

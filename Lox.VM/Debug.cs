@@ -73,6 +73,7 @@ internal static class Debug
             OpCode.GetUpValue   => ByteInstruction(opCode, chunk, offset),
             OpCode.SetUpValue   => ByteInstruction(opCode, chunk, offset),
             OpCode.CloseUpValue => SimpleInstruction(opCode, offset),
+            OpCode.Class        => ConstantInstruction(opCode, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
     }

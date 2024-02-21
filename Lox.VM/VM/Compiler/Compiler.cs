@@ -251,6 +251,14 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         DefineVariable(stmt.Name);
     }
 
+    public void VisitClassStmt(Stmt.Class stmt)
+    {
+        DeclareVariable(stmt.Name);
+        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.String(stmt.Name.Lexeme))), stmt.Name.Line);
+        DefineVariable(stmt.Name);
+    }
+
+
     #endregion
 
     #region Expressions
@@ -466,11 +474,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     #endregion
-
-    public void VisitClassStmt(Stmt.Class stmt)
-    {
-        throw new NotImplementedException();
-    }
 
     public void VisitBreakStmt(Stmt.Break stmt)
     {
