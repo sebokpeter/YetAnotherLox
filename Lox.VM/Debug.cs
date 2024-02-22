@@ -1,5 +1,4 @@
 using LoxVM.Chunk;
-using LoxVM.Compiler;
 using LoxVM.Value;
 
 namespace LoxVM;

@@ -53,7 +53,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         scopeDepth = 0;
 
         _locals = new Local[MAX_LOCAL_COUNT];
-        _function = ObjFunction.Function(arity, fnName);
+        _function = new ObjFunction() { Arity = arity, Name = fnName };
         _locals[localCount++] = new() { Depth = 0, Name = "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
     }
@@ -254,7 +254,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitClassStmt(Stmt.Class stmt)
     {
         DeclareVariable(stmt.Name);
-        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.String(stmt.Name.Lexeme))), stmt.Name.Line);
+        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(new ObjString() { StringValue = stmt.Name.Lexeme })), stmt.Name.Line);
         DefineVariable(stmt.Name);
     }
 

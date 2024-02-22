@@ -1,14 +1,14 @@
-class Test {}
+fun makeClosure() {
+  var x = "closure";
 
-print Test;
-print Test();
+  fun f() {
+    print x;
+    x = "inner";
+  }
 
-var t = Test();
-print t;
-
-fun f() {
-  var tt = Test();
-  print tt;
+  return f;
 }
 
+var f = makeClosure();
+f();
 f();

@@ -61,7 +61,7 @@ internal class Vm : IDisposable
 
         _stopwatch.Restart();
 
-        ObjClosure closure = Obj.Closure(function!).AsClosure;
+        ObjClosure closure = new() {Function = function!, UpValues = []};
         _stack.Push(LoxValue.Object(closure));
         CallFn(closure, 0);
 
@@ -293,7 +293,7 @@ internal class Vm : IDisposable
                     _stack.Pop();
                     break;
                 case Class:
-                    _stack.Push(LoxValue.Object(Obj.Class(new() {Name = Frame.ReadString()})));
+                    _stack.Push(LoxValue.Object(new ObjClass() {Name = Frame.ReadString()}));
                     break;
                 default:
                     throw new UnreachableException();
@@ -317,10 +317,11 @@ internal class Vm : IDisposable
     private void CreateClosure()
     {
         ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
-        LoxValue closure = LoxValue.Object(Obj.Closure(function));
-        _stack.Push(closure);
-        ObjClosure objClosure = closure.AsObj.AsClosure;
-        objClosure.UpValues = Enumerable.Range(0, function.UpValueCount).Select<int, ObjUpValue>(_ => null!).ToList();
+
+        List<ObjUpValue> upValues = Enumerable.Range(0, function.UpValueCount).Select<int, ObjUpValue>(_ => null!).ToList();
+        ObjClosure closure = new() {Function = function, UpValues = upValues};  
+        _stack.Push(LoxValue.Object(closure));
+
         for(int i = 0; i < function.UpValueCount; i++)
         {
             bool isLocal = Frame.ReadByte() == 1;
@@ -328,11 +329,11 @@ internal class Vm : IDisposable
 
             if(isLocal)
             {
-                objClosure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
+                closure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
             }
             else
             {
-                objClosure.UpValues[i] = Frame.Closure.UpValues[index];
+                closure.UpValues[i] = Frame.Closure.UpValues[index];
             }
         }
     }
@@ -374,12 +375,12 @@ internal class Vm : IDisposable
             {
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
-                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(new ObjInstance() {Fields = [], ObjClass = objClass}));
+                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(new ObjInstance() {ObjClass = objClass, Fields = []});
                     return true;
                 case ObjType.Closure:
                     return CallFn(callee.AsClosure, argCount);
                 case ObjType.Native:
-                    return CallNative(callee.AsNativeFn, argCount);
+                    return CallNative(callee.AsNative, argCount);
                 default:
                     break;
             }
@@ -584,7 +585,7 @@ internal struct CallFrame
         Ip += 2;
         return (ushort)(Closure.Function.Chunk[Ip - 2] << 8 | Closure.Function.Chunk[Ip - 1]);
     }
-    internal string ReadString() => ReadConstant().AsObj.AsString;
+    internal string ReadString() => ReadConstant().AsObj.AsString.StringValue;
 }
 
 internal enum InterpretResult
