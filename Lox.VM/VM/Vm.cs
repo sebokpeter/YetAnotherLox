@@ -61,7 +61,7 @@ internal class Vm : IDisposable
 
         _stopwatch.Restart();
 
-        ObjClosure closure = new() {Function = function!, UpValues = []};
+        ObjClosure closure = new() { Function = function!, UpValues = [] };
         _stack.Push(LoxValue.Object(closure));
         CallFn(closure, 0);
 
@@ -289,11 +289,43 @@ internal class Vm : IDisposable
                     _stack.Push(Frame.Closure.UpValues[getUpvalueSlot].LoxValue);
                     break;
                 case CloseUpValue:
-                    CloseUpValues(_stack.StackTop-1);
+                    CloseUpValues(_stack.StackTop - 1);
                     _stack.Pop();
                     break;
                 case Class:
-                    _stack.Push(LoxValue.Object(new ObjClass() {Name = Frame.ReadString()}));
+                    _stack.Push(LoxValue.Object(new ObjClass() { Name = Frame.ReadString() }));
+                    break;
+                case GetProperty:
+                    if(_stack.Peek(0).AsObj is not ObjInstance getInstance)
+                    {
+                        AddRuntimeError("Only instances have properties.");
+                        return InterpretResult.RuntimeError;
+                    }
+
+                    string getPropName = Frame.ReadString();
+
+                    if(getInstance.Fields.TryGetValue(getPropName, out LoxValue? propValue))
+                    {
+                        _stack.Pop();
+                        _stack.Push(propValue);
+                    }
+                    else
+                    {
+                        AddRuntimeError($"Undefined property '{getPropName}'.");
+                        return InterpretResult.RuntimeError;
+                    }
+                    break;
+                case SetProperty:
+                    if(_stack.Peek(1).AsObj is not ObjInstance setInstance)
+                    {
+                        AddRuntimeError("Only instances have fields.");
+                        return InterpretResult.RuntimeError;
+                    }
+
+                    setInstance.Fields[Frame.ReadString()] = _stack.Peek(0);
+                    LoxValue val = _stack.Pop();
+                    _stack.Pop();
+                    _stack.Push(val);
                     break;
                 default:
                     throw new UnreachableException();
@@ -319,7 +351,7 @@ internal class Vm : IDisposable
         ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
 
         List<ObjUpValue> upValues = Enumerable.Range(0, function.UpValueCount).Select<int, ObjUpValue>(_ => null!).ToList();
-        ObjClosure closure = new() {Function = function, UpValues = upValues};  
+        ObjClosure closure = new() { Function = function, UpValues = upValues };
         _stack.Push(LoxValue.Object(closure));
 
         for(int i = 0; i < function.UpValueCount; i++)
@@ -357,8 +389,8 @@ internal class Vm : IDisposable
         if(prevUpValue is null)
         {
             openUpValues = createdUpValue;
-        } 
-        else 
+        }
+        else
         {
             prevUpValue.Next = createdUpValue;
         }
@@ -375,7 +407,7 @@ internal class Vm : IDisposable
             {
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
-                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(new ObjInstance() {ObjClass = objClass, Fields = []});
+                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(new ObjInstance() { ObjClass = objClass, Fields = [] });
                     return true;
                 case ObjType.Closure:
                     return CallFn(callee.AsClosure, argCount);

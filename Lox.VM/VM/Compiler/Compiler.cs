@@ -473,6 +473,24 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.Call, (byte)count, expr.Paren.Line);
     }
 
+    public void VisitGetExpr(Expr.Get expr)
+    {
+        EmitBytecode(expr.Obj);
+        byte name = MakeConstant(LoxValue.Object(new ObjString() {StringValue = expr.Name.Lexeme}));
+
+        EmitBytes(OpCode.GetProperty, name, expr.Name.Line);
+    }
+
+    public void VisitSetExpr(Expr.Set expr)
+    {
+        EmitBytecode(expr.Obj);
+
+        byte name = MakeConstant(LoxValue.Object(new ObjString() {StringValue = expr.Name.Lexeme}));
+
+        EmitBytecode(expr.Value);
+        EmitBytes(OpCode.SetProperty, name, expr.Name.Line);
+    }
+
     #endregion
 
     public void VisitBreakStmt(Stmt.Break stmt)
@@ -481,16 +499,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     public void VisitContinueStmt(Stmt.Continue stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitGetExpr(Expr.Get expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitSetExpr(Expr.Set expr)
     {
         throw new NotImplementedException();
     }
