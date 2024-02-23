@@ -296,41 +296,78 @@ internal class Vm : IDisposable
                     _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString())));
                     break;
                 case GetProperty:
-                    if(_stack.Peek(0).AsObj is not ObjInstance getInstance)
+                    if(!GetProp())
                     {
-                        AddRuntimeError("Only instances have properties.");
-                        return InterpretResult.RuntimeError;
-                    }
-
-                    string getPropName = Frame.ReadString();
-
-                    if(getInstance.Fields.TryGetValue(getPropName, out LoxValue? propValue))
-                    {
-                        _stack.Pop();
-                        _stack.Push(propValue);
-                    }
-                    else
-                    {
-                        AddRuntimeError($"Undefined property '{getPropName}'.");
                         return InterpretResult.RuntimeError;
                     }
                     break;
                 case SetProperty:
-                    if(_stack.Peek(1).AsObj is not ObjInstance setInstance)
+                    if(!SetProp())
                     {
-                        AddRuntimeError("Only instances have fields.");
                         return InterpretResult.RuntimeError;
                     }
-
-                    setInstance.Fields[Frame.ReadString()] = _stack.Peek(0);
-                    LoxValue val = _stack.Pop();
-                    _stack.Pop();
-                    _stack.Push(val);
+                    break;
+                case Method:
+                    DefineMethod(Frame.ReadString());
                     break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool SetProp()
+    {
+        if(_stack.Peek(1).AsObj is not ObjInstance setInstance)
+        {
+            AddRuntimeError("Only instances have fields.");
+            return false;
+        }
+
+        setInstance.Fields[Frame.ReadString()] = _stack.Peek(0);
+        LoxValue val = _stack.Pop();
+        _stack.Pop();
+        _stack.Push(val);
+        return true;
+    }
+
+    private bool GetProp()
+    {
+        if(_stack.Peek(0).AsObj is not ObjInstance instance)
+        {
+            AddRuntimeError("Only instances have properties.");
+            return false;
+        }
+
+        string propertyName = Frame.ReadString();
+
+        if(instance.Fields.TryGetValue(propertyName, out LoxValue? value))
+        {
+            _stack.Pop();
+            _stack.Push(value);
+        }
+        else if(instance.ObjClass.Methods.TryGetValue(propertyName, out LoxValue? method))
+        {
+            ObjBoundMethod bound = Obj.BoundMethod(_stack.Peek(0), method.AsObj.AsClosure);
+            _stack.Pop();
+            _stack.Push(LoxValue.Object(bound));
+            return true;
+        }
+        else
+        {
+            AddRuntimeError($"Undefined property '{propertyName}'.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void DefineMethod(string name)
+    {
+        LoxValue method = _stack.Peek(0);
+        ObjClass objClass = _stack.Peek(1).AsObj.AsClass;
+        objClass.Methods[name] = method;
+        _stack.Pop();
     }
 
     private void CloseUpValues(int locationOnStack)
@@ -405,6 +442,9 @@ internal class Vm : IDisposable
             Obj callee = c.AsObj;
             switch(callee.Type)
             {
+                case ObjType.BoundMethod:
+                    ObjBoundMethod boundMethod = callee.AsBoundMethod;
+                    return CallFn(boundMethod.Method, argCount);
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
                     _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(objClass));

@@ -75,6 +75,7 @@ internal static class Debug
             OpCode.Class        => ConstantInstruction(opCode, chunk, offset),
             OpCode.GetProperty  => ConstantInstruction(opCode, chunk, offset),
             OpCode.SetProperty  => ConstantInstruction(opCode, chunk, offset),
+            OpCode.Method       => ConstantInstruction(opCode, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
     }

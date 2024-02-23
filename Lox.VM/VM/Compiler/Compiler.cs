@@ -53,7 +53,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         scopeDepth = 0;
 
         _locals = new Local[MAX_LOCAL_COUNT];
-        _function = new ObjFunction() { Arity = arity, Name = fnName };
+        _function = Obj.Func(arity, fnName);
         _locals[localCount++] = new() { Depth = 0, Name = "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
     }
@@ -254,8 +254,20 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitClassStmt(Stmt.Class stmt)
     {
         DeclareVariable(stmt.Name);
-        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(new ObjString() { StringValue = stmt.Name.Lexeme })), stmt.Name.Line);
+        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
         DefineVariable(stmt.Name);
+
+        NamedVariable(stmt.Name);
+
+        foreach (Stmt.Function method in stmt.Methods)
+        {
+            byte constant = MakeConstant(LoxValue.Object(Obj.Str(method.Name.Lexeme)));
+
+            Function(FunctionType.Method, method);
+
+            EmitBytes(OpCode.Method, constant, method.Name.Line);
+        }
+        EmitByte(OpCode.Pop);
     }
 
 
@@ -374,23 +386,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
-    public void VisitVariableExpr(Expr.Variable expr)
-    {
-        int arg = ResolveLocal(expr.Name);
-
-        if(arg != -1)
-        {
-            EmitBytes(OpCode.GetLocal, (byte)arg, expr.Name.Line);
-        }
-        else if((arg = ResolveUpValue(expr.Name)) != -1)
-        {
-            EmitBytes(OpCode.GetUpValue, (byte)arg, expr.Name.Line);
-        }
-        else
-        {
-            ReadGlobal(expr);
-        }
-    }
+    public void VisitVariableExpr(Expr.Variable expr) => NamedVariable(expr.Name);
 
     private int ResolveUpValue(Token name)
     {
@@ -476,7 +472,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitGetExpr(Expr.Get expr)
     {
         EmitBytecode(expr.Obj);
-        byte name = MakeConstant(LoxValue.Object(new ObjString() {StringValue = expr.Name.Lexeme}));
+        byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Name.Lexeme)));
 
         EmitBytes(OpCode.GetProperty, name, expr.Name.Line);
     }
@@ -485,7 +481,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         EmitBytecode(expr.Obj);
 
-        byte name = MakeConstant(LoxValue.Object(new ObjString() {StringValue = expr.Name.Lexeme}));
+        byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Name.Lexeme)));
 
         EmitBytecode(expr.Value);
         EmitBytes(OpCode.SetProperty, name, expr.Name.Line);
@@ -617,6 +613,25 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
+    private void NamedVariable(Token name)
+    {
+        int arg = ResolveLocal(name);
+
+        if(arg != -1)
+        {
+            EmitBytes(OpCode.GetLocal, (byte)arg, name.Line);
+        }
+        else if((arg = ResolveUpValue(name)) != -1)
+        {
+            EmitBytes(OpCode.GetUpValue, (byte)arg, name.Line);
+        }
+        else
+        {
+            ReadGlobal(name);
+        }
+    }
+
+
     private void DefineVariable(Token name)
     {
         if(scopeDepth > 0)
@@ -702,9 +717,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         return -1;
     }
 
-    private void ReadGlobal(Expr.Variable expr)
+    private void ReadGlobal(Token name)
     {
-        Token name = expr.Name;
         byte arg = MakeConstant(LoxValue.Object(name.Lexeme));
         EmitBytes(OpCode.GetGlobal, arg, name.Line);
     }
@@ -829,5 +843,6 @@ internal readonly struct UpValue
 internal enum FunctionType
 {
     Function,
-    Script
+    Script,
+    Method
 }

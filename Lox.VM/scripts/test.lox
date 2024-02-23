@@ -1,7 +1,8 @@
-class Test {}
+class Scone {
+  topping(first, second) {
+    print "Scone with " + first + " and " + second;
+  }
+}
 
-var test = Test();
-
-test.hello = "Hello world!";
-
-print test.hello;
+var scone = Scone();
+scone.topping("berries", "cream");

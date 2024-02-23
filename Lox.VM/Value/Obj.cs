@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 
 namespace LoxVM.Value;
 
@@ -38,9 +39,14 @@ internal abstract class Obj
     internal ObjClass AsClass => (ObjClass)this;
 
     /// <summary>
-    /// Treat this <see cref="Obj"/> as an <see cref="Instance"/>.
+    /// Treat this <see cref="Obj"/> as an <see cref="ObjInstance"/>.
     /// </summary>
     internal ObjInstance AsInstance => (ObjInstance)this;
+
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as an <see cref="ObjBoundMethod"/>.
+    /// </summary>
+    internal ObjBoundMethod AsBoundMethod => (ObjBoundMethod)this;
 
     internal Obj(ObjType type)
     {
@@ -83,41 +89,19 @@ internal abstract class Obj
     /// <returns></returns>
     internal static ObjInstance Instance(ObjClass @class) => new() { ObjClass = @class, Fields = [] };
 
-    public override bool Equals(object? obj)
-    {
-        if(obj is null)
-        {
-            return false;
-        }
+    /// <summary>
+    /// Create a new <see cref="ObjBoundMethod"/> instance.
+    /// </summary>
+    /// <param name="receiver">The instance to which the <paramref name="method"/> is bound.</param>
+    /// <param name="method">The method that is being bound to <paramref name="receiver"/>.</param>
+    /// <returns></returns>
+    internal static ObjBoundMethod BoundMethod(LoxValue receiver, ObjClosure method) => new() { Receiver = receiver, Method = method };
 
-        if(obj is not Obj loxObj)
-        {
-            return false;
-        }
+    public abstract override bool Equals(object? obj);
 
-        if(Type != loxObj.Type)
-        {
-            return false;
-        }
+    public abstract override int GetHashCode();
 
-
-        return Type switch
-        {
-            ObjType.Function => loxObj.AsFunction.Equals(this),
-            ObjType.String => loxObj.AsString.Equals(this),
-            ObjType.Native => loxObj.AsNative.Equals(this),
-            ObjType.Closure => loxObj.AsClosure.Equals(this),
-            ObjType.UpValue => throw new NotImplementedException(),
-            ObjType.Class => loxObj.AsClass.Equals(this),
-            ObjType.Instance => loxObj.AsInstance.Equals(this),
-            _ => throw new UnreachableException()
-        };
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+    public abstract override string ToString();
 }
 
 /// <summary>
@@ -226,6 +210,23 @@ internal class ObjNativeFn : Obj
     internal ObjNativeFn() : base(ObjType.Native) { }
 
     public override string ToString() => $"<native fn {Name}>";
+
+    public override bool Equals(object? obj)
+    {
+        if(obj is null)
+        {
+            return false;
+        }
+
+        if(obj is not ObjNativeFn nativeFn)
+        {
+            return false;
+        }
+
+        return Arity == nativeFn.Arity && Name == nativeFn.Name;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Arity, Name);
 }
 
 
@@ -283,6 +284,25 @@ internal class ObjUpValue : Obj
         Next = null;
         Closed = LoxValue.Nil();
     }
+
+    public override string ToString() => $"<upvalue {LoxValue}>";
+
+    public override bool Equals(object? obj)
+    {
+        if(obj is null)
+        {
+            return false;
+        }
+
+        if(obj is not ObjUpValue upValue)
+        {
+            return false;
+        }
+
+        return LoxValue.Equals(upValue.LoxValue) && Closed.Equals(upValue.Closed) && (Next?.Equals(upValue.Next) ?? upValue.Next is null);
+    }
+
+    public override int GetHashCode() => HashCode.Combine(LoxValue, Next, Closed);
 }
 
 /// <summary>
@@ -295,7 +315,7 @@ internal class ObjClass : Obj
     /// </summary>
     internal required string Name { get; init; }
 
-    internal required Dictionary<string, ObjClosure> Methods { get; init; }
+    internal required Dictionary<string, LoxValue> Methods { get; init; }
 
     public override string ToString() => $"<class {Name}>";
 
@@ -356,6 +376,33 @@ internal class ObjInstance : Obj
     public override int GetHashCode() => HashCode.Combine(ObjClass, Fields);
 }
 
+internal class ObjBoundMethod : Obj
+{
+    internal required LoxValue Receiver { get; init; }
+    internal required ObjClosure Method { get; init; }
+
+    internal ObjBoundMethod() : base(ObjType.BoundMethod) { }
+
+    public override string ToString() => Method.Function.ToString();
+
+    public override bool Equals(object? obj)
+    {
+        if(obj is null)
+        {
+            return false;
+        }
+
+        if(obj is not ObjBoundMethod boundMethod)
+        {
+            return false;
+        }
+
+        return Receiver.Equals(boundMethod.Receiver) && Method.Equals(boundMethod.Method);
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Receiver, Method);
+}
+
 internal enum ObjType
 {
     Function,
@@ -364,5 +411,6 @@ internal enum ObjType
     Closure,
     UpValue,
     Class,
-    Instance
+    Instance,
+    BoundMethod
 }
