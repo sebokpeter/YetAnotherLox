@@ -27,6 +27,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private readonly BytecodeCompiler? _enclosing;
 
+    private ClassCompiler? currentClass;
+
     private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
 
     public BytecodeCompiler(List<Stmt> stmts)
@@ -40,9 +42,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _upValues = new UpValue[byte.MaxValue];
 
         _functionType = FunctionType.Script;
+
+        currentClass = null;
     }
 
-    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName)
+    public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName, ClassCompiler? classCompiler)
     {
         _enclosing = compiler;
         _statements = [];
@@ -56,6 +60,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _function = Obj.Func(arity, fnName);
         _locals[localCount++] = new() { Depth = 0, Name = type != FunctionType.Function? "this" : "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
+
+        currentClass = classCompiler;
     }
 
     public ObjFunction Compile()
@@ -257,6 +263,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
         DefineVariable(stmt.Name);
 
+        ClassCompiler classCompiler = new() {Enclosing = currentClass};
+        currentClass = classCompiler;
+
         NamedVariable(stmt.Name);
 
         foreach (Stmt.Function method in stmt.Methods)
@@ -267,7 +276,10 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
             EmitBytes(OpCode.Method, constant, method.Name.Line);
         }
+
         EmitByte(OpCode.Pop);
+
+        currentClass = classCompiler.Enclosing;
     }
 
 
@@ -489,6 +501,12 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitThisExpr(Expr.This expr)
     {
+        if(currentClass is null)
+        {
+            AddError("Can't use 'this' outside of a class.", expr.Keyword);
+            return;
+        }
+
         NamedVariable(expr.Keyword);
     }
 
@@ -536,7 +554,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         int arity = function.Params.Count;
         string name = function.Name.Lexeme;
 
-        BytecodeCompiler compiler = new(this, type, arity, name);
+        BytecodeCompiler compiler = new(this, type, arity, name, currentClass);
 
         ObjFunction fun = compiler.CompileFunction(function);
         _errors.AddRange(compiler._errors);
@@ -832,6 +850,11 @@ internal class Local
     internal required string Name { get; init; }
     internal int Depth { get; set; }
     internal bool IsCaptured { get; set; }
+}
+
+internal class ClassCompiler 
+{
+    internal ClassCompiler? Enclosing {get; set;}
 }
 
 internal readonly struct UpValue

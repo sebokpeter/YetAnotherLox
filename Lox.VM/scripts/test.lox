@@ -1,3 +1,5 @@
+//print this;
+
 class Nested {
   method() {
     fun function() {
