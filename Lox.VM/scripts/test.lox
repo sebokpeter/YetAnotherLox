@@ -1,19 +1,15 @@
-//print this;
-
-class Nested {
-  method() {
-    fun function() {
-      print this;
-    }
-
-    function();
+class CoffeeMaker {
+  init(coffee) {
+    this.coffee = coffee;
   }
 
-  method2() {
-    print this.method;
+  brew() {
+    print "Enjoy your cup of " + this.coffee;
+
+    // No reusing the grounds!
+    this.coffee = nil;
   }
 }
 
-Nested().method();
-
-Nested().method2();
+var maker = CoffeeMaker("coffee and chicory");
+maker.brew();

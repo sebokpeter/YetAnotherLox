@@ -15,6 +15,8 @@ internal class Vm : IDisposable
 {
     internal List<Error> Errors { get; init; }
 
+    private const string INIT_STRING = "init";
+
     private const int FRAMES_MAX = 64;
     private const int STACK_MAX = FRAMES_MAX * byte.MaxValue;
 
@@ -449,6 +451,15 @@ internal class Vm : IDisposable
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
                     _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(objClass));
+                    if(objClass.Methods.TryGetValue(INIT_STRING, out LoxValue? initializer))
+                    {
+                        return CallFn(initializer.AsObj.AsClosure, argCount);
+                    }
+                    else if(argCount != 0)
+                    {
+                        AddRuntimeError($"Expected 0 arguments, got {argCount}.");
+                        return false;
+                    }
                     return true;
                 case ObjType.Closure:
                     return CallFn(callee.AsClosure, argCount);

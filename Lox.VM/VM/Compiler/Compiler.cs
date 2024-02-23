@@ -58,7 +58,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         _locals = new Local[MAX_LOCAL_COUNT];
         _function = Obj.Func(arity, fnName);
-        _locals[localCount++] = new() { Depth = 0, Name = type != FunctionType.Function? "this" : "", IsCaptured = false };
+        _locals[localCount++] = new() { Depth = 0, Name = type != FunctionType.Function ? "this" : "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
 
         currentClass = classCompiler;
@@ -138,6 +138,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
         else
         {
+            if(_functionType == FunctionType.Initializer)
+            {
+                AddError("Cannot return a value from an initializer.", stmt.Keyword);
+            }
+
             EmitBytecode(stmt.Value);
             EmitByte(OpCode.Return, stmt.Keyword.Line);
         }
@@ -263,16 +268,16 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
         DefineVariable(stmt.Name);
 
-        ClassCompiler classCompiler = new() {Enclosing = currentClass};
+        ClassCompiler classCompiler = new() { Enclosing = currentClass };
         currentClass = classCompiler;
 
         NamedVariable(stmt.Name);
 
-        foreach (Stmt.Function method in stmt.Methods)
+        foreach(Stmt.Function method in stmt.Methods)
         {
             byte constant = MakeConstant(LoxValue.Object(Obj.Str(method.Name.Lexeme)));
 
-            Function(FunctionType.Method, method);
+            Function(method.Name.Lexeme == "init" ? FunctionType.Initializer : FunctionType.Method, method);
 
             EmitBytes(OpCode.Method, constant, method.Name.Line);
         }
@@ -766,6 +771,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     private void EmitByte(byte val) => _function.Chunk.WriteChunk(val, latestLine);
+
+    private void EmitBytes(OpCode opCode, byte val) => EmitBytes(opCode, val, latestLine);
     private void EmitBytes(OpCode opCode, byte val, int line)
     {
         EmitByte(opCode, line);
@@ -802,8 +809,17 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void EmitReturn()
     {
-        EmitByte(OpCode.Nil);
+        if(_functionType == FunctionType.Initializer)
+        {
+            EmitBytes(OpCode.GetLocal, 0);
+        }
+        else
+        {
+            EmitByte(OpCode.Nil);
+        }
+
         EmitByte(OpCode.Return);
+
     }
 
     private int GetLineNumber(Expr expr) // Try to get the line number of an Expr by checking the actual type. It would be better to save the line number in the Expr and Stmt records, but that would require many changes in the parser.
@@ -852,9 +868,9 @@ internal class Local
     internal bool IsCaptured { get; set; }
 }
 
-internal class ClassCompiler 
+internal class ClassCompiler
 {
-    internal ClassCompiler? Enclosing {get; set;}
+    internal ClassCompiler? Enclosing { get; set; }
 }
 
 internal readonly struct UpValue
@@ -867,5 +883,6 @@ internal enum FunctionType
 {
     Function,
     Script,
-    Method
+    Method,
+    Initializer
 }
