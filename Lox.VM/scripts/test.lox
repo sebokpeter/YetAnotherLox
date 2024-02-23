@@ -1,8 +1,17 @@
-class Scone {
-  topping(first, second) {
-    print "Scone with " + first + " and " + second;
+class Nested {
+  method() {
+    fun function() {
+      print this;
+    }
+
+    function();
+  }
+
+  method2() {
+    print this.method;
   }
 }
 
-var scone = Scone();
-scone.topping("berries", "cream");
+Nested().method();
+
+Nested().method2();

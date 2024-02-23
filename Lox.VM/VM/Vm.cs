@@ -444,6 +444,7 @@ internal class Vm : IDisposable
             {
                 case ObjType.BoundMethod:
                     ObjBoundMethod boundMethod = callee.AsBoundMethod;
+                    _stack[_stack.StackTop - argCount - 1] = boundMethod.Receiver;
                     return CallFn(boundMethod.Method, argCount);
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;

@@ -54,7 +54,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         _locals = new Local[MAX_LOCAL_COUNT];
         _function = Obj.Func(arity, fnName);
-        _locals[localCount++] = new() { Depth = 0, Name = "", IsCaptured = false };
+        _locals[localCount++] = new() { Depth = 0, Name = type != FunctionType.Function? "this" : "", IsCaptured = false };
         _upValues = new UpValue[byte.MaxValue];
     }
 
@@ -487,6 +487,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.SetProperty, name, expr.Name.Line);
     }
 
+    public void VisitThisExpr(Expr.This expr)
+    {
+        NamedVariable(expr.Keyword);
+    }
+
     #endregion
 
     public void VisitBreakStmt(Stmt.Break stmt)
@@ -500,11 +505,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     public void VisitSuperExpr(Expr.Super expr)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitThisExpr(Expr.This expr)
     {
         throw new NotImplementedException();
     }
