@@ -293,7 +293,7 @@ internal class Vm : IDisposable
                     _stack.Pop();
                     break;
                 case Class:
-                    _stack.Push(LoxValue.Object(new ObjClass() { Name = Frame.ReadString() }));
+                    _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString())));
                     break;
                 case GetProperty:
                     if(_stack.Peek(0).AsObj is not ObjInstance getInstance)
@@ -407,7 +407,7 @@ internal class Vm : IDisposable
             {
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
-                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(new ObjInstance() { ObjClass = objClass, Fields = [] });
+                    _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(objClass));
                     return true;
                 case ObjType.Closure:
                     return CallFn(callee.AsClosure, argCount);
@@ -429,7 +429,7 @@ internal class Vm : IDisposable
             return false;
         }
 
-        LoxValue result = nativeFn.Func.Invoke(_stack.StackTop - argCount);
+        LoxValue result = nativeFn.Function.Invoke(_stack.StackTop - argCount);
         _stack.StackTop -= argCount + 1;
         _stack.Push(result);
         return true;
@@ -595,7 +595,7 @@ internal class Vm : IDisposable
     private void DefineNative(string name, Func<int, LoxValue> native, int arity)
     {
         Obj nameObj = LoxValue.Object(name).AsObj;
-        ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Func = native };
+        ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Function = native };
         LoxValue natFn = LoxValue.Object(objNativeFn);
         _globals.Add(nameObj, natFn);
     }

@@ -38,7 +38,7 @@ internal abstract class Obj
     internal ObjClass AsClass => (ObjClass)this;
 
     /// <summary>
-    /// Treat this <see cref="Obj"/> as an <see cref="ObjInstance"/>.
+    /// Treat this <see cref="Obj"/> as an <see cref="Instance"/>.
     /// </summary>
     internal ObjInstance AsInstance => (ObjInstance)this;
 
@@ -53,6 +53,35 @@ internal abstract class Obj
     /// <param name="type">The lox runtime type to be checked.</param>
     /// <returns>True if the lox runtime type of this <see cref="Obj"/> is <paramref name="type"/>, false otherwise.</returns>
     internal bool IsType(ObjType type) => Type == type;
+
+    /// <summary>
+    /// Create a new <see cref="ObjString"/> instance from a string.
+    /// </summary>
+    /// <param name="string"></param>
+    /// <returns></returns>
+    internal static ObjString Str(string @string) => new() { StringValue = @string };
+
+    /// <summary>
+    /// Create a new <see cref="ObjFunction"/> instance.
+    /// </summary>
+    /// <param name="arity">The arity of the function.</param>
+    /// <param name="name">The name of the function.</param>
+    /// <returns></returns>
+    internal static ObjFunction Func(int arity, string name) => new() { Arity = arity, Name = name };
+
+    /// <summary>
+    /// Create a new <see cref="ObjClass"/> instance. The <see cref="ObjClass.Methods"/> dictionary will be initialized to empty.
+    /// </summary>
+    /// <param name="name">The name of the class.</param>
+    /// <returns></returns>
+    internal static ObjClass Class(string name) => new() { Name = name, Methods = [] };
+
+    /// <summary>
+    /// Create a new <see cref="ObjInstance"/> instance.
+    /// </summary>
+    /// <param name="class">The class of which this <see cref="ObjInstance"/> is an instance of.</param>
+    /// <returns></returns>
+    internal static ObjInstance Instance(ObjClass @class) => new() { ObjClass = @class, Fields = [] };
 
     public override bool Equals(object? obj)
     {
@@ -81,7 +110,7 @@ internal abstract class Obj
             ObjType.UpValue => throw new NotImplementedException(),
             ObjType.Class => loxObj.AsClass.Equals(this),
             ObjType.Instance => loxObj.AsInstance.Equals(this),
-            _   => throw new UnreachableException()
+            _ => throw new UnreachableException()
         };
     }
 
@@ -183,16 +212,16 @@ internal class ObjNativeFn : Obj
     /// The number of arguments to this function.
     /// </summary>
     internal required int Arity { get; init; }
-    
+
     /// <summary>
     /// The name of this function.
     /// </summary>
     internal required string Name { get; init; }
-    
+
     /// <summary>
     /// A <see cref="Func{int, LoxValue}"/> object, that will be invoked when this native function is called.
     /// </summary>
-    internal required Func<int, LoxValue> Func { get; init; }
+    internal required Func<int, LoxValue> Function { get; init; }
 
     internal ObjNativeFn() : base(ObjType.Native) { }
 
@@ -209,7 +238,7 @@ internal class ObjClosure : Obj
     /// The function in this closure.
     /// </summary>
     internal required ObjFunction Function { get; init; }
-    
+
     /// <summary>
     /// The upvalues that are used in this closure.
     /// </summary>
@@ -265,6 +294,8 @@ internal class ObjClass : Obj
     /// The name of the class.
     /// </summary>
     internal required string Name { get; init; }
+
+    internal required Dictionary<string, ObjClosure> Methods { get; init; }
 
     public override string ToString() => $"<class {Name}>";
 
