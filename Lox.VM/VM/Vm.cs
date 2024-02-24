@@ -312,10 +312,43 @@ internal class Vm : IDisposable
                 case Method:
                     DefineMethod(Frame.ReadString());
                     break;
+                case OpCode.Invoke:
+                    string method = Frame.ReadString();
+                    int methodArgCount = Frame.ReadByte();
+                    if(!Invoke(method, methodArgCount))
+                    {
+                        return InterpretResult.RuntimeError;
+                    } 
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool Invoke(string name, int methodArgCount)
+    {
+        LoxValue receiver = _stack.Peek(methodArgCount);
+
+        if(!receiver.IsObj || !receiver.AsObj.IsType(ObjType.Instance))
+        {
+            AddRuntimeError("Only instances have methods.");
+            return false;
+        }
+
+        ObjInstance instance = receiver.AsObj.AsInstance;
+
+        return InvokeFromClass(instance.ObjClass, name, methodArgCount);
+    }
+
+    private bool InvokeFromClass(ObjClass objClass, string name, int methodArgCount)
+    {
+        if(!objClass.Methods.TryGetValue(name, out LoxValue? method))
+        {
+            AddRuntimeError($"Undefined property '{name}'.");
+            return false;
+        }
+        return CallFn(method.AsObj.AsClosure, methodArgCount);
     }
 
     private bool SetProp()

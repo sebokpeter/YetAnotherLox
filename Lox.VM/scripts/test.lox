@@ -9,7 +9,13 @@ class CoffeeMaker {
     // No reusing the grounds!
     this.coffee = nil;
   }
+
+  addGrounds(grounds) {
+    this.coffee = grounds;
+  }
 }
 
 var maker = CoffeeMaker("coffee and chicory");
+maker.brew();
+maker.addGrounds("coffee");
 maker.brew();

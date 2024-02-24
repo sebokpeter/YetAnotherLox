@@ -405,53 +405,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitVariableExpr(Expr.Variable expr) => NamedVariable(expr.Name);
 
-    private int ResolveUpValue(Token name)
-    {
-        if(_enclosing is null)
-        {
-            return -1;
-        }
-
-        int local = _enclosing.ResolveLocal(name);
-        if(local != -1)
-        {
-            _enclosing._locals[local].IsCaptured = true;
-            return AddUpValue((byte)local, true, name);
-        }
-
-        int upValue = _enclosing.ResolveUpValue(name);
-        if(upValue != -1)
-        {
-            return AddUpValue((byte)upValue, false, name);
-        }
-
-        return -1;
-    }
-
-    private int AddUpValue(byte index, bool isLocal, Token name)
-    {
-        int upValueCount = _function.UpValueCount;
-
-        for(int i = 0; i < upValueCount; i++)
-        {
-            UpValue upValue = _upValues[i];
-            if(upValue.Index == index && upValue.IsLocal == isLocal)
-            {
-                return i;
-            }
-        }
-
-        if(upValueCount == byte.MaxValue)
-        {
-            AddError("Too many closure variables in function.", name);
-            return 0;
-        }
-
-        UpValue upVal = new() { Index = index, IsLocal = isLocal };
-        _upValues[upValueCount] = upVal;
-        return _function.UpValueCount++;
-    }
-
     public void VisitAssignExpr(Expr.Assign expr)
     {
         EmitBytecode(expr.Value);
@@ -480,10 +433,26 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             AddError("Can't have more than 255 parameters.", expr.Paren);
         }
 
-        EmitBytecode(expr.Callee);
+        if(expr.Callee is Expr.Get getExpr)
+        {
+            // The code is accessing a method and calling it immediately.
+            // So replace the GetProperty and Call instructions with a dedicated Invoke instruction
 
-        EmitBytecode(expr.Arguments);
-        EmitBytes(OpCode.Call, (byte)count, expr.Paren.Line);
+            byte argCount = (byte)expr.Arguments.Count;
+            byte name = MakeConstant(LoxValue.Object(Obj.Str(getExpr.Name.Lexeme)));
+            EmitBytecode(getExpr.Obj);
+            EmitBytecode(expr.Arguments);
+            
+            EmitBytes(OpCode.Invoke, name, getExpr.Name.Line);
+            EmitByte(argCount, getExpr.Name.Line);
+        }
+        else
+        {
+            EmitBytecode(expr.Callee);
+
+            EmitBytecode(expr.Arguments);
+            EmitBytes(OpCode.Call, (byte)count, expr.Paren.Line);
+        }
     }
 
     public void VisitGetExpr(Expr.Get expr)
@@ -752,6 +721,54 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitBytes(OpCode.SetGlobal, arg, expr.Name.Line);
     }
+
+    private int ResolveUpValue(Token name)
+    {
+        if(_enclosing is null)
+        {
+            return -1;
+        }
+
+        int local = _enclosing.ResolveLocal(name);
+        if(local != -1)
+        {
+            _enclosing._locals[local].IsCaptured = true;
+            return AddUpValue((byte)local, true, name);
+        }
+
+        int upValue = _enclosing.ResolveUpValue(name);
+        if(upValue != -1)
+        {
+            return AddUpValue((byte)upValue, false, name);
+        }
+
+        return -1;
+    }
+
+    private int AddUpValue(byte index, bool isLocal, Token name)
+    {
+        int upValueCount = _function.UpValueCount;
+
+        for(int i = 0; i < upValueCount; i++)
+        {
+            UpValue upValue = _upValues[i];
+            if(upValue.Index == index && upValue.IsLocal == isLocal)
+            {
+                return i;
+            }
+        }
+
+        if(upValueCount == byte.MaxValue)
+        {
+            AddError("Too many closure variables in function.", name);
+            return 0;
+        }
+
+        UpValue upVal = new() { Index = index, IsLocal = isLocal };
+        _upValues[upValueCount] = upVal;
+        return _function.UpValueCount++;
+    }
+
 
     #endregion
 

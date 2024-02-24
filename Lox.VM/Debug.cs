@@ -76,8 +76,22 @@ internal static class Debug
             OpCode.GetProperty  => ConstantInstruction(opCode, chunk, offset),
             OpCode.SetProperty  => ConstantInstruction(opCode, chunk, offset),
             OpCode.Method       => ConstantInstruction(opCode, chunk, offset),
+            OpCode.Invoke       => InvokeInstruction(opCode, chunk, offset),
             _ => UnknownInstruction(opCode, offset)
         };
+    }
+
+    private static int InvokeInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
+    {
+        byte constant = chunk[offset + 1];
+        byte argCount = chunk[offset + 2];
+        
+        string opString = $"{opCode} ({argCount} args)";
+
+        Console.Write($"{opString, -19} {constant:0000} ");
+        Console.WriteLine(chunk.Constants[constant]);
+
+        return offset + 3;
     }
 
     private static int ClosureInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
@@ -95,6 +109,8 @@ internal static class Debug
         }
 
         function.Chunk.Disassemble(function.Name);
+
+        Console.WriteLine();
 
         return offset;
     }

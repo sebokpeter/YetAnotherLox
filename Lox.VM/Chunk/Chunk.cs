@@ -87,6 +87,7 @@ internal enum OpCode : byte
     GetProperty,
     SetProperty,
     Method,
+    Invoke,
 }
 
 internal static class OpcodeExtensions
