@@ -268,7 +268,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
         DefineVariable(stmt.Name);
 
-        ClassCompiler classCompiler = new() { Enclosing = currentClass };
+        ClassCompiler classCompiler = new() { Enclosing = currentClass, HasSuperClass = false };
         currentClass = classCompiler;
 
         if(stmt.Superclass is not null)
@@ -279,8 +279,15 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             }
 
             NamedVariable(stmt.Superclass.Name);
+
+            BeginScope();
+            Token superToken = new(TokenType.IDENTIFIER, "super", null, stmt.Name.Line);
+            AddLocal(superToken);
+            DefineVariable(superToken);
+
             NamedVariable(stmt.Name);
             EmitByte(OpCode.Inherit, stmt.Superclass.Name.Line);
+            classCompiler.HasSuperClass = true;
         }
 
         NamedVariable(stmt.Name);
@@ -295,6 +302,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
 
         EmitByte(OpCode.Pop);
+
+        if(currentClass.HasSuperClass)
+        {
+            EndScope();
+        }
 
         currentClass = classCompiler.Enclosing;
     }
@@ -496,6 +508,23 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         NamedVariable(expr.Keyword);
     }
 
+    public void VisitSuperExpr(Expr.Super expr)
+    {
+        if(currentClass is null)
+        {
+            AddError("Cannot use 'super' outside of a class.", expr.Keyword);
+        }
+        else if(!currentClass.HasSuperClass)
+        {
+            AddError("Cannot use 'super' in a class with no superclass.");
+        }
+
+        byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Method.Lexeme)));
+        NamedVariable(new Token(TokenType.IDENTIFIER, "this", null, expr.Method.Line));
+        NamedVariable(new Token(TokenType.IDENTIFIER, "super", null, expr.Method.Line));
+        EmitBytes(OpCode.GetSuper, name, expr.Method.Line);
+    }
+
     #endregion
 
     public void VisitBreakStmt(Stmt.Break stmt)
@@ -504,11 +533,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     public void VisitContinueStmt(Stmt.Continue stmt)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void VisitSuperExpr(Expr.Super expr)
     {
         throw new NotImplementedException();
     }
@@ -900,6 +924,7 @@ internal class Local
 internal class ClassCompiler
 {
     internal ClassCompiler? Enclosing { get; set; }
+    internal bool HasSuperClass { get; set; }   
 }
 
 internal readonly struct UpValue

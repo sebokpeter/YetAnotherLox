@@ -89,6 +89,7 @@ internal enum OpCode : byte
     Method,
     Invoke,
     Inherit,
+    GetSuper,
 }
 
 internal static class OpcodeExtensions

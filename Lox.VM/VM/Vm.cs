@@ -339,10 +339,34 @@ internal class Vm : IDisposable
                     }
                     _stack.Pop();
                     break;
+                case GetSuper:
+                    string supMethodName = Frame.ReadString();
+                    ObjClass superClass = _stack.Pop().AsObj.AsClass;
+
+                    if(!BindMethod(superClass, supMethodName))  
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool BindMethod(ObjClass superClass, string supMethodName)
+    {
+        if(!superClass.Methods.TryGetValue(supMethodName, out LoxValue? method))
+        {
+            AddRuntimeError($"Undefined property '{supMethodName}'.");
+            return false;
+        }
+
+        ObjBoundMethod boundMethod = Obj.BoundMethod(_stack.Peek(0), method.AsObj.AsClosure);
+        _stack.Pop();
+        _stack.Push(LoxValue.Object(boundMethod));
+        return true;
     }
 
     private bool Invoke(string name, int methodArgCount)
@@ -400,16 +424,9 @@ internal class Vm : IDisposable
             _stack.Pop();
             _stack.Push(value);
         }
-        else if(instance.ObjClass.Methods.TryGetValue(propertyName, out LoxValue? method))
+        else if(!BindMethod(instance.ObjClass, propertyName))
         {
-            ObjBoundMethod bound = Obj.BoundMethod(_stack.Peek(0), method.AsObj.AsClosure);
-            _stack.Pop();
-            _stack.Push(LoxValue.Object(bound));
-            return true;
-        }
-        else
-        {
-            AddRuntimeError($"Undefined property '{propertyName}'.");
+            AddRuntimeError($"Undefined property '{propertyName}'");
             return false;
         }
 

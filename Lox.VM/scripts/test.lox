@@ -1,10 +1,20 @@
-class A {
-  method() {
-    print "Hello";
+class Doughnut {
+  cook() {
+    print "Dunk in the fryer.";
+    this.finish("sprinkles");
+  }
+
+  finish(ingredient) {
+    print "Finish with " + ingredient;
   }
 }
 
-class B < A {}
+class Cruller < Doughnut {
+  finish(ingredient) {
+    super.finish("icing");
+  }
+}
 
-var a = A();
-a.method();
+var c = Cruller();
+
+c.cook();
