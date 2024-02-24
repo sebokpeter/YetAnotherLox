@@ -16,7 +16,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private readonly List<Stmt> _statements;
 
-    private ObjFunction _function;
+    private readonly ObjFunction _function;
     private readonly FunctionType _functionType;
 
     private const ushort MAX_LOCAL_COUNT = byte.MaxValue + 1;
@@ -270,6 +270,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         ClassCompiler classCompiler = new() { Enclosing = currentClass };
         currentClass = classCompiler;
+
+        if(stmt.Superclass is not null)
+        {
+            if(stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme)
+            {
+                AddError("A class can't inherit from itself.", stmt.Name);
+            }
+
+            NamedVariable(stmt.Superclass.Name);
+            NamedVariable(stmt.Name);
+            EmitByte(OpCode.Inherit, stmt.Superclass.Name.Line);
+        }
 
         NamedVariable(stmt.Name);
 

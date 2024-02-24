@@ -320,6 +320,25 @@ internal class Vm : IDisposable
                         return InterpretResult.RuntimeError;
                     } 
                     break;
+                case Inherit:
+                    LoxValue superclassValue = _stack.Peek(1);
+                    
+                    if(!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class))
+                    {
+                        AddRuntimeError("Superclass must be a class.");
+                        return InterpretResult.RuntimeError;
+                    }
+                    
+                    ObjClass superclass = superclassValue.AsObj.AsClass;
+                    ObjClass inheritingClass = _stack.Peek(0).AsObj.AsClass;
+
+
+                    foreach ((string methodName, LoxValue methodVal) in superclass.Methods)
+                    {
+                        inheritingClass.Methods[methodName] = methodVal;
+                    }
+                    _stack.Pop();
+                    break;
                 default:
                     throw new UnreachableException();
             }
