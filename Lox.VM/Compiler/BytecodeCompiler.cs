@@ -1,4 +1,3 @@
-using System.Data.Common;
 using System.Diagnostics;
 using Generated;
 using LoxVM.Chunk;
@@ -22,6 +21,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     private const ushort MAX_LOCAL_COUNT = byte.MaxValue + 1;
     private readonly Local[] _locals;
     private readonly UpValue[] _upValues;
+
     private int scopeDepth;
     private int localCount;
 
@@ -406,7 +406,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitLiteralExpr(Expr.Literal expr)
     {
-        int line = expr.Token is not null ? expr.Token.Line : -1; // TODO: Throw exception if Literal.Token is null? 
+        int line = expr.Token is not null ? expr.Token.Line : latestLine;
 
         switch(expr.Value)
         {
@@ -423,7 +423,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
                 EmitConstant(LoxValue.Object(s), line);
                 break;
             default:
-                throw new NotImplementedException($"{nameof(VisitLiteralExpr)} can not yet handle {expr.Value.GetType()} values.");
+                throw new UnreachableException($"{nameof(VisitLiteralExpr)} can not handle {expr.Value.GetType()} values.");
         }
     }
 
@@ -460,13 +460,13 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         if(expr.Callee is Expr.Get getExpr)
         {
             // The code is accessing a method and calling it immediately.
-            // So replace the GetProperty and Call instructions with a dedicated Invoke instruction
+            // So replace the GetProperty and Call instructions with a dedicated Invoke instruction.
 
             byte argCount = (byte)expr.Arguments.Count;
             byte name = MakeConstant(LoxValue.Object(Obj.Str(getExpr.Name.Lexeme)));
             EmitBytecode(getExpr.Obj);
             EmitBytecode(expr.Arguments);
-            
+
             EmitBytes(OpCode.Invoke, name, getExpr.Name.Line);
             EmitByte(argCount, getExpr.Name.Line);
         }
@@ -482,6 +482,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitGetExpr(Expr.Get expr)
     {
         EmitBytecode(expr.Obj);
+
         byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Name.Lexeme)));
 
         EmitBytes(OpCode.GetProperty, name, expr.Name.Line);
@@ -924,7 +925,7 @@ internal class Local
 internal class ClassCompiler
 {
     internal ClassCompiler? Enclosing { get; set; }
-    internal bool HasSuperClass { get; set; }   
+    internal bool HasSuperClass { get; set; }
 }
 
 internal readonly struct UpValue

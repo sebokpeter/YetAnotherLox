@@ -1,5 +1,9 @@
+using System.Reflection.Metadata.Ecma335;
+
 using LoxVM.Chunk;
 using LoxVM.Value;
+
+using static LoxVM.Chunk.OpCode;
 
 namespace LoxVM;
 
@@ -17,7 +21,7 @@ internal static class Debug
     {
         Console.WriteLine($"== {name} ==");
 
-        for(int offset = 0; offset < chunk.Count;)
+        for (int offset = 0; offset < chunk.Count;)
         {
             offset = chunk.DisassembleInstruction(offset);
         }
@@ -27,7 +31,7 @@ internal static class Debug
     {
         Console.Write($"{offset:0000} ");
 
-        if(offset > 0 && chunk.Lines[offset] == chunk.Lines[offset - 1])
+        if (offset > 0 && chunk.Lines[offset] == chunk.Lines[offset - 1])
         {
             Console.Write("\t| ");
         }
@@ -40,45 +44,52 @@ internal static class Debug
 
         return opCode switch
         {
-            OpCode.Return       => SimpleInstruction(opCode, offset),
-            OpCode.Constant     => ConstantInstruction(opCode, chunk, offset),
-            OpCode.Negate       => SimpleInstruction(opCode, offset),
-            OpCode.Add          => SimpleInstruction(opCode, offset),
-            OpCode.Subtract     => SimpleInstruction(opCode, offset),
-            OpCode.Multiply     => SimpleInstruction(opCode, offset),
-            OpCode.Divide       => SimpleInstruction(opCode, offset),
-            OpCode.Modulo       => SimpleInstruction(opCode, offset),
-            OpCode.Nil          => SimpleInstruction(opCode, offset),
-            OpCode.True         => SimpleInstruction(opCode, offset),
-            OpCode.False        => SimpleInstruction(opCode, offset),
-            OpCode.Not          => SimpleInstruction(opCode, offset),
-            OpCode.Equal        => SimpleInstruction(opCode, offset),
-            OpCode.Less         => SimpleInstruction(opCode, offset),
-            OpCode.Greater      => SimpleInstruction(opCode, offset),
-            OpCode.And          => SimpleInstruction(opCode, offset),
-            OpCode.Or           => SimpleInstruction(opCode, offset),
-            OpCode.Print        => SimpleInstruction(opCode, offset),
-            OpCode.Pop          => SimpleInstruction(opCode, offset),
-            OpCode.DefineGlobal => ConstantInstruction(opCode, chunk, offset),
-            OpCode.GetGlobal    => ConstantInstruction(opCode, chunk, offset),
-            OpCode.SetGlobal    => ConstantInstruction(opCode, chunk, offset),
-            OpCode.GetLocal     => ByteInstruction(opCode, chunk, offset),
-            OpCode.SetLocal     => ByteInstruction(opCode, chunk, offset),
-            OpCode.JumpIfFalse  => JumpInstruction(opCode, 1, chunk, offset),
-            OpCode.Jump         => JumpInstruction(opCode, 1, chunk, offset),
-            OpCode.Loop         => JumpInstruction(opCode, -1, chunk, offset),
-            OpCode.Call         => ByteInstruction(opCode, chunk, offset),
-            OpCode.Closure      => ClosureInstruction(opCode, chunk, offset),
-            OpCode.GetUpValue   => ByteInstruction(opCode, chunk, offset),
-            OpCode.SetUpValue   => ByteInstruction(opCode, chunk, offset),
-            OpCode.CloseUpValue => SimpleInstruction(opCode, offset),
-            OpCode.Class        => ConstantInstruction(opCode, chunk, offset),
-            OpCode.GetProperty  => ConstantInstruction(opCode, chunk, offset),
-            OpCode.SetProperty  => ConstantInstruction(opCode, chunk, offset),
-            OpCode.Method       => ConstantInstruction(opCode, chunk, offset),
-            OpCode.Invoke       => InvokeInstruction(opCode, chunk, offset),
-            OpCode.Inherit      => SimpleInstruction(opCode, offset),
-            OpCode.GetSuper     => ConstantInstruction(opCode, chunk, offset),
+
+            Return => SimpleInstruction(opCode, offset),
+            Negate => SimpleInstruction(opCode, offset),
+            Add => SimpleInstruction(opCode, offset),
+            Subtract => SimpleInstruction(opCode, offset),
+            Multiply => SimpleInstruction(opCode, offset),
+            Divide => SimpleInstruction(opCode, offset),
+            Modulo => SimpleInstruction(opCode, offset),
+            Nil => SimpleInstruction(opCode, offset),
+            True => SimpleInstruction(opCode, offset),
+            False => SimpleInstruction(opCode, offset),
+            Not => SimpleInstruction(opCode, offset),
+            Equal => SimpleInstruction(opCode, offset),
+            Less => SimpleInstruction(opCode, offset),
+            Greater => SimpleInstruction(opCode, offset),
+            And => SimpleInstruction(opCode, offset),
+            Or => SimpleInstruction(opCode, offset),
+            Print => SimpleInstruction(opCode, offset),
+            Pop => SimpleInstruction(opCode, offset),
+            CloseUpValue => SimpleInstruction(opCode, offset),
+            Inherit => SimpleInstruction(opCode, offset),
+
+            Constant => ConstantInstruction(opCode, chunk, offset),
+            DefineGlobal => ConstantInstruction(opCode, chunk, offset),
+            GetGlobal => ConstantInstruction(opCode, chunk, offset),
+            SetGlobal => ConstantInstruction(opCode, chunk, offset),
+            Class => ConstantInstruction(opCode, chunk, offset),
+            GetProperty => ConstantInstruction(opCode, chunk, offset),
+            SetProperty => ConstantInstruction(opCode, chunk, offset),
+            Method => ConstantInstruction(opCode, chunk, offset),
+            GetSuper => ConstantInstruction(opCode, chunk, offset),
+
+            GetLocal => ByteInstruction(opCode, chunk, offset),
+            SetLocal => ByteInstruction(opCode, chunk, offset),
+            GetUpValue => ByteInstruction(opCode, chunk, offset),
+            SetUpValue => ByteInstruction(opCode, chunk, offset),
+
+            JumpIfFalse => JumpInstruction(opCode, 1, chunk, offset),
+            Jump => JumpInstruction(opCode, 1, chunk, offset),
+            Loop => JumpInstruction(opCode, -1, chunk, offset),
+            Call => ByteInstruction(opCode, chunk, offset),
+
+            Closure => ClosureInstruction(opCode, chunk, offset),
+
+            Invoke => InvokeInstruction(opCode, chunk, offset),
+
             _ => UnknownInstruction(opCode, offset)
         };
     }
@@ -87,10 +98,10 @@ internal static class Debug
     {
         byte constant = chunk[offset + 1];
         byte argCount = chunk[offset + 2];
-        
+
         string opString = $"{opCode} ({argCount} args)";
 
-        Console.Write($"{opString, -19} {constant:0000} ");
+        Console.Write($"{opString,-19} {constant:0000} ");
         Console.WriteLine(chunk.Constants[constant]);
 
         return offset + 3;
@@ -100,14 +111,14 @@ internal static class Debug
     {
         offset++;
         byte constant = chunk[offset++];
-        Console.WriteLine($"{opCode, -19} {constant:0000} {chunk.Constants[constant]}");
+        Console.WriteLine($"{opCode,-19} {constant:0000} {chunk.Constants[constant]}");
 
-        ObjFunction function = chunk.Constants[constant].AsObj.AsFunction;        
-        for(int i = 0; i < function.UpValueCount; i++)
+        ObjFunction function = chunk.Constants[constant].AsObj.AsFunction;
+        for (int i = 0; i < function.UpValueCount; i++)
         {
             bool isLocal = chunk[offset++] == 1;
             int index = chunk[offset++];
-            Console.WriteLine($"{offset-2:0000}\t|---------------------{(isLocal? "local" : "upvalue")} {index}"); 
+            Console.WriteLine($"{offset - 2:0000}\t|---------------------{(isLocal ? "local" : "upvalue")} {index}");
         }
 
         function.Chunk.Disassemble(function.Name);
@@ -148,7 +159,7 @@ internal static class Debug
         ushort jump = (ushort)(chunk[offset + 1] << 8);
         jump |= chunk[offset + 2];
 
-        Console.WriteLine($"{opCode,-19} {offset:0000} -> {offset+3+sign*jump}");
+        Console.WriteLine($"{opCode,-19} {offset:0000} -> {offset + 3 + sign * jump}");
         return offset + 3;
     }
 }

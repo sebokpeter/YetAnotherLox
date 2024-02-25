@@ -1,17 +1,15 @@
 using System.Diagnostics;
-using Frontend.Parser;
-using Frontend.Scanner;
-using Generated;
+
 using LoxVM.Chunk;
-using LoxVM.Compiler;
 using LoxVM.Value;
-using Shared;
+
 using Shared.ErrorHandling;
+
 using static LoxVM.Chunk.OpCode;
 
 namespace LoxVM.VM;
 
-internal class Vm : IDisposable
+internal class Vm
 {
     internal List<Error> Errors { get; init; }
 
@@ -19,8 +17,6 @@ internal class Vm : IDisposable
 
     private const int FRAMES_MAX = 64;
     private const int STACK_MAX = FRAMES_MAX * byte.MaxValue;
-
-    private bool disposed;
 
     private CallFrame[] callFrames;
     private int frameCount;
@@ -36,13 +32,19 @@ internal class Vm : IDisposable
 
     public Vm()
     {
-        disposed = false;
+        Errors = [];
+
         callFrames = new CallFrame[FRAMES_MAX];
+
         _stack = new(STACK_MAX);
         _globals = [];
-        Errors = [];
         _stopwatch = new();
 
+        DefineNativeMethods();
+    }
+
+    private void DefineNativeMethods()
+    {
         DefineNative("clock", (_) => LoxValue.Number(_stopwatch.ElapsedMilliseconds), 0);
         DefineNative("add", (argNum) =>
         {
@@ -53,103 +55,22 @@ internal class Vm : IDisposable
         }, 2);
     }
 
-    internal InterpretResult Interpret(string source)
+    internal InterpretResult Interpret(ObjFunction function)
     {
-        (bool success, ObjFunction? function) = Compile(source);
-        if(!success)
-        {
-            return InterpretResult.CompileError;
-        }
+        ResetVm();
 
         _stopwatch.Restart();
 
-        ObjClosure closure = new() { Function = function!, UpValues = [] };
+        ObjClosure closure = new() { Function = function, UpValues = [] };
         _stack.Push(LoxValue.Object(closure));
         CallFn(closure, 0);
 
         return Run();
     }
 
-    private (bool success, ObjFunction? function) Compile(string source)
-    {
-        ResetVm();
-
-        (bool scanSuccess, List<Token>? tokens) = Scan(source);
-
-        if(!scanSuccess)
-        {
-            return (false, null);
-        }
-
-        (bool parseSuccess, List<Stmt>? statements) = Parse(tokens!);
-
-        if(!parseSuccess)
-        {
-            return (false, null);
-        }
-
-        // TODO: Emit bytecode based on AST
-        (bool compileSuccess, ObjFunction? function) = CompileStatements(statements!);
-
-        if(!compileSuccess)
-        {
-            return (false, null);
-        }
-
-
-#if DEBUG_PRINT_CODE
-        function!.Chunk.Disassemble(String.IsNullOrEmpty(function.Name) ? "script" : function.Name);
-        Console.WriteLine("================");
-#endif
-
-        return (true, function);
-    }
-
-    private (bool compileSuccess, ObjFunction? chunk) CompileStatements(List<Stmt> stmts)
-    {
-        BytecodeCompiler compiler = new(stmts);
-        ObjFunction function = compiler.Compile();
-
-        if(compiler.HadError)
-        {
-            Errors.AddRange(compiler.Errors);
-            return (false, null);
-        }
-
-        return (true, function);
-    }
-
-    private (bool, List<Token>?) Scan(string source)
-    {
-        Scanner scanner = new(source);
-        List<Token> tokens = scanner.ScanTokens();
-
-        if(scanner.HadError)
-        {
-            Errors.AddRange(scanner.Errors);
-            return (false, null);
-        }
-
-        return (true, tokens);
-    }
-
-    private (bool, List<Stmt>?) Parse(List<Token> tokens)
-    {
-        Parser parser = new(tokens!);
-        List<Stmt> statements = parser.Parse();
-
-        if(parser.HadError)
-        {
-            Errors.AddRange(parser.Errors);
-            return (false, null);
-        }
-
-        return (true, statements);
-    }
-
     private InterpretResult Run()
     {
-        while(true)
+        while (true)
         {
 #if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
@@ -159,14 +80,14 @@ internal class Vm : IDisposable
 
             OpCode instruction = (OpCode)Frame.ReadByte();
 
-            switch(instruction)
+            switch (instruction)
             {
                 case Return:
                     int newTop = Frame.Slot;
                     LoxValue result = _stack.Pop();
                     CloseUpValues(newTop);
                     frameCount--;
-                    if(frameCount == 0)
+                    if (frameCount == 0)
                     {
                         _stack.Pop();
                         return InterpretResult.Ok;
@@ -179,7 +100,7 @@ internal class Vm : IDisposable
                     _stack.Push(constant);
                     break;
                 case Negate:
-                    if(!_stack.Peek(0).IsNumber)
+                    if (!_stack.Peek(0).IsNumber)
                     {
                         AddRuntimeError("Operand must be a number.");
                         return InterpretResult.RuntimeError;
@@ -187,7 +108,7 @@ internal class Vm : IDisposable
                     _stack.Push(LoxValue.Number(-_stack.Pop().AsNumber));
                     break;
                 case Add or Subtract or Multiply or Divide or Modulo:
-                    if(!BinaryOp(instruction))
+                    if (!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -210,13 +131,13 @@ internal class Vm : IDisposable
                     _stack.Push(LoxValue.Bool(a.Equals(b)));
                     break;
                 case Greater or Less:
-                    if(!BinaryOp(instruction))
+                    if (!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
                     break;
                 case And or Or:
-                    if(!BinaryOp(instruction))
+                    if (!BinaryOp(instruction))
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -233,7 +154,7 @@ internal class Vm : IDisposable
                     break;
                 case GetGlobal:
                     Obj varName = Frame.ReadConstant().AsObj;
-                    if(!_globals.TryGetValue(varName, out LoxValue? value))
+                    if (!_globals.TryGetValue(varName, out LoxValue? value))
                     {
                         AddRuntimeError($"Undefined variable {varName.AsString}.");
                         return InterpretResult.RuntimeError;
@@ -242,7 +163,7 @@ internal class Vm : IDisposable
                     break;
                 case SetGlobal:
                     Obj globalName = Frame.ReadConstant().AsObj;
-                    if(!_globals.ContainsKey(globalName))
+                    if (!_globals.ContainsKey(globalName))
                     {
                         AddRuntimeError($"Undefined variable {globalName.AsString}.");
                         return InterpretResult.RuntimeError;
@@ -259,7 +180,7 @@ internal class Vm : IDisposable
                     break;
                 case JumpIfFalse:
                     ushort offset = Frame.ReadShort();
-                    if(IsFalsey(_stack.Peek(0)))
+                    if (IsFalsey(_stack.Peek(0)))
                     {
                         Frame.Ip += offset;
                     }
@@ -274,7 +195,7 @@ internal class Vm : IDisposable
                     break;
                 case Call:
                     int argCount = Frame.ReadByte();
-                    if(!CallValue(_stack.Peek(argCount), argCount))
+                    if (!CallValue(_stack.Peek(argCount), argCount))
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -298,13 +219,13 @@ internal class Vm : IDisposable
                     _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString())));
                     break;
                 case GetProperty:
-                    if(!GetProp())
+                    if (!GetProp())
                     {
                         return InterpretResult.RuntimeError;
                     }
                     break;
                 case SetProperty:
-                    if(!SetProp())
+                    if (!SetProp())
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -315,35 +236,22 @@ internal class Vm : IDisposable
                 case OpCode.Invoke:
                     string method = Frame.ReadString();
                     int methodArgCount = Frame.ReadByte();
-                    if(!Invoke(method, methodArgCount))
+                    if (!Invoke(method, methodArgCount))
                     {
                         return InterpretResult.RuntimeError;
-                    } 
+                    }
                     break;
-                case Inherit:
-                    LoxValue superclassValue = _stack.Peek(1);
-                    
-                    if(!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class))
+                case OpCode.Inherit:
+                    if (!Inherit())
                     {
-                        AddRuntimeError("Superclass must be a class.");
                         return InterpretResult.RuntimeError;
                     }
-                    
-                    ObjClass superclass = superclassValue.AsObj.AsClass;
-                    ObjClass inheritingClass = _stack.Peek(0).AsObj.AsClass;
-
-
-                    foreach ((string methodName, LoxValue methodVal) in superclass.Methods)
-                    {
-                        inheritingClass.Methods[methodName] = methodVal;
-                    }
-                    _stack.Pop();
                     break;
                 case GetSuper:
                     string supMethodName = Frame.ReadString();
                     ObjClass superClass = _stack.Pop().AsObj.AsClass;
 
-                    if(!BindMethod(superClass, supMethodName))  
+                    if (!BindMethod(superClass, supMethodName))
                     {
                         return InterpretResult.RuntimeError;
                     }
@@ -355,9 +263,31 @@ internal class Vm : IDisposable
         }
     }
 
+    private bool Inherit()
+    {
+        LoxValue superclassValue = _stack.Peek(1);
+
+        if (!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class))
+        {
+            AddRuntimeError("Superclass must be a class.");
+            return false;
+        }
+
+        ObjClass superclass = superclassValue.AsObj.AsClass;
+        ObjClass inheritingClass = _stack.Peek(0).AsObj.AsClass;
+
+
+        foreach ((string methodName, LoxValue methodVal) in superclass.Methods)
+        {
+            inheritingClass.Methods[methodName] = methodVal;
+        }
+        _stack.Pop();
+        return true;
+    }
+
     private bool BindMethod(ObjClass superClass, string supMethodName)
     {
-        if(!superClass.Methods.TryGetValue(supMethodName, out LoxValue? method))
+        if (!superClass.Methods.TryGetValue(supMethodName, out LoxValue? method))
         {
             AddRuntimeError($"Undefined property '{supMethodName}'.");
             return false;
@@ -373,7 +303,7 @@ internal class Vm : IDisposable
     {
         LoxValue receiver = _stack.Peek(methodArgCount);
 
-        if(!receiver.IsObj || !receiver.AsObj.IsType(ObjType.Instance))
+        if (!receiver.IsObj || !receiver.AsObj.IsType(ObjType.Instance))
         {
             AddRuntimeError("Only instances have methods.");
             return false;
@@ -386,7 +316,7 @@ internal class Vm : IDisposable
 
     private bool InvokeFromClass(ObjClass objClass, string name, int methodArgCount)
     {
-        if(!objClass.Methods.TryGetValue(name, out LoxValue? method))
+        if (!objClass.Methods.TryGetValue(name, out LoxValue? method))
         {
             AddRuntimeError($"Undefined property '{name}'.");
             return false;
@@ -396,7 +326,7 @@ internal class Vm : IDisposable
 
     private bool SetProp()
     {
-        if(_stack.Peek(1).AsObj is not ObjInstance setInstance)
+        if (_stack.Peek(1).AsObj is not ObjInstance setInstance)
         {
             AddRuntimeError("Only instances have fields.");
             return false;
@@ -411,7 +341,7 @@ internal class Vm : IDisposable
 
     private bool GetProp()
     {
-        if(_stack.Peek(0).AsObj is not ObjInstance instance)
+        if (_stack.Peek(0).AsObj is not ObjInstance instance)
         {
             AddRuntimeError("Only instances have properties.");
             return false;
@@ -419,12 +349,12 @@ internal class Vm : IDisposable
 
         string propertyName = Frame.ReadString();
 
-        if(instance.Fields.TryGetValue(propertyName, out LoxValue? value))
+        if (instance.Fields.TryGetValue(propertyName, out LoxValue? value))
         {
             _stack.Pop();
             _stack.Push(value);
         }
-        else if(!BindMethod(instance.ObjClass, propertyName))
+        else if (!BindMethod(instance.ObjClass, propertyName))
         {
             AddRuntimeError($"Undefined property '{propertyName}'");
             return false;
@@ -445,7 +375,7 @@ internal class Vm : IDisposable
     {
         LoxValue value = _stack[locationOnStack];
 
-        while(openUpValues is not null && locationOnStack > _stack.StackTop)
+        while (openUpValues is not null && locationOnStack > _stack.StackTop)
         {
             ObjUpValue upValue = openUpValues;
             upValue.Closed = value;
@@ -462,12 +392,12 @@ internal class Vm : IDisposable
         ObjClosure closure = new() { Function = function, UpValues = upValues };
         _stack.Push(LoxValue.Object(closure));
 
-        for(int i = 0; i < function.UpValueCount; i++)
+        for (int i = 0; i < function.UpValueCount; i++)
         {
             bool isLocal = Frame.ReadByte() == 1;
             byte index = Frame.ReadByte();
 
-            if(isLocal)
+            if (isLocal)
             {
                 closure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
             }
@@ -482,19 +412,19 @@ internal class Vm : IDisposable
     {
         ObjUpValue? prevUpValue = null;
         ObjUpValue? upValue = openUpValues;
-        while(upValue is not null)
+        while (upValue is not null)
         {
             prevUpValue = upValue;
             upValue = upValue.Next;
         }
 
-        if(upValue is not null && upValue.LoxValue == value)
+        if (upValue is not null && upValue.LoxValue == value)
         {
             return upValue;
         }
 
         ObjUpValue createdUpValue = new() { LoxValue = value, Next = upValue };
-        if(prevUpValue is null)
+        if (prevUpValue is null)
         {
             openUpValues = createdUpValue;
         }
@@ -508,10 +438,10 @@ internal class Vm : IDisposable
 
     private bool CallValue(LoxValue c, int argCount)
     {
-        if(c.IsObj)
+        if (c.IsObj)
         {
             Obj callee = c.AsObj;
-            switch(callee.Type)
+            switch (callee.Type)
             {
                 case ObjType.BoundMethod:
                     ObjBoundMethod boundMethod = callee.AsBoundMethod;
@@ -520,11 +450,11 @@ internal class Vm : IDisposable
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
                     _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(objClass));
-                    if(objClass.Methods.TryGetValue(INIT_STRING, out LoxValue? initializer))
+                    if (objClass.Methods.TryGetValue(INIT_STRING, out LoxValue? initializer))
                     {
                         return CallFn(initializer.AsObj.AsClosure, argCount);
                     }
-                    else if(argCount != 0)
+                    else if (argCount != 0)
                     {
                         AddRuntimeError($"Expected 0 arguments, got {argCount}.");
                         return false;
@@ -544,7 +474,7 @@ internal class Vm : IDisposable
 
     private bool CallNative(ObjNativeFn nativeFn, int argCount)
     {
-        if(argCount != nativeFn.Arity)
+        if (argCount != nativeFn.Arity)
         {
             AddRuntimeError($"Expected {nativeFn.Arity} arguments but got {argCount}.");
             return false;
@@ -558,13 +488,13 @@ internal class Vm : IDisposable
 
     private bool CallFn(ObjClosure closure, int argCount)
     {
-        if(argCount != closure.Function.Arity)
+        if (argCount != closure.Function.Arity)
         {
             AddRuntimeError($"Expected {closure.Function.Arity} arguments but got {argCount}.");
             return false;
         }
 
-        if(frameCount == FRAMES_MAX)
+        if (frameCount == FRAMES_MAX)
         {
             AddRuntimeError("Stack overflow.");
             return false;
@@ -582,21 +512,21 @@ internal class Vm : IDisposable
         LoxValue a = _stack.Pop();
         LoxValue b = _stack.Pop();
 
-        if(a.IsString || b.IsString)
+        if (a.IsString || b.IsString)
         {
             // Concat a and b
             // Automatically convert a non-string value (e.g. a number) to string, when one of the operand is string
             string left = a.ToString();
             string right = b.ToString();
 
-            _stack.Push(LoxValue.Object(left + right));
+            _stack.Push(LoxValue.Object(Obj.Str(left + right)));
             return true;
         }
-        else if(a.IsNumber)
+        else if (a.IsNumber)
         {
             return HandleNum(a, b, op);
         }
-        else if(a.IsBool)
+        else if (a.IsBool)
         {
             return HandleBool(a, b, op);
         }
@@ -608,7 +538,7 @@ internal class Vm : IDisposable
 
     private bool HandleBool(LoxValue a, LoxValue b, OpCode op)
     {
-        if(!b.IsBool)
+        if (!b.IsBool)
         {
             AddRuntimeError("Both operands must be booleans.");
             return false;
@@ -631,7 +561,7 @@ internal class Vm : IDisposable
 
     private bool HandleNum(LoxValue a, LoxValue b, OpCode op)
     {
-        if(!b.IsNumber)
+        if (!b.IsNumber)
         {
             AddRuntimeError("Both operands must be numbers.");
             return false;
@@ -640,7 +570,7 @@ internal class Vm : IDisposable
         double left = a.AsNumber;
         double right = b.AsNumber;
 
-        if(op.IsComparisonOp())
+        if (op.IsComparisonOp())
         {
             bool res = op switch
             {
@@ -670,34 +600,12 @@ internal class Vm : IDisposable
         }
     }
 
-
-    public void Dispose() // Implement IDisposable instead of freeVM(), even though there are no unmanaged resources
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if(disposed)
-        {
-            return;
-        }
-
-        if(disposing)
-        {
-            ResetVm();
-        }
-
-        disposed = true;
-    }
-
     private void ResetVm()
     {
         Errors.Clear();
         callFrames = new CallFrame[STACK_MAX];
-        _stack.Reset();
         openUpValues = null;
+        _stack.Reset();
     }
 
     private void AddRuntimeError(string message)
@@ -726,7 +634,6 @@ internal class Vm : IDisposable
 // This is a mutable value type - try to make it immutable?
 internal struct CallFrame
 {
-    //internal ObjFunction Function { get; init; }
     internal ObjClosure Closure { get; init; }
     internal ushort Ip { get; set; }
     internal ushort Slot { get; init; }

@@ -16,7 +16,7 @@ internal class VmStack<T> : IEnumerable<T>
     private readonly int _size;
     private readonly T[] _stack;
 
-    internal int StackTop {get; set;}
+    internal int StackTop { get; set; }
 
     public VmStack(int maxSize)
     {
@@ -71,7 +71,7 @@ internal class VmStackEnumerator<T> : IEnumerator<T>
         position = -1;
     }
 
-    public void Dispose() {}
+    public void Dispose() { }
 
     public bool MoveNext()
     {

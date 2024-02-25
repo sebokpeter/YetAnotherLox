@@ -7,7 +7,7 @@ internal class Chunk
     internal List<int> Lines => _lines;
 
     internal List<Value.LoxValue> Constants => _constants;
-    internal byte this[int index] 
+    internal byte this[int index]
     {
         get => _code[index];
         set => _code[index] = value;
@@ -95,7 +95,7 @@ internal enum OpCode : byte
 internal static class OpcodeExtensions
 {
     internal static bool IsComparisonOp(this OpCode opCode) => opCode == OpCode.Equal || opCode == OpCode.Less || opCode == OpCode.Greater;
-    internal static bool IsMathOp(this OpCode opCode)       => opCode == OpCode.Add || opCode == OpCode.Subtract || opCode == OpCode.Multiply || opCode == OpCode.Divide || opCode == OpCode.Modulo;
-    internal static bool IsUnaryOp(this OpCode opCode)      => opCode == OpCode.Not || opCode == OpCode.Negate; 
-    internal static bool IsLogicalOp(this OpCode opCode)    => opCode == OpCode.And || opCode == OpCode.Or;
+    internal static bool IsMathOp(this OpCode opCode) => opCode == OpCode.Add || opCode == OpCode.Subtract || opCode == OpCode.Multiply || opCode == OpCode.Divide || opCode == OpCode.Modulo;
+    internal static bool IsUnaryOp(this OpCode opCode) => opCode == OpCode.Not || opCode == OpCode.Negate;
+    internal static bool IsLogicalOp(this OpCode opCode) => opCode == OpCode.And || opCode == OpCode.Or;
 }

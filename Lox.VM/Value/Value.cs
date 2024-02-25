@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Numerics;
 using System.Reflection.Metadata;
 
 namespace LoxVM.Value;
@@ -58,11 +59,6 @@ internal class LoxValue
     /// </summary>
     internal Obj AsObj => _internalObject!;
 
-    private LoxValue(long val, ValueType type)
-    {
-        _internalValue = val;
-        Type = type;
-    }
 
     private LoxValue()
     {
@@ -84,7 +80,7 @@ internal class LoxValue
 
     private LoxValue(bool b)
     {
-        if(b)
+        if (b)
         {
             _internalValue = TRUE_MASK;
         }
@@ -125,11 +121,11 @@ internal class LoxValue
     /// <returns></returns>
     internal static LoxValue Object(object o)
     {
-        if(o is string s)
+        if (o is string s)
         {
             return new LoxValue(new ObjString() { StringValue = s });
         }
-        else if(o is Obj obj)
+        else if (o is Obj obj)
         {
             return new LoxValue(obj, ValueType.Obj);
         }
@@ -151,17 +147,17 @@ internal class LoxValue
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not LoxValue loxValue)
+        if (obj is not LoxValue loxValue)
         {
             return false;
         }
 
-        if(loxValue.Type != Type)
+        if (loxValue.Type != Type)
         {
             return false;
         }
