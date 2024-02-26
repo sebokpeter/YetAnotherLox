@@ -1,7 +1,11 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
+
 using Generated;
+
 using LoxVM.Chunk;
 using LoxVM.Value;
+
 using Shared;
 using Shared.ErrorHandling;
 
@@ -67,7 +71,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public ObjFunction Compile()
     {
         // TODO
-        foreach(Stmt stmt in _statements)
+        foreach (Stmt stmt in _statements)
         {
             EmitBytecode(stmt);
         }
@@ -79,7 +83,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     private ObjFunction CompileFunction(Stmt.Function function)
     {
         BeginScope();
-        foreach(Token param in function.Params)
+        foreach (Token param in function.Params)
         {
             AddLocal(param);
             MarkInitialized();
@@ -104,7 +108,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void EmitBytecode(IEnumerable<Stmt> stmts)
     {
-        foreach(Stmt stmt in stmts)
+        foreach (Stmt stmt in stmts)
         {
             EmitBytecode(stmt);
         }
@@ -112,7 +116,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void EmitBytecode(IEnumerable<Expr> exprs)
     {
-        foreach(Expr expr in exprs)
+        foreach (Expr expr in exprs)
         {
             EmitBytecode(expr);
         }
@@ -127,20 +131,20 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitReturnStmt(Stmt.Return stmt)
     {
-        if(_functionType == FunctionType.Script)
+        if (_functionType == FunctionType.Script)
         {
-            AddError("Cannot return from top-level code.", stmt.Keyword);
+            AddCompileError("Cannot return from top-level code.", stmt.Keyword);
         }
 
-        if(stmt.Value is null)
+        if (stmt.Value is null)
         {
             EmitReturn();
         }
         else
         {
-            if(_functionType == FunctionType.Initializer)
+            if (_functionType == FunctionType.Initializer)
             {
-                AddError("Cannot return a value from an initializer.", stmt.Keyword);
+                AddCompileError("Cannot return a value from an initializer.", stmt.Keyword);
             }
 
             EmitBytecode(stmt.Value);
@@ -158,7 +162,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         DeclareVariable(stmt.Name);
 
-        if(stmt.Initializer is not null)
+        if (stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
         }
@@ -191,7 +195,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         PatchJump(thenJump);
 
         EmitByte(OpCode.Pop);
-        if(stmt.ElseBranch is not null)
+        if (stmt.ElseBranch is not null)
         {
             EmitBytecode(stmt.ElseBranch);
         }
@@ -217,7 +221,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitForStmt(Stmt.For stmt)
     {
         BeginScope();
-        if(stmt.Initializer is not null)
+        if (stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
         }
@@ -225,7 +229,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         int loopStart = _function.Chunk.Count;
 
         (int exitJump, int conditionLine) = (-1, -1);
-        if(stmt.Condition is not null)
+        if (stmt.Condition is not null)
         {
             EmitBytecode(stmt.Condition);
 
@@ -237,7 +241,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitBytecode(stmt.Body);
 
-        if(stmt.Increment is not null)
+        if (stmt.Increment is not null)
         {
             EmitBytecode(stmt.Increment);
             EmitByte(OpCode.Pop, GetLineNumber(stmt.Increment));
@@ -245,7 +249,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitLoop(loopStart, stmt.Line);
 
-        if(exitJump != -1)
+        if (exitJump != -1)
         {
             PatchJump(exitJump);
             EmitByte(OpCode.Pop, conditionLine);
@@ -271,11 +275,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         ClassCompiler classCompiler = new() { Enclosing = currentClass, HasSuperClass = false };
         currentClass = classCompiler;
 
-        if(stmt.Superclass is not null)
+        if (stmt.Superclass is not null)
         {
-            if(stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme)
+            if (stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme)
             {
-                AddError("A class can't inherit from itself.", stmt.Name);
+                AddCompileError("A class can't inherit from itself.", stmt.Name);
             }
 
             NamedVariable(stmt.Superclass.Name);
@@ -292,7 +296,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         NamedVariable(stmt.Name);
 
-        foreach(Stmt.Function method in stmt.Methods)
+        foreach (Stmt.Function method in stmt.Methods)
         {
             byte constant = MakeConstant(LoxValue.Object(Obj.Str(method.Name.Lexeme)));
 
@@ -303,7 +307,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitByte(OpCode.Pop);
 
-        if(currentClass.HasSuperClass)
+        if (currentClass.HasSuperClass)
         {
             EndScope();
         }
@@ -328,7 +332,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         int line = expr.Operator.Line;
 
-        switch(expr.Operator.Type)
+        switch (expr.Operator.Type)
         {
             case TokenType.PLUS:
                 EmitByte(OpCode.Add, line);
@@ -375,7 +379,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         int line = expr.Oper.Line;
 
-        switch(expr.Oper.Type)
+        switch (expr.Oper.Type)
         {
             case TokenType.AND:
                 EmitByte(OpCode.And, line);
@@ -391,7 +395,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitUnaryExpr(Expr.Unary expr)
     {
         EmitBytecode(expr.Right);
-        switch(expr.Operator.Type)
+        switch (expr.Operator.Type)
         {
             case TokenType.BANG:
                 EmitByte(OpCode.Not, expr.Operator.Line);
@@ -408,7 +412,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         int line = expr.Token is not null ? expr.Token.Line : latestLine;
 
-        switch(expr.Value)
+        switch (expr.Value)
         {
             case null:
                 EmitByte(OpCode.Nil, line);
@@ -433,31 +437,32 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         EmitBytecode(expr.Value);
 
-        int arg = ResolveLocal(expr.Name);
+        // int arg = ResolveLocal(expr.Name);
 
-        if(arg != -1)
-        {
-            EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
-        }
-        else if((arg = ResolveUpValue(expr.Name)) != -1)
-        {
-            EmitBytes(OpCode.SetUpValue, (byte)arg, expr.Name.Line);
-        }
-        else
-        {
-            AssignGlobal(expr);
-        }
+        // if (arg != -1)
+        // {
+        //     EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
+        // }
+        // else if ((arg = ResolveUpValue(expr.Name)) != -1)
+        // {
+        //     EmitBytes(OpCode.SetUpValue, (byte)arg, expr.Name.Line);
+        // }
+        // else
+        // {
+        //     AssignGlobal(expr.Name);
+        // }
+        SetVariable(expr.Name, 2);
     }
 
     public void VisitCallExpr(Expr.Call expr)
     {
         int count = expr.Arguments.Count;
-        if(count > 255)
+        if (count > 255)
         {
-            AddError("Can't have more than 255 parameters.", expr.Paren);
+            AddCompileError("Can't have more than 255 parameters.", expr.Paren);
         }
 
-        if(expr.Callee is Expr.Get getExpr)
+        if (expr.Callee is Expr.Get getExpr)
         {
             // The code is accessing a method and calling it immediately.
             // So replace the GetProperty and Call instructions with a dedicated Invoke instruction.
@@ -500,9 +505,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitThisExpr(Expr.This expr)
     {
-        if(currentClass is null)
+        if (currentClass is null)
         {
-            AddError("Can't use 'this' outside of a class.", expr.Keyword);
+            AddCompileError("Can't use 'this' outside of a class.", expr.Keyword);
             return;
         }
 
@@ -511,19 +516,53 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitSuperExpr(Expr.Super expr)
     {
-        if(currentClass is null)
+        if (currentClass is null)
         {
-            AddError("Cannot use 'super' outside of a class.", expr.Keyword);
+            AddCompileError("Cannot use 'super' outside of a class.", expr.Keyword);
         }
-        else if(!currentClass.HasSuperClass)
+        else if (!currentClass.HasSuperClass)
         {
-            AddError("Cannot use 'super' in a class with no superclass.");
+            AddCompileError("Cannot use 'super' in a class with no superclass.");
         }
 
         byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Method.Lexeme)));
         NamedVariable(new Token(TokenType.IDENTIFIER, "this", null, expr.Method.Line));
         NamedVariable(new Token(TokenType.IDENTIFIER, "super", null, expr.Method.Line));
         EmitBytes(OpCode.GetSuper, name, expr.Method.Line);
+    }
+
+    public void VisitPostfixExpr(Expr.Postfix expr)
+    {
+        bool isPlus = expr.Operator.Type == TokenType.PLUS_PLUS;
+        int line = expr.Operator.Line;
+
+        OpCode op = isPlus ? OpCode.Add : OpCode.Subtract;
+
+        if (expr.Obj is Expr.Variable varExpr)
+        {
+            // Load the current value of the variable to the top of the stack. This will be the 'return' value of the postfix expression. 
+            NamedVariable(varExpr.Name);
+
+            // Load the constant '1', and the current value (again).
+            EmitConstant(LoxValue.Number(1), line);
+            NamedVariable(varExpr.Name);
+
+            // Perform the postfix operation. This will leave the result on the top of the stack
+            EmitByte(op, line);
+
+            // Set the value of the variable.
+            SetVariable(varExpr.Name, line);
+
+            // Remove the result of the expression from the top of the stack. This will leave the original value on the top.
+            EmitByte(OpCode.Pop, line);
+        }
+        else if (expr.Obj is Expr.Get getExpr)
+        {
+        }
+        else
+        {
+            AddCompileError("The postfix operator can only be applied to a variable or a property.", expr.Operator);
+        }
     }
 
     #endregion
@@ -553,11 +592,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         throw new NotImplementedException();
     }
 
-    public void VisitPostfixExpr(Expr.Postfix expr)
-    {
-        throw new NotImplementedException();
-    }
-
     #region Utilities
 
     private void Function(FunctionType type, Stmt.Function function)
@@ -572,7 +606,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitBytes(OpCode.Closure, MakeConstant(LoxValue.Object(fun)), latestLine);
 
-        foreach(UpValue upValue in compiler._upValues.Take(fun.UpValueCount))
+        foreach (UpValue upValue in compiler._upValues.Take(fun.UpValueCount))
         {
             EmitByte((byte)(upValue.IsLocal ? 1 : 0));
             EmitByte(upValue.Index);
@@ -587,9 +621,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         int jump = _function.Chunk.Count - offset - 2;
 
-        if(jump > ushort.MaxValue)
+        if (jump > ushort.MaxValue)
         {
-            AddError("Too much code to jump over.");
+            AddCompileError("Too much code to jump over.");
         }
 
         _function.Chunk[offset] = (byte)((jump >> 8) & 0xFF);
@@ -610,9 +644,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         int offset = _function.Chunk.Count - loopStart + 2;
 
-        if(offset > ushort.MaxValue)
+        if (offset > ushort.MaxValue)
         {
-            AddError("Loop body too large");
+            AddCompileError("Loop body too large");
         }
 
         EmitByte((byte)((offset >> 8) & 0xFF), line);
@@ -627,9 +661,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         scopeDepth--;
 
-        while(localCount > 0 && _locals[localCount - 1].Depth > scopeDepth)
+        while (localCount > 0 && _locals[localCount - 1].Depth > scopeDepth)
         {
-            if(_locals[localCount - 1].IsCaptured)
+            if (_locals[localCount - 1].IsCaptured)
             {
                 EmitByte(OpCode.CloseUpValue);
             }
@@ -642,15 +676,33 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
+    private void SetVariable(Token variableName, int line)
+    {
+        int arg = ResolveLocal(variableName);
+
+        if (arg != -1)
+        {
+            EmitBytes(OpCode.SetLocal, (byte)arg, line);
+        }
+        else if ((arg = ResolveUpValue(variableName)) != -1)
+        {
+            EmitBytes(OpCode.SetUpValue, (byte)arg, line);
+        }
+        else
+        {
+            AssignGlobal(variableName);
+        }
+    }
+
     private void NamedVariable(Token name)
     {
         int arg = ResolveLocal(name);
 
-        if(arg != -1)
+        if (arg != -1)
         {
             EmitBytes(OpCode.GetLocal, (byte)arg, name.Line);
         }
-        else if((arg = ResolveUpValue(name)) != -1)
+        else if ((arg = ResolveUpValue(name)) != -1)
         {
             EmitBytes(OpCode.GetUpValue, (byte)arg, name.Line);
         }
@@ -663,7 +715,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void DefineVariable(Token name)
     {
-        if(scopeDepth > 0)
+        if (scopeDepth > 0)
         {
             MarkInitialized();
             return;
@@ -675,7 +727,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void MarkInitialized()
     {
-        if(scopeDepth == 0)
+        if (scopeDepth == 0)
         {
             return;
         }
@@ -692,7 +744,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void DeclareVariable(Token name)
     {
-        if(scopeDepth == 0)
+        if (scopeDepth == 0)
         {
             return;
         }
@@ -702,24 +754,24 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void AddLocal(Token name)
     {
-        if(localCount == MAX_LOCAL_COUNT)
+        if (localCount == MAX_LOCAL_COUNT)
         {
-            AddError("Too many local variables in function.", name);
+            AddCompileError("Too many local variables in function.", name);
             return;
         }
 
-        for(int i = localCount - 1; i >= 0; i--)
+        for (int i = localCount - 1; i >= 0; i--)
         {
             Local l = _locals[i];
 
-            if(l.Depth != -1 && l.Depth < scopeDepth)
+            if (l.Depth != -1 && l.Depth < scopeDepth)
             {
                 break;
             }
 
-            if(l.Name == name.Lexeme)
+            if (l.Name == name.Lexeme)
             {
-                AddError("Already a variable with this name in this scope.", name);
+                AddCompileError("Already a variable with this name in this scope.", name);
             }
         }
 
@@ -729,15 +781,15 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private int ResolveLocal(Token name)
     {
-        for(int i = localCount - 1; i >= 0; i--)
+        for (int i = localCount - 1; i >= 0; i--)
         {
             Local local = _locals[i];
 
-            if(name.Lexeme == local.Name)
+            if (name.Lexeme == local.Name)
             {
-                if(local.Depth == -1)
+                if (local.Depth == -1)
                 {
-                    AddError("Can't read local variable in its own initializer.", name);
+                    AddCompileError("Can't read local variable in its own initializer.", name);
                 }
                 return i;
             }
@@ -752,29 +804,29 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitBytes(OpCode.GetGlobal, arg, name.Line);
     }
 
-    private void AssignGlobal(Expr.Assign expr)
+    private void AssignGlobal(Token token)
     {
-        byte arg = MakeConstant(LoxValue.Object(expr.Name.Lexeme));
+        byte arg = MakeConstant(LoxValue.Object(token.Lexeme));
 
-        EmitBytes(OpCode.SetGlobal, arg, expr.Name.Line);
+        EmitBytes(OpCode.SetGlobal, arg, token.Line);
     }
 
     private int ResolveUpValue(Token name)
     {
-        if(_enclosing is null)
+        if (_enclosing is null)
         {
             return -1;
         }
 
         int local = _enclosing.ResolveLocal(name);
-        if(local != -1)
+        if (local != -1)
         {
             _enclosing._locals[local].IsCaptured = true;
             return AddUpValue((byte)local, true, name);
         }
 
         int upValue = _enclosing.ResolveUpValue(name);
-        if(upValue != -1)
+        if (upValue != -1)
         {
             return AddUpValue((byte)upValue, false, name);
         }
@@ -786,18 +838,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         int upValueCount = _function.UpValueCount;
 
-        for(int i = 0; i < upValueCount; i++)
+        for (int i = 0; i < upValueCount; i++)
         {
             UpValue upValue = _upValues[i];
-            if(upValue.Index == index && upValue.IsLocal == isLocal)
+            if (upValue.Index == index && upValue.IsLocal == isLocal)
             {
                 return i;
             }
         }
 
-        if(upValueCount == byte.MaxValue)
+        if (upValueCount == byte.MaxValue)
         {
-            AddError("Too many closure variables in function.", name);
+            AddCompileError("Too many closure variables in function.", name);
             return 0;
         }
 
@@ -845,9 +897,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     private byte MakeConstant(LoxValue value)
     {
         int constant = _function.Chunk.AddConstant(value);
-        if(constant > byte.MaxValue)
+        if (constant > byte.MaxValue)
         {
-            AddError("Too many constants in one chunk.");
+            AddCompileError("Too many constants in one chunk.");
             return 0;
         }
 
@@ -863,7 +915,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private void EmitReturn()
     {
-        if(_functionType == FunctionType.Initializer)
+        if (_functionType == FunctionType.Initializer)
         {
             EmitBytes(OpCode.GetLocal, 0);
         }
@@ -878,31 +930,31 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private int GetLineNumber(Expr expr) // Try to get the line number of an Expr by checking the actual type. It would be better to save the line number in the Expr and Stmt records, but that would require many changes in the parser.
     {
-        if(expr is Expr.Grouping grouping)
+        if (expr is Expr.Grouping grouping)
         {
             return GetLineNumber(grouping);
         }
-        else if(expr is Expr.Logical logical)
+        else if (expr is Expr.Logical logical)
         {
             return logical.Oper.Line;
         }
-        else if(expr is Expr.Binary binary)
+        else if (expr is Expr.Binary binary)
         {
             return binary.Operator.Line;
         }
-        else if(expr is Expr.Literal literal)
+        else if (expr is Expr.Literal literal)
         {
             return literal.Token!.Line;
         }
-        else if(expr is Expr.Assign assign)
+        else if (expr is Expr.Assign assign)
         {
             return assign.Name.Line;
         }
-        else if(expr is Expr.Postfix postfix)
+        else if (expr is Expr.Postfix postfix)
         {
             return postfix.Operator.Line;
         }
-        else if(expr is Expr.Variable variable)
+        else if (expr is Expr.Variable variable)
         {
             return variable.Name.Line;
         }
@@ -910,7 +962,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         throw new NotImplementedException($"{nameof(GetLineNumber)} is not implemented for {expr.GetType()}.");
     }
 
-    private void AddError(string msg, Token? token = null) => _errors.Add(new(msg, token));
+    private void AddCompileError(string msg, Token? token = null) => _errors.Add(new(msg, token));
 
     #endregion
 }

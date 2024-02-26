@@ -80,11 +80,11 @@ internal static class Debug
             SetLocal => ByteInstruction(opCode, chunk, offset),
             GetUpValue => ByteInstruction(opCode, chunk, offset),
             SetUpValue => ByteInstruction(opCode, chunk, offset),
+            Call => ByteInstruction(opCode, chunk, offset),
 
             JumpIfFalse => JumpInstruction(opCode, 1, chunk, offset),
             Jump => JumpInstruction(opCode, 1, chunk, offset),
             Loop => JumpInstruction(opCode, -1, chunk, offset),
-            Call => ByteInstruction(opCode, chunk, offset),
 
             Closure => ClosureInstruction(opCode, chunk, offset),
 
