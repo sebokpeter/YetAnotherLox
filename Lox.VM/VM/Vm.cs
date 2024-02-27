@@ -72,7 +72,7 @@ internal class Vm
     {
         while (true)
         {
-#if !DEBUG_TRACE_EXECUTION
+#if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
             Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
             Console.WriteLine("-------------------------");

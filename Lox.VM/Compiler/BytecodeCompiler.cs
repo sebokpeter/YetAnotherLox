@@ -558,6 +558,31 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
         else if (expr.Obj is Expr.Get getExpr)
         {
+            byte name = MakeConstant(LoxValue.Object(Obj.Str(getExpr.Name.Lexeme)));
+
+            // Compile the target of the property (the class instance)
+            EmitBytecode(getExpr.Obj);
+
+            // Load the current value
+            EmitBytes(OpCode.GetProperty, name, line);
+
+            // Compile the target again, so that after the postfix operation is complete, it is at the right place on stack for the SetProperty op.
+            EmitBytecode(getExpr.Obj);
+
+            // Emit the constant '1', and the current value again.
+            EmitConstant(LoxValue.Number(1), line);
+            EmitBytecode(getExpr.Obj);
+            EmitBytes(OpCode.GetProperty, name, line);
+
+            // Postfix operation
+            EmitByte(op, line);
+
+            // Set property
+            EmitBytes(OpCode.SetProperty, name, line);
+
+            // Remove the result from the stack.
+            EmitByte(OpCode.Pop, line);
+
         }
         else
         {
