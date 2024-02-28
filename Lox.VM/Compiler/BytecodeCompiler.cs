@@ -269,7 +269,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitClassStmt(Stmt.Class stmt)
     {
         DeclareVariable(stmt.Name);
-        EmitBytes(OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
+        EmitBytes(stmt.IsStatic ? OpCode.StaticClass : OpCode.Class, MakeConstant(LoxValue.Object(Obj.Str(stmt.Name.Lexeme))), stmt.Name.Line);
         DefineVariable(stmt.Name);
 
         ClassCompiler classCompiler = new() { Enclosing = currentClass, HasSuperClass = false };
@@ -300,7 +300,9 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         {
             byte constant = MakeConstant(LoxValue.Object(Obj.Str(method.Name.Lexeme)));
 
-            Function(method.Name.Lexeme == "init" ? FunctionType.Initializer : FunctionType.Method, method);
+            bool isInitializer = method.Name.Lexeme == "init";
+
+            Function(isInitializer ? FunctionType.Initializer : FunctionType.Method, method);
 
             EmitBytes(OpCode.Method, constant, method.Name.Line);
         }
@@ -436,21 +438,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitAssignExpr(Expr.Assign expr)
     {
         EmitBytecode(expr.Value);
-
-        // int arg = ResolveLocal(expr.Name);
-
-        // if (arg != -1)
-        // {
-        //     EmitBytes(OpCode.SetLocal, (byte)arg, expr.Name.Line);
-        // }
-        // else if ((arg = ResolveUpValue(expr.Name)) != -1)
-        // {
-        //     EmitBytes(OpCode.SetUpValue, (byte)arg, expr.Name.Line);
-        // }
-        // else
-        // {
-        //     AssignGlobal(expr.Name);
-        // }
         SetVariable(expr.Name, 2);
     }
 

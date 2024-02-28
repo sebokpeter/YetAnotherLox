@@ -71,6 +71,7 @@ internal static class Debug
             GetGlobal => ConstantInstruction(opCode, chunk, offset),
             SetGlobal => ConstantInstruction(opCode, chunk, offset),
             Class => ConstantInstruction(opCode, chunk, offset),
+            StaticClass => ConstantInstruction(opCode, chunk, offset),
             GetProperty => ConstantInstruction(opCode, chunk, offset),
             SetProperty => ConstantInstruction(opCode, chunk, offset),
             Method => ConstantInstruction(opCode, chunk, offset),

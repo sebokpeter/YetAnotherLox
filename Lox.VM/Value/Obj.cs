@@ -79,8 +79,9 @@ internal abstract class Obj
     /// Create a new <see cref="ObjClass"/> instance. The <see cref="ObjClass.Methods"/> dictionary will be initialized to empty.
     /// </summary>
     /// <param name="name">The name of the class.</param>
+    /// <param name="isStatic">A flag indicating if the class is a static class </param>
     /// <returns></returns>
-    internal static ObjClass Class(string name) => new() { Name = name, Methods = [] };
+    internal static ObjClass Class(string name, bool isStatic) => new() { Name = name, IsStatic = isStatic, Methods = [] };
 
     /// <summary>
     /// Create a new <see cref="ObjInstance"/> instance.
@@ -320,7 +321,18 @@ internal class ObjClass : Obj
     /// </summary>
     internal required string Name { get; init; }
 
+    /// <summary>
+    /// A dictionary holding the methods of this class. 
+    /// The key is the method's name, and the value is a <see cref="LoxValue"/>, which should be an <see cref="ObjClosure"/>.
+    /// Contains both the static and non-static methods.
+    /// </summary>
     internal required Dictionary<string, LoxValue> Methods { get; init; }
+
+    /// <summary>
+    /// True if the class is a static class.
+    /// Static classes may only contain static methods.
+    /// </summary>
+    internal bool IsStatic { get; init; }
 
     public override string ToString() => $"<class {Name}>";
 

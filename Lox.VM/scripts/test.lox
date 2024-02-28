@@ -1,25 +1,7 @@
-class Class {
+static class Static {
     static method() {
-        print "Static method.";
-    }
-
-    static add(a, b) {
-        print a+b;
-    }
-
-    addNs(a, b) {
-        print a + b;
+        print "Hello from static method";
     }
 }
 
-var c = Class();
-var cc = Class.method;
-
-
-cc();
-
-var ccc = Class.add;
-
-ccc(1, "3");
-
-c.addNs("21", "+");
+Static.method();

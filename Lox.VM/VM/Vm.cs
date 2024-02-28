@@ -216,7 +216,10 @@ internal class Vm
                     _stack.Pop();
                     break;
                 case Class:
-                    _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString())));
+                    _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString(), false)));
+                    break;
+                case StaticClass:
+                    _stack.Push(LoxValue.Object(Obj.Class(Frame.ReadString(), true)));
                     break;
                 case GetProperty:
                     if (!GetProp())
@@ -275,7 +278,6 @@ internal class Vm
 
         ObjClass superclass = superclassValue.AsObj.AsClass;
         ObjClass inheritingClass = _stack.Peek(0).AsObj.AsClass;
-
 
         foreach ((string methodName, LoxValue methodVal) in superclass.Methods)
         {
@@ -466,6 +468,11 @@ internal class Vm
                     return CallFn(boundMethod.Method, argCount);
                 case ObjType.Class:
                     ObjClass objClass = callee.AsClass;
+                    if (objClass.IsStatic)
+                    {
+                        AddRuntimeError("Static classes cannot be instantiated.");
+                        return false;
+                    }
                     _stack[_stack.StackTop - argCount - 1] = LoxValue.Object(Obj.Instance(objClass));
                     if (objClass.Methods.TryGetValue(INIT_STRING, out LoxValue? initializer))
                     {
