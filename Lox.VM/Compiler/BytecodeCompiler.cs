@@ -627,6 +627,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         BytecodeCompiler compiler = new(this, type, arity, name, currentClass);
 
         ObjFunction fun = compiler.CompileFunction(function);
+        fun.IsStatic = function.IsStatic;
         _errors.AddRange(compiler._errors);
 
         EmitBytes(OpCode.Closure, MakeConstant(LoxValue.Object(fun)), latestLine);

@@ -293,7 +293,15 @@ internal class Vm
             return false;
         }
 
-        ObjBoundMethod boundMethod = Obj.BoundMethod(_stack.Peek(0), method.AsObj.AsClosure);
+        ObjClosure closure = method.AsObj.AsClosure;
+
+        if (closure.Function.IsStatic)
+        {
+            AddRuntimeError($"Static methods cannot be accessed from instances.");
+            return false;
+        }
+
+        ObjBoundMethod boundMethod = Obj.BoundMethod(_stack.Peek(0), closure);
         _stack.Pop();
         _stack.Push(LoxValue.Object(boundMethod));
         return true;
@@ -303,15 +311,15 @@ internal class Vm
     {
         LoxValue receiver = _stack.Peek(methodArgCount);
 
-        if (!receiver.IsObj || !receiver.AsObj.IsType(ObjType.Instance))
+        if (!receiver.IsObj || !(receiver.AsObj.IsType(ObjType.Class) || receiver.AsObj.IsType(ObjType.Instance)))
         {
-            AddRuntimeError("Only instances have methods.");
+            AddRuntimeError("Can only call methods on instances or classes.");
             return false;
         }
 
-        ObjInstance instance = receiver.AsObj.AsInstance;
+        ObjClass objClass = receiver.AsObj.IsType(ObjType.Class) ? receiver.AsObj.AsClass : receiver.AsObj.AsInstance.ObjClass;
 
-        return InvokeFromClass(instance.ObjClass, name, methodArgCount);
+        return InvokeFromClass(objClass, name, methodArgCount);
     }
 
     private bool InvokeFromClass(ObjClass objClass, string name, int methodArgCount)
@@ -321,6 +329,7 @@ internal class Vm
             AddRuntimeError($"Undefined property '{name}'.");
             return false;
         }
+
         return CallFn(method.AsObj.AsClosure, methodArgCount);
     }
 
@@ -341,26 +350,41 @@ internal class Vm
 
     private bool GetProp()
     {
-        if (_stack.Peek(0).AsObj is not ObjInstance instance)
-        {
-            AddRuntimeError("Only instances have properties.");
-            return false;
-        }
-
+        Obj obj = _stack.Peek(0).AsObj;
         string propertyName = Frame.ReadString();
 
-        if (instance.Fields.TryGetValue(propertyName, out LoxValue? value))
+        if (obj is ObjInstance instance)
         {
-            _stack.Pop();
-            _stack.Push(value);
+            if (instance.Fields.TryGetValue(propertyName, out LoxValue? value))
+            {
+                _stack.Pop();
+                _stack.Push(value);
+                return true;
+            }
+            else
+            {
+                return BindMethod(instance.ObjClass, propertyName);
+            }
         }
-        else if (!BindMethod(instance.ObjClass, propertyName))
+        else if (obj is ObjClass objClass)
         {
-            AddRuntimeError($"Undefined property '{propertyName}'");
+            if (objClass.Methods.TryGetValue(propertyName, out LoxValue? value))
+            {
+                _stack.Pop();
+                _stack.Push(value);
+                return true;
+            }
+            else
+            {
+                AddRuntimeError($"Class '{objClass.Name}' has no static method named '{propertyName}'.");
+                return false;
+            }
+        }
+        else
+        {
+            AddRuntimeError("Only instances have properties, and only classes have static methods.");
             return false;
         }
-
-        return true;
     }
 
     private void DefineMethod(string name)
@@ -397,14 +421,7 @@ internal class Vm
             bool isLocal = Frame.ReadByte() == 1;
             byte index = Frame.ReadByte();
 
-            if (isLocal)
-            {
-                closure.UpValues[i] = CaptureValue(_stack[Frame.Slot + index]);
-            }
-            else
-            {
-                closure.UpValues[i] = Frame.Closure.UpValues[index];
-            }
+            closure.UpValues[i] = isLocal ? CaptureValue(_stack[Frame.Slot + index]) : Frame.Closure.UpValues[index];
         }
     }
 

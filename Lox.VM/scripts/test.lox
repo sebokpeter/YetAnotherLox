@@ -1,12 +1,25 @@
-class Prop {
-    init() {
-        this.Value = 0; 
+class Class {
+    static method() {
+        print "Static method.";
+    }
+
+    static add(a, b) {
+        print a+b;
+    }
+
+    addNs(a, b) {
+        print a + b;
     }
 }
 
-var p = Prop();
-print p.Value++;
-print p.Value;
-p.Value--;
-print p.Value--;
-print p.Value;
+var c = Class();
+var cc = Class.method;
+
+
+cc();
+
+var ccc = Class.add;
+
+ccc(1, "3");
+
+c.addNs("21", "+");

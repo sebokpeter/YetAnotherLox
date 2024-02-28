@@ -117,12 +117,12 @@ internal class ObjString : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjString str)
+        if (obj is not ObjString str)
         {
             return false;
         }
@@ -156,6 +156,11 @@ internal class ObjFunction : Obj
     /// </summary>
     internal int UpValueCount { get; set; }
 
+    /// <summary>
+    /// True for static methods
+    /// </summary>
+    internal bool IsStatic { get; set; }
+
     internal ObjFunction() : base(ObjType.Function)
     {
         Chunk = new();
@@ -171,12 +176,12 @@ internal class ObjFunction : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjFunction objFunction)
+        if (obj is not ObjFunction objFunction)
         {
             return false;
         }
@@ -213,12 +218,12 @@ internal class ObjNativeFn : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjNativeFn nativeFn)
+        if (obj is not ObjNativeFn nativeFn)
         {
             return false;
         }
@@ -251,12 +256,12 @@ internal class ObjClosure : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjClosure objClosure)
+        if (obj is not ObjClosure objClosure)
         {
             return false;
         }
@@ -289,12 +294,12 @@ internal class ObjUpValue : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjUpValue upValue)
+        if (obj is not ObjUpValue upValue)
         {
             return false;
         }
@@ -323,12 +328,12 @@ internal class ObjClass : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjClass @class)
+        if (obj is not ObjClass @class)
         {
             return false;
         }
@@ -360,12 +365,12 @@ internal class ObjInstance : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjInstance objInstance)
+        if (obj is not ObjInstance objInstance)
         {
             return false;
         }
@@ -387,12 +392,12 @@ internal class ObjBoundMethod : Obj
 
     public override bool Equals(object? obj)
     {
-        if(obj is null)
+        if (obj is null)
         {
             return false;
         }
 
-        if(obj is not ObjBoundMethod boundMethod)
+        if (obj is not ObjBoundMethod boundMethod)
         {
             return false;
         }
