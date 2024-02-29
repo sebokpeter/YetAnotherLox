@@ -211,6 +211,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         loop = new() { Enclosing = enclosing };
 
         int loopStart = _function.Chunk.Count;
+        loop.LoopStart = loopStart; // Save the address of the start of the loop. so that if there is a 'continue' statement in the body, we can emit a loop instruction.
         EmitBytecode(stmt.Condition);
 
         int line = GetLineNumber(stmt.Condition);
@@ -354,6 +355,17 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         int jumpLocation = EmitJump(OpCode.Jump, stmt.Keyword.Line);
         loop.BreakLocations.Add(jumpLocation);
 
+    }
+
+    public void VisitContinueStmt(Stmt.Continue stmt)
+    {
+        if (loop is null)
+        {
+            AddCompileError("Cannot use 'continue' outside of a loop.", stmt.Keyword);
+            return;
+        }
+
+        EmitLoop(loop.LoopStart, stmt.Keyword.Line);
     }
 
     #endregion
@@ -616,13 +628,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     }
 
     #endregion
-
-
-
-    public void VisitContinueStmt(Stmt.Continue stmt)
-    {
-        throw new NotImplementedException();
-    }
 
     public void VisitArrayExpr(Expr.Array expr)
     {
@@ -1050,7 +1055,11 @@ internal class Loop
     /// </summary>
     internal List<int> BreakLocations { get; set; } = [];
 
-
+    /// <summary>
+    /// The address of the start of the current loop. 
+    /// Used to emit a Loop instruction for the continue statement.
+    /// </summary>
+    internal int LoopStart { get; set; }
 }
 
 internal enum FunctionType
