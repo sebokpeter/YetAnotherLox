@@ -274,6 +274,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             EmitByte(OpCode.Pop, conditionLine);
         }
 
+        foreach (int breakJump in loop.BreakLocations)
+        {
+            PatchJump(breakJump);
+        }
+
         loop = loop.Enclosing;
 
         EndScope();
