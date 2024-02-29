@@ -1,7 +1,9 @@
-static class Static {
-    static method() {
-        print "Hello from static method";
+var a = 0;
+while(true) {
+    print "Hello";
+    a++;
+
+    if(a == 5) {
+        break;
     }
 }
-
-Static.method();

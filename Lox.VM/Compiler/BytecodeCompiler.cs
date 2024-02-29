@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security.Cryptography;
 
 using Generated;
 
@@ -35,6 +34,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     private int latestLine; // Remember the last line number we saw, so that we can use it when we want to add an instruction, but do not know the line number. (E.g. when emitting a POP instruction in EndScope())
 
+    private Loop? loop;
+
     public BytecodeCompiler(List<Stmt> stmts)
     {
         _statements = stmts;
@@ -48,6 +49,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _functionType = FunctionType.Script;
 
         currentClass = null;
+        loop = null;
     }
 
     public BytecodeCompiler(BytecodeCompiler compiler, FunctionType type, int arity, string fnName, ClassCompiler? classCompiler)
@@ -66,6 +68,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         _upValues = new UpValue[byte.MaxValue];
 
         currentClass = classCompiler;
+        loop = null;
     }
 
     public ObjFunction Compile()
@@ -204,23 +207,39 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public void VisitWhileStmt(Stmt.While stmt)
     {
+        Loop? enclosing = loop;
+        loop = new() { Enclosing = enclosing };
+
         int loopStart = _function.Chunk.Count;
         EmitBytecode(stmt.Condition);
 
         int line = GetLineNumber(stmt.Condition);
+
         int exitJump = EmitJump(OpCode.JumpIfFalse, line);
         EmitByte(OpCode.Pop, line);
 
         EmitBytecode(stmt.Body);
+
         EmitLoop(loopStart, line);
 
         PatchJump(exitJump);
         EmitByte(OpCode.Pop);
+
+        foreach (int breakJump in loop.BreakLocations)
+        {
+            PatchJump(breakJump); // Emit the address where the 'break' statement(s) will jump to end the loop.
+        }
+
+        loop = loop.Enclosing;
     }
 
     public void VisitForStmt(Stmt.For stmt)
     {
         BeginScope();
+
+        Loop? enclosing = loop;
+        loop = new() { Enclosing = enclosing };
+
         if (stmt.Initializer is not null)
         {
             EmitBytecode(stmt.Initializer);
@@ -254,6 +273,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             PatchJump(exitJump);
             EmitByte(OpCode.Pop, conditionLine);
         }
+
+        loop = loop.Enclosing;
 
         EndScope();
     }
@@ -317,6 +338,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         currentClass = classCompiler.Enclosing;
     }
 
+    public void VisitBreakStmt(Stmt.Break stmt)
+    {
+        if (loop is null)
+        {
+            AddCompileError("Cannot use 'break' outside of a loop.", stmt.Keyword);
+            return;
+        }
+
+        int jumpLocation = EmitJump(OpCode.Jump, stmt.Keyword.Line);
+        loop.BreakLocations.Add(jumpLocation);
+
+    }
 
     #endregion
 
@@ -579,10 +612,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     #endregion
 
-    public void VisitBreakStmt(Stmt.Break stmt)
-    {
-        throw new NotImplementedException();
-    }
+
 
     public void VisitContinueStmt(Stmt.Continue stmt)
     {
@@ -997,6 +1027,25 @@ internal readonly struct UpValue
 {
     internal byte Index { get; init; }
     internal bool IsLocal { get; init; }
+}
+
+/// <summary>
+/// Used to keep track of loop state, to allow compiling 'break' and 'continue' statements.
+/// </summary>
+internal class Loop
+{
+    /// <summary>
+    /// A reference to the enclosing loop. If there are no enclosing loops, it is null.
+    /// </summary>
+    internal Loop? Enclosing { get; set; }
+
+    /// <summary>
+    /// A list that keeps track of the addresses of the jump locations for break statements in the current loop.
+    /// Used for backpatching.
+    /// </summary>
+    internal List<int> BreakLocations { get; set; } = [];
+
+
 }
 
 internal enum FunctionType
