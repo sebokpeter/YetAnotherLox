@@ -1,13 +1,9 @@
 var i = 0;
 
-while(i <= 2) {
-    var j = 10;
-    while(j >= 0) {
-        if(j-- % 2 == 0) {
-            continue;
-        }
-        print j;
+for(;i<100; i++) {
+    if(i % 10 != 0) {
+        continue;
     }
 
-    i++;
+    print i;
 }

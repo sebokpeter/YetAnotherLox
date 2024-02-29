@@ -208,7 +208,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     public void VisitWhileStmt(Stmt.While stmt)
     {
         Loop? enclosing = loop;
-        loop = new() { Enclosing = enclosing };
+        loop = new() { Enclosing = enclosing, IsForLoop = false };
 
         int loopStart = _function.Chunk.Count;
         loop.LoopStart = loopStart; // Save the address of the start of the loop. so that if there is a 'continue' statement in the body, we can emit a loop instruction.
@@ -239,7 +239,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         BeginScope();
 
         Loop? enclosing = loop;
-        loop = new() { Enclosing = enclosing };
+        loop = new() { Enclosing = enclosing, IsForLoop = true };
 
         if (stmt.Initializer is not null)
         {
@@ -260,6 +260,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
 
         EmitBytecode(stmt.Body);
+
+        foreach (int contLocation in loop.ContinueLocations)
+        {
+            PatchJump(contLocation); // If the body has any continue statements, they need to jump here, just before the increment is executed.
+        }
 
         if (stmt.Increment is not null)
         {
@@ -365,7 +370,18 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             return;
         }
 
-        EmitLoop(loop.LoopStart, stmt.Keyword.Line);
+        // In for loops, the continue statement causes the execution to jump forward, just before the execution of the increment.
+        // We are still in the body, so we don't know where exactly that will be.
+        if (loop.IsForLoop)
+        {
+            int jumpLocation = EmitJump(OpCode.Jump, stmt.Keyword.Line);
+            loop.ContinueLocations.Add(jumpLocation);
+        }
+        else
+        {
+            // In a while loop, we jump back to the beginning of the loop (the address indicated by loop.LoopStart).
+            EmitLoop(loop.LoopStart, stmt.Keyword.Line);
+        }
     }
 
     #endregion
@@ -1053,13 +1069,23 @@ internal class Loop
     /// A list that keeps track of the addresses of the jump locations for break statements in the current loop.
     /// Used for backpatching.
     /// </summary>
-    internal List<int> BreakLocations { get; set; } = [];
+    internal List<int> BreakLocations { get; } = [];
 
     /// <summary>
     /// The address of the start of the current loop. 
-    /// Used to emit a Loop instruction for the continue statement.
+    /// Used to emit a Loop instruction for the continue statement in while loops.
     /// </summary>
     internal int LoopStart { get; set; }
+
+    /// <summary>
+    /// True if the surrounding loop is a for loop.
+    /// </summary>
+    internal bool IsForLoop { get; set; }
+
+    /// <summary>
+    /// A list that keeps track of the addresses if the jump locations for continue statements in for loops.
+    /// </summary>
+    internal List<int> ContinueLocations { get; } = [];
 }
 
 internal enum FunctionType
