@@ -48,6 +48,11 @@ internal abstract class Obj
     /// </summary>
     internal ObjBoundMethod AsBoundMethod => (ObjBoundMethod)this;
 
+    /// <summary>
+    /// Treat this <see cref="Obj"/> as an <see cref="ObjArray"/>.
+    /// </summary>
+    internal ObjArray AsArray => (ObjArray)this;
+
     internal Obj(ObjType type)
     {
         Type = type;
@@ -97,6 +102,12 @@ internal abstract class Obj
     /// <param name="method">The method that is being bound to <paramref name="receiver"/>.</param>
     /// <returns></returns>
     internal static ObjBoundMethod BoundMethod(LoxValue receiver, ObjClosure method) => new() { Receiver = receiver, Method = method };
+
+    /// <summary>
+    /// Create a new <see cref="ObjArray"/> instance.
+    /// </summary>
+    /// <returns></returns>
+    internal static ObjArray Arr() => new() { Array = [] };
 
     public abstract override bool Equals(object? obj);
 
@@ -420,6 +431,38 @@ internal class ObjBoundMethod : Obj
     public override int GetHashCode() => HashCode.Combine(Receiver, Method);
 }
 
+/// <summary>
+/// Represents a lox array. Uses a <see cref="List{LoxValue}"/> to store the elements.
+/// </summary>
+internal class ObjArray : Obj
+{
+    public ObjArray() : base(ObjType.Array) { }
+
+    /// <summary>
+    /// A <see cref="List{LoxValue}"/> that holds the underlying elements.
+    /// </summary>
+    internal required List<LoxValue> Array { get; init; }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+        {
+            return false;
+        }
+
+        if (obj is not ObjArray array)
+        {
+            return false;
+        }
+
+        return Array.SequenceEqual(array.Array);
+    }
+
+    public override int GetHashCode() => Array.GetHashCode();
+
+    public override string ToString() => $"<array {Array.Count}>";
+}
+
 internal enum ObjType
 {
     Function,
@@ -429,5 +472,6 @@ internal enum ObjType
     UpValue,
     Class,
     Instance,
-    BoundMethod
+    BoundMethod,
+    Array
 }

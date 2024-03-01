@@ -65,6 +65,7 @@ internal static class Debug
             Pop => SimpleInstruction(opCode, offset),
             CloseUpValue => SimpleInstruction(opCode, offset),
             Inherit => SimpleInstruction(opCode, offset),
+            EmptyArray => SimpleInstruction(opCode, offset),
 
             Constant => ConstantInstruction(opCode, chunk, offset),
             DefineGlobal => ConstantInstruction(opCode, chunk, offset),

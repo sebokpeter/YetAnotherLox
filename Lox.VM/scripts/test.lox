@@ -1,9 +1,3 @@
-var i = 0;
+var array = [1, 2];
 
-for(;i<100; i++) {
-    if(i % 10 != 0) {
-        continue;
-    }
-
-    print i;
-}
+print array;

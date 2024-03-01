@@ -91,6 +91,7 @@ internal enum OpCode : byte
     Inherit,
     GetSuper,
     StaticClass,
+    EmptyArray,
 }
 
 internal static class OpcodeExtensions

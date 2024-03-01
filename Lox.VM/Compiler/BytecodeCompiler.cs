@@ -643,12 +643,47 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
-    #endregion
-
     public void VisitArrayExpr(Expr.Array expr)
     {
-        throw new NotImplementedException();
+        if (expr.Initializers is not null && expr.Initializers.Count > 0)
+        {
+            if (expr.Initializers.Count > ushort.MaxValue)
+            {
+                // Assumption: we don't need more than 255 values
+                AddCompileError("Too many initializers.", expr.Bracket);
+            }
+
+            // There is a list of expressions that are used to initialize the array
+            // Emit code for those expressions
+            EmitBytecode(expr.Initializers);
+
+            // Emit the number of initialized values, so when we create the array, we can take the values from the stack
+            EmitByte((byte)expr.Initializers.Count, expr.Bracket.Line);
+
+            // TODO: instruction for creating an array using values on the stack. 
+        }
+        else if (expr.DefaultValueCount is not null && expr.DefaultValue is not null)
+        {
+            // We have two expressions: one that gives any value, and one that should evaluate to a number. 
+            // The second expression indicates how many times the value of the first expression should be added to the newly created array
+
+            // Emit code that will put the default value on the stack
+            EmitBytecode(expr.DefaultValue);
+
+            // Emit the code for the expression that will determine how many times the default value will be repeated
+            EmitBytecode(expr.DefaultValueCount);
+
+            // TODO: instruction for creating an array using a default value and default value count.
+
+        }
+        else
+        {
+            // We just create a new, empty array (no initial values)
+            EmitByte(OpCode.EmptyArray, expr.Bracket.Line);
+        }
     }
+
+    #endregion
 
     public void VisitArrayAccessExpr(Expr.ArrayAccess expr)
     {

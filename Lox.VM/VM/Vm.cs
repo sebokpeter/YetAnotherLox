@@ -72,7 +72,7 @@ internal class Vm
     {
         while (true)
         {
-#if !DEBUG_TRACE_EXECUTION
+#if DEBUG_TRACE_EXECUTION
             _stack.PrintStack();
             Frame.Closure.Function.Chunk.DisassembleInstruction(Frame.Ip);
             Console.WriteLine("-------------------------");
@@ -259,6 +259,10 @@ internal class Vm
                         return InterpretResult.RuntimeError;
                     }
 
+                    break;
+                case EmptyArray:
+                    LoxValue array = LoxValue.Object(Obj.Arr());
+                    _stack.Push(array);
                     break;
                 default:
                     throw new UnreachableException();
