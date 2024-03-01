@@ -653,14 +653,14 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
                 AddCompileError("Too many initializers.", expr.Bracket);
             }
 
-            // There is a list of expressions that are used to initialize the array
+            // The list of expressions that are used to initialize the array
             // Emit code for those expressions
             EmitBytecode(expr.Initializers);
 
-            // Emit the number of initialized values, so when we create the array, we can take the values from the stack
-            EmitByte((byte)expr.Initializers.Count, expr.Bracket.Line);
+            EmitByte(OpCode.InitializedArray, expr.Bracket.Line);
 
-            // TODO: instruction for creating an array using values on the stack. 
+            // Emit the number of initialized values, so the vm knows how many values to take from the stack
+            EmitByte((byte)expr.Initializers.Count, expr.Bracket.Line);
         }
         else if (expr.DefaultValueCount is not null && expr.DefaultValue is not null)
         {

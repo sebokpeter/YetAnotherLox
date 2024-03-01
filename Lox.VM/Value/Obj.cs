@@ -106,8 +106,9 @@ internal abstract class Obj
     /// <summary>
     /// Create a new <see cref="ObjArray"/> instance.
     /// </summary>
+    /// <param name="initialValues">A <see cref="List{LoxValue}"/> containing the initial values in this array. Can be null. If it is null, it will be initialized to an empty list.</param>
     /// <returns></returns>
-    internal static ObjArray Arr() => new() { Array = [] };
+    internal static ObjArray Arr(List<LoxValue>? initialValues = null) => new() { Array = initialValues ?? [] };
 
     public abstract override bool Equals(object? obj);
 

@@ -253,16 +253,25 @@ internal class Vm
                 case GetSuper:
                     string supMethodName = Frame.ReadString();
                     ObjClass superClass = _stack.Pop().AsObj.AsClass;
-
                     if (!BindMethod(superClass, supMethodName))
                     {
                         return InterpretResult.RuntimeError;
                     }
-
                     break;
                 case EmptyArray:
                     LoxValue array = LoxValue.Object(Obj.Arr());
                     _stack.Push(array);
+                    break;
+                case InitializedArray:
+                    byte initCount = Frame.ReadByte();
+                    List<LoxValue> initializedValues = new(initCount);
+                    for (int i = 0; i < initCount; i++)
+                    {
+                        initializedValues.Add(_stack.Pop());
+                    }
+                    initializedValues.Reverse();
+                    LoxValue initializedArray = LoxValue.Object(Obj.Arr(initializedValues));
+                    _stack.Push(initializedArray);
                     break;
                 default:
                     throw new UnreachableException();
