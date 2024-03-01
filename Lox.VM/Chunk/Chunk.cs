@@ -93,6 +93,7 @@ internal enum OpCode : byte
     StaticClass,
     EmptyArray,
     InitializedArray,
+    DefaultInitializedArray,
 }
 
 internal static class OpcodeExtensions

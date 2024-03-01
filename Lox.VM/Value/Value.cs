@@ -55,10 +55,15 @@ internal class LoxValue
     internal bool AsBool => (_internalValue & TRUE_MASK) == TRUE_MASK;
 
     /// <summary>
-    /// Treat the value in this <see cref="LoxValue"/> as a <see cref="object"/>.
+    /// Treat the value in this <see cref="LoxValue"/> as a <see cref="Obj"/>.
     /// </summary>
     internal Obj AsObj => _internalObject!;
 
+    private LoxValue(long val, ValueType type)
+    {
+        _internalValue = val;
+        Type = type;
+    }
 
     private LoxValue()
     {
@@ -133,6 +138,24 @@ internal class LoxValue
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Create a copy of <paramref name="other"/>.
+    /// </summary>
+    /// <param name="other">Another <see cref="LoxValue"/>, which will be copied.</param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException">Currently it is only possible to copy non-Obj. values. <see cref="NotImplementedException"/> will be thrown if <paramref name="other"/>'s <see cref="Type"/> is <see cref="ValueType.Obj"/>.</exception>
+    internal static LoxValue FromLoxValue(LoxValue other)
+    {
+        if (other.IsObj)
+        {
+            throw new NotImplementedException();
+        }
+        else
+        {
+            return new(other._internalValue, other.Type);
+        }
+    }
+
     public override string ToString()
     {
         return Type switch
@@ -164,11 +187,8 @@ internal class LoxValue
 
         return Type switch
         {
-            ValueType.Bool => _internalValue == loxValue._internalValue,
-            ValueType.Nil => _internalValue == loxValue._internalValue,
-            ValueType.Number => _internalValue == loxValue._internalValue,
             ValueType.Obj => AsObj.Equals(loxValue),
-            _ => throw new UnreachableException()
+            _ => _internalValue == loxValue._internalValue,
         };
     }
 

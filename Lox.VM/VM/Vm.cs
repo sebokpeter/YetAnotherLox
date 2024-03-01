@@ -273,6 +273,28 @@ internal class Vm
                     LoxValue initializedArray = LoxValue.Object(Obj.Arr(initializedValues));
                     _stack.Push(initializedArray);
                     break;
+                case DefaultInitializedArray:
+                    LoxValue c = _stack.Pop();
+                    if (!c.IsNumber || !(c.AsNumber % 1 == 0) || c.AsNumber > 255)
+                    {
+                        AddRuntimeError("Initializer count must be an integer number, which is less than 255.");
+                        return InterpretResult.RuntimeError;
+                    }
+
+                    byte count = (byte)c.AsNumber;
+                    LoxValue initValue = _stack.Pop();
+
+                    List<LoxValue> initValues = new(count);
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        initValues.Add(LoxValue.FromLoxValue(initValue));
+                    }
+
+                    initValues.Reverse();
+                    LoxValue initArray = LoxValue.Object(Obj.Arr(initValues));
+                    _stack.Push(initArray);
+                    break;
                 default:
                     throw new UnreachableException();
             }

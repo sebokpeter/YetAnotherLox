@@ -673,8 +673,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             // Emit the code for the expression that will determine how many times the default value will be repeated
             EmitBytecode(expr.DefaultValueCount);
 
-            // TODO: instruction for creating an array using a default value and default value count.
-
+            EmitByte(OpCode.DefaultInitializedArray, expr.Bracket.Line);
         }
         else
         {

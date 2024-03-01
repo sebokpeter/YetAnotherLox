@@ -94,9 +94,22 @@ internal static class Debug
 
             InitializedArray => InitializedArrayInstruction(opCode, chunk, offset),
 
+            DefaultInitializedArray => SimpleInstruction(opCode, offset),
+
             _ => UnknownInstruction(opCode, offset)
         };
     }
+
+    // private static int DefaultInitializedArrayInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
+    // {
+    //     byte initCount = chunk[offset + 1];
+
+    //     string opString = $"{opCode} ({initCount} values)";
+
+    //     Console.WriteLine($"{opString,-19}");
+
+    //     return offset + 2;
+    // }
 
     private static int InitializedArrayInstruction(OpCode opCode, Chunk.Chunk chunk, int offset)
     {
