@@ -221,9 +221,10 @@ internal class ObjNativeFn : Obj
     internal required string Name { get; init; }
 
     /// <summary>
-    /// A <see cref="Func{int, LoxValue}"/> object, that will be invoked when this native function is called.
+    /// A <see cref="Func{int, (LoxValue?, bool)}"/> object, that will be invoked when this native function is called.
+    /// The return type of the <see cref="Func"/> is <see cref="(LoxValue?, bool)"/>. The <see cref="bool"/> value is used to indicate if the function has completed successfully. A <see langword="false"/> value means that there were runtime errors. In this case <see cref="LoxValue?"/> will be <see langword="null"/>.
     /// </summary>
-    internal required Func<int, LoxValue> Function { get; init; }
+    internal required Func<int, (LoxValue?, bool)> Function { get; init; }
 
     internal ObjNativeFn() : base(ObjType.Native) { }
 

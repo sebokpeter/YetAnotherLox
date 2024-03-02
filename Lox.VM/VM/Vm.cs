@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Sockets;
 
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -46,39 +45,27 @@ internal class Vm
 
     private void DefineNativeMethods()
     {
-        DefineNative("clock", (_) => LoxValue.Number(_stopwatch.ElapsedMilliseconds), 0);
-        DefineNative("add", (argNum) =>
-        {
-            LoxValue a = _stack[argNum];
-            LoxValue b = _stack[argNum + 1];
-            _stack.PrintStack();
-            return LoxValue.Number(a.AsNumber - b.AsNumber);
-        }, 2);
+        DefineNative("clock", (_) => (LoxValue.Number(_stopwatch.ElapsedMilliseconds), true), 0);
         DefineNative("len", (argNum) =>
         {
             LoxValue val = _stack[argNum];
 
-            if (!val.IsObj)
+            if (!val.IsObj || !(val.AsObj.IsType(ObjType.String) || val.AsObj.IsType(ObjType.Array)))
             {
-                AddRuntimeError("len() argument must be an object.");
+                AddRuntimeError("Can only get the length of strings and arrays.");
+                return (null, false);
             }
 
             Obj obj = val.AsObj;
 
             if (obj.IsType(ObjType.String))
             {
-                return LoxValue.Number(obj.AsString.StringValue.Length);
-            }
-            else if (obj.IsType(ObjType.Array))
-            {
-                return LoxValue.Number(obj.AsArray.Array.Count);
+                return (LoxValue.Number(obj.AsString.StringValue.Length), true);
             }
             else
             {
-                AddRuntimeError("Can only get the length of strings and arrays.");
-                return LoxValue.Nil();
+                return (LoxValue.Number(obj.AsArray.Array.Count), true);
             }
-
         }, 1);
     }
 
@@ -611,9 +598,14 @@ internal class Vm
             return false;
         }
 
-        LoxValue result = nativeFn.Function.Invoke(_stack.StackTop - argCount);
+        (LoxValue? result, bool success) = nativeFn.Function.Invoke(_stack.StackTop - argCount);
+        if (!success)
+        {
+            return false;
+        }
+
         _stack.StackTop -= argCount + 1;
-        _stack.Push(result);
+        _stack.Push(result!);
         return true;
     }
 
@@ -752,7 +744,7 @@ internal class Vm
         Errors.Add(new RuntimeError(message, callFrame.Closure.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
     }
 
-    private void DefineNative(string name, Func<int, LoxValue> native, int arity)
+    private void DefineNative(string name, Func<int, (LoxValue? returnValue, bool success)> native, int arity)
     {
         Obj nameObj = LoxValue.Object(name).AsObj;
         ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Function = native };

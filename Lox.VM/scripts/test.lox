@@ -1,7 +1,6 @@
-var str = "Hello world!";
+var a = [9; 10];
+print len(a);
 
-var i = 0;
+print len("Hello world!");
 
-foreach(l in str) {
-    print l;
-}
+print len(12);
