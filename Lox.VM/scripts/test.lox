@@ -1,3 +1,7 @@
-var array = [0; 5];
+var str = "Hello world!";
 
-print array;
+var i = 0;
+
+foreach(l in str) {
+    print l;
+}

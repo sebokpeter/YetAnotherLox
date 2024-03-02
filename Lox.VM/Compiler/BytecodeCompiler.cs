@@ -682,12 +682,19 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
     }
 
-    #endregion
-
     public void VisitArrayAccessExpr(Expr.ArrayAccess expr)
     {
-        throw new NotImplementedException();
+        // Emit code that puts the array on the stack
+        EmitBytecode(expr.Target);
+
+        // Emit code that puts the index on the stack
+        EmitBytecode(expr.Index);
+
+        // Emit array access op
+        EmitByte(OpCode.ArrayAccess, expr.Bracket.Line);
     }
+
+    #endregion
 
     public void VisitArrayAssignExpr(Expr.ArrayAssign expr)
     {

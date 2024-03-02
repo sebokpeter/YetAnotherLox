@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -53,6 +54,32 @@ internal class Vm
             _stack.PrintStack();
             return LoxValue.Number(a.AsNumber - b.AsNumber);
         }, 2);
+        DefineNative("len", (argNum) =>
+        {
+            LoxValue val = _stack[argNum];
+
+            if (!val.IsObj)
+            {
+                AddRuntimeError("len() argument must be an object.");
+            }
+
+            Obj obj = val.AsObj;
+
+            if (obj.IsType(ObjType.String))
+            {
+                return LoxValue.Number(obj.AsString.StringValue.Length);
+            }
+            else if (obj.IsType(ObjType.Array))
+            {
+                return LoxValue.Number(obj.AsArray.Array.Count);
+            }
+            else
+            {
+                AddRuntimeError("Can only get the length of strings and arrays.");
+                return LoxValue.Nil();
+            }
+
+        }, 1);
     }
 
     internal InterpretResult Interpret(ObjFunction function)
@@ -295,10 +322,55 @@ internal class Vm
                     LoxValue initArray = LoxValue.Object(Obj.Arr(initValues));
                     _stack.Push(initArray);
                     break;
+                case ArrayAccess:
+                    if (!AccessArray())
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
+
+                    break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool AccessArray()
+    {
+        int index = (int)_stack.Pop().AsNumber;
+        LoxValue arrValue = _stack.Pop();
+
+        if (!arrValue.IsObj || !(arrValue.AsObj.IsType(ObjType.Array) || arrValue.AsObj.IsType(ObjType.String)))
+        {
+            AddRuntimeError("Can only index into arrays and strings.");
+            return false;
+        }
+
+        Obj o = arrValue.AsObj;
+
+        if (o.IsType(ObjType.Array))
+        {
+            ObjArray objArray = o.AsArray;
+
+            if (objArray.Array.Count <= index)
+            {
+                AddRuntimeError("Index out of range.");
+                return false;
+            }
+            _stack.Push(objArray.Array[index]);
+        }
+        else
+        {
+            string val = o.AsString.StringValue;
+            if (val.Length <= index)
+            {
+                AddRuntimeError("Index out of range.");
+                return false;
+            }
+            _stack.Push(LoxValue.Object(Obj.Str(val[index].ToString())));
+        }
+
+        return true;
     }
 
     private bool Inherit()
