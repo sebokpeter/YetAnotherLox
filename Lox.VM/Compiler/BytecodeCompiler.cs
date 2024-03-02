@@ -694,12 +694,22 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         EmitByte(OpCode.ArrayAccess, expr.Bracket.Line);
     }
 
-    #endregion
-
     public void VisitArrayAssignExpr(Expr.ArrayAssign expr)
     {
-        throw new NotImplementedException();
+        // Emit code for the assignment target (the array)
+        EmitBytecode(expr.Target);
+
+        // Emit code for the index
+        EmitBytecode(expr.Index);
+
+        // Emit code for the value that will be added to the array
+        EmitBytecode(expr.Value);
+
+        // Emit array assign op
+        EmitByte(OpCode.ArrayAssign, expr.Bracket.Line);
     }
+
+    #endregion
 
     #region Utilities
 

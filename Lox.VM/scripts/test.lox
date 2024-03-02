@@ -1,6 +1,8 @@
-var a = [9; 10];
-print len(a);
+var a = [0; 10];
 
-print len("Hello world!");
+a[0] = 1;
+a[15] = 15;
 
-print len(12);
+print a[15];
+print a[9];
+print a[10];

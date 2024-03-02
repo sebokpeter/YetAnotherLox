@@ -314,12 +314,52 @@ internal class Vm
                     {
                         return InterpretResult.RuntimeError;
                     }
-
+                    break;
+                case ArrayAssign:
+                    if (!AssignArray())
+                    {
+                        return InterpretResult.RuntimeError;
+                    }
                     break;
                 default:
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool AssignArray()
+    {
+        LoxValue assignValue = _stack.Pop();
+        LoxValue indexValue = _stack.Pop();
+        LoxValue targetValue = _stack.Pop();
+
+        if (!indexValue.IsNumber || !(indexValue.AsNumber % 1 == 0))
+        {
+            AddRuntimeError("Index must be an integer.");
+            return false;
+        }
+
+        int index = (int)indexValue.AsNumber;
+
+        if (!targetValue.IsObj || !targetValue.AsObj.IsType(ObjType.Array))
+        {
+            AddRuntimeError("Target must be an array.");
+            return false;
+        }
+
+        ObjArray array = targetValue.AsObj.AsArray;
+
+        if (array.Array.Count <= index)
+        {
+            // If index is out of bounds, pad the array with Nil values.
+            int difference = index - array.Array.Count;
+            array.Array.AddRange(Enumerable.Repeat(LoxValue.Nil(), difference + 1));
+        }
+
+        array.Array[index] = assignValue;
+        _stack.Push(targetValue);
+
+        return true;
     }
 
     private bool AccessArray()

@@ -68,6 +68,7 @@ internal static class Debug
             EmptyArray => SimpleInstruction(opCode, offset),
             DefaultInitializedArray => SimpleInstruction(opCode, offset),
             ArrayAccess => SimpleInstruction(opCode, offset),
+            ArrayAssign => SimpleInstruction(opCode, offset),
 
             Constant => ConstantInstruction(opCode, chunk, offset),
             DefineGlobal => ConstantInstruction(opCode, chunk, offset),
