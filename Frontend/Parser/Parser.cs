@@ -28,7 +28,7 @@ public class Parser
     public List<Stmt> Parse()
     {
         List<Stmt> statements = [];
-        while(!IsAtEnd())
+        while (!IsAtEnd())
         {
             statements.Add(Declaration());
         }
@@ -41,22 +41,22 @@ public class Parser
     {
         try
         {
-            if(Match(STATIC, CLASS))
+            if (Match(STATIC, CLASS))
             {
                 return ClassDeclaration();
             }
-            if(Match(FUN))
+            if (Match(FUN))
             {
                 return Function(CallableKind.FUNCTION);
             }
-            if(Match(VAR))
+            if (Match(VAR))
             {
                 return VarDeclaration();
             }
 
             return Statement();
         }
-        catch(ParseException)
+        catch (ParseException)
         {
             Synchronize();
             return null!;
@@ -67,7 +67,7 @@ public class Parser
     {
         bool isStatic = Previous().Type == STATIC;
 
-        if(isStatic)
+        if (isStatic)
         {
             Consume(CLASS, "Expect 'class' keyword.");
         }
@@ -94,16 +94,16 @@ public class Parser
     {
         List<Stmt.Function> methods = [];
 
-        while(!Check(RIGHT_BRACE) && !IsAtEnd())
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {
             Stmt.Function method = Function(CallableKind.METHOD);
 
-            if(isStatic && !method.IsStatic)
+            if (isStatic && !method.IsStatic)
             {
                 Error(method.Name, "A static class may only contain static methods.");
             }
 
-            if(isStatic && method.Name.Lexeme == "init")
+            if (isStatic && method.Name.Lexeme == "init")
             {
                 Error(method.Name, "A static class may not contain an initializer.");
             }
@@ -122,10 +122,10 @@ public class Parser
     private Expr.Variable? ParseSuperclass(bool isStatic)
     {
         Expr.Variable? superclass = null;
-        if(Match(LESS))
+        if (Match(LESS))
         {
             Token superclassName = Consume(IDENTIFIER, "Expect superclass name.");
-            if(isStatic)
+            if (isStatic)
             {
                 Error(superclassName, "A static class may not inherit from another class.");
             }
@@ -141,7 +141,7 @@ public class Parser
 
         bool isStatic = false;
 
-        if(Check(STATIC))
+        if (Check(STATIC))
         {
             isStatic = true;
             _inStaticMethod = true;
@@ -150,7 +150,7 @@ public class Parser
 
         Token name = Consume(IDENTIFIER, $"Expect {kindStr} name.");
 
-        if(isStatic && name.Lexeme == "init")
+        if (isStatic && name.Lexeme == "init")
         {
             Error(name, "The 'init' method cannot be static.");
         }
@@ -180,17 +180,17 @@ public class Parser
     private List<Token> ParseParameters()
     {
         List<Token> parameters = [];
-        if(!Check(RIGHT_PAREN))
+        if (!Check(RIGHT_PAREN))
         {
             do
             {
-                if(parameters.Count >= 255)
+                if (parameters.Count >= 255)
                 {
                     Error(Peek(), "Can't have more than 255 parameters.");
                 }
 
                 parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
-            } while(Match(COMMA));
+            } while (Match(COMMA));
         }
 
         return parameters;
@@ -201,7 +201,7 @@ public class Parser
         Token name = Consume(IDENTIFIER, "Expect variable name.");
         Expr? initializer = null;
 
-        if(Match(EQUAL))
+        if (Match(EQUAL))
         {
             initializer = Expression();
         }
@@ -216,39 +216,39 @@ public class Parser
 
     private Stmt Statement()
     {
-        if(Match(FOR))
+        if (Match(FOR))
         {
             return ForStatement();
         }
-        if(Match(FOREACH))
+        if (Match(FOREACH))
         {
             return ForeachStatement();
         }
-        if(Match(IF))
+        if (Match(IF))
         {
             return IfStatement();
         }
-        if(Match(PRINT))
+        if (Match(PRINT))
         {
             return PrintStatement();
         }
-        if(Match(RETURN))
+        if (Match(RETURN))
         {
             return ReturnStatement();
         }
-        if(Match(BREAK))
+        if (Match(BREAK))
         {
             return BreakStatement();
         }
-        if(Match(CONTINUE))
+        if (Match(CONTINUE))
         {
             return ContinueStatement();
         }
-        if(Match(WHILE))
+        if (Match(WHILE))
         {
             return WhileStatement();
         }
-        if(Match(LEFT_BRACE))
+        if (Match(LEFT_BRACE))
         {
             return new Stmt.Block(Block());
         }
@@ -262,11 +262,11 @@ public class Parser
         Consume(LEFT_PAREN, "Expect '(' after 'for'.");
 
         Stmt initializer;
-        if(Match(SEMICOLON))
+        if (Match(SEMICOLON))
         {
             initializer = null!;
         }
-        else if(Match(VAR))
+        else if (Match(VAR))
         {
             initializer = VarDeclaration();
         }
@@ -276,14 +276,14 @@ public class Parser
         }
 
         Expr condition = null!;
-        if(!Check(SEMICOLON))
+        if (!Check(SEMICOLON))
         {
             condition = Expression();
         }
         Consume(SEMICOLON, "Expect ';' after loop condition.");
 
         Expr increment = null!;
-        if(!Check(RIGHT_PAREN))
+        if (!Check(RIGHT_PAREN))
         {
             increment = Expression();
         }
@@ -350,7 +350,7 @@ public class Parser
 
             // Get the current element from the loop
             // The name of the element is the name given in the foreach loop ('foreach(var name...)')
-            Stmt.Var access = new(new Token(name.Type, name.Lexeme, name.Literal, name.Line + 1), new Expr.ArrayAccess(CopyCollectionExpr(collectionExpr, paren.Line, paren), null!, new Expr.Variable(new Token(IDENTIFIER, loopName, null, paren.Line + 1))));
+            Stmt.Var access = new(new Token(name.Type, name.Lexeme, name.Literal, name.Line + 1), new Expr.ArrayAccess(CopyCollectionExpr(collectionExpr, paren.Line, paren), new Token(LEFT_SQUARE, "", null, paren.Line)!, new Expr.Variable(new Token(IDENTIFIER, loopName, null, paren.Line + 1))));
 
             // Create a new block, with the array access as the first statement.
             Stmt newBody = new Stmt.Block([access, .. body]);
@@ -428,35 +428,35 @@ public class Parser
     /// <exception cref="Exception"></exception>
     private Expr CopyCollectionExpr(Expr collection, int line, Token pos)
     {
-        if(collection is Expr.Variable var)
+        if (collection is Expr.Variable var)
         {
             return var with { Name = new(var.Name.Type, var.Name.Lexeme, var.Name.Literal, line) };
         }
-        if(collection is Expr.Literal lit)
+        if (collection is Expr.Literal lit)
         {
-            if(lit.Value is not string)
+            if (lit.Value is not string)
             {
                 throw Error(pos, "'foreach' loop can not be used with a number.");
             }
             return lit;
         }
-        if(collection is Expr.Array arr)
+        if (collection is Expr.Array arr)
         {
             return arr with { Bracket = new Token(arr.Bracket.Type, arr.Bracket.Lexeme, arr.Bracket.Literal, line) };
         }
-        if(collection is Expr.Call call)
+        if (collection is Expr.Call call)
         {
             return call with { Paren = new Token(call.Paren.Type, call.Paren.Lexeme, call.Paren.Literal, line) };
         }
-        if(collection is Expr.ArrayAccess arrAcc)
+        if (collection is Expr.ArrayAccess arrAcc)
         {
             return arrAcc with { Bracket = new Token(arrAcc.Bracket.Type, arrAcc.Bracket.Lexeme, arrAcc.Bracket.Literal, line) };
         }
-        if(collection is Expr.This thisExpr)
+        if (collection is Expr.This thisExpr)
         {
             return thisExpr with { Keyword = new Token(thisExpr.Keyword.Type, thisExpr.Keyword.Lexeme, thisExpr.Keyword.Literal, line) };
         }
-        if(collection is Expr.Get get)
+        if (collection is Expr.Get get)
         {
             return get with { Obj = CopyCollectionExpr(get.Obj, line, pos) };
         }
@@ -468,7 +468,7 @@ public class Parser
     {
         Token keyword = Previous();
 
-        if(_loopDepth == 0)
+        if (_loopDepth == 0)
         {
             throw Error(keyword, "Must be inside a loop to use 'continue'.");
         }
@@ -482,7 +482,7 @@ public class Parser
     {
         Token keyword = Previous();
 
-        if(_loopDepth == 0)
+        if (_loopDepth == 0)
         {
             throw Error(keyword, "Must be inside a loop to use 'break'.");
         }
@@ -497,7 +497,7 @@ public class Parser
         Token keyword = Previous();
         Expr value = null!;
 
-        if(!Check(SEMICOLON))
+        if (!Check(SEMICOLON))
         {
             value = Expression();
         }
@@ -515,7 +515,7 @@ public class Parser
         Stmt thenBranch = Statement();
         Stmt elseBranch = null!;
 
-        if(Match(ELSE))
+        if (Match(ELSE))
         {
             elseBranch = Statement();
         }
@@ -542,7 +542,7 @@ public class Parser
     {
         List<Stmt> statements = [];
 
-        while(!Check(RIGHT_BRACE) && !IsAtEnd())
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {
             statements.Add(Declaration());
         }
@@ -564,7 +564,7 @@ public class Parser
     {
         Expr expr = Or();
 
-        if(Match(EQUAL, PLUS_EQUAL, MINUS_EQUAL, STAR_EQUAL, SLASH_EQUAL, MODULO_EQUAL))
+        if (Match(EQUAL, PLUS_EQUAL, MINUS_EQUAL, STAR_EQUAL, SLASH_EQUAL, MODULO_EQUAL))
         {
             Token equals = Previous();
             Expr right = Assignment();
@@ -573,16 +573,16 @@ public class Parser
 
             Expr value = equals.Type == EQUAL ? right : new Expr.Binary(expr, oper, right);
 
-            if(expr is Expr.Variable var)
+            if (expr is Expr.Variable var)
             {
                 Token name = var.Name;
                 return new Expr.Assign(name, value);
             }
-            else if(expr is Expr.Get getExpr)
+            else if (expr is Expr.Get getExpr)
             {
                 return new Expr.Set(getExpr.Obj, getExpr.Name, value);
             }
-            else if(expr is Expr.ArrayAccess arrayAccessExpr)
+            else if (expr is Expr.ArrayAccess arrayAccessExpr)
             {
                 return new Expr.ArrayAssign(arrayAccessExpr.Target, arrayAccessExpr.Bracket, arrayAccessExpr.Index, value);
             }
@@ -627,7 +627,7 @@ public class Parser
     {
         Expr expr = And();
 
-        while(Match(OR))
+        while (Match(OR))
         {
             Token oper = Previous();
             Expr right = And();
@@ -641,7 +641,7 @@ public class Parser
     {
         Expr expr = Equality();
 
-        while(Match(AND))
+        while (Match(AND))
         {
             Token oper = Previous();
             Expr right = Equality();
@@ -655,7 +655,7 @@ public class Parser
     {
         Expr expr = Comparison();
 
-        while(Match(BANG_EQUAL, EQUAL_EQUAL))
+        while (Match(BANG_EQUAL, EQUAL_EQUAL))
         {
             Token oper = Previous();
             Expr right = Comparison();
@@ -669,7 +669,7 @@ public class Parser
     {
         Expr expr = Term();
 
-        while(Match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
+        while (Match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
         {
             Token oper = Previous();
             Expr right = Term();
@@ -683,7 +683,7 @@ public class Parser
     {
         Expr expr = Factor();
 
-        while(Match(MINUS, PLUS))
+        while (Match(MINUS, PLUS))
         {
 
             Token oper = Previous();
@@ -698,7 +698,7 @@ public class Parser
     {
         Expr expr = Unary();
 
-        while(Match(SLASH, STAR, MODULO))
+        while (Match(SLASH, STAR, MODULO))
         {
             Token oper = Previous();
             Expr right = Unary();
@@ -710,7 +710,7 @@ public class Parser
 
     private Expr Unary()
     {
-        if(Match(MINUS, BANG))
+        if (Match(MINUS, BANG))
         {
             Token oper = Previous();
             Expr expr = Unary();
@@ -724,18 +724,18 @@ public class Parser
     {
         Expr expr = Primary();
 
-        while(true)
+        while (true)
         {
-            if(Match(LEFT_PAREN))
+            if (Match(LEFT_PAREN))
             {
                 expr = FinishCall(expr);
             }
-            else if(Match(DOT))
+            else if (Match(DOT))
             {
                 Token name = Consume(IDENTIFIER, "Expect property name after '.'.");
                 expr = new Expr.Get(expr, name);
             }
-            else if(Match(LEFT_SQUARE))
+            else if (Match(LEFT_SQUARE))
             {
                 Token bracket = Previous();
                 expr = new Expr.ArrayAccess(expr, bracket, Expression());
@@ -747,7 +747,7 @@ public class Parser
             }
         }
 
-        if(Match(PLUS_PLUS, MINUS_MINUS)) // Check for postfix expression.
+        if (Match(PLUS_PLUS, MINUS_MINUS)) // Check for postfix expression.
         {
             expr = new Expr.Postfix(expr, Previous());
         }
@@ -759,21 +759,21 @@ public class Parser
     {
         List<Expr> arguments = [];
 
-        if(!Check(RIGHT_PAREN))
+        if (!Check(RIGHT_PAREN))
         {
             do
             {
-                if(arguments.Count >= 255)
+                if (arguments.Count >= 255)
                 {
                     throw Error(Peek(), "Can't have more than 255 arguments.");
                 }
                 arguments.Add(Expression());
-            } while(Match(COMMA));
+            } while (Match(COMMA));
         }
 
         Token paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
-        if(Match(PLUS_PLUS, MINUS_MINUS))
+        if (Match(PLUS_PLUS, MINUS_MINUS))
         {
             Error(Previous(), "Cannot apply postfix expression to function or method call.");
         }
@@ -783,31 +783,31 @@ public class Parser
 
     private Expr Primary()
     {
-        if(Match(FALSE, TRUE, NIL, NUMBER, STRING)) // Check literals
+        if (Match(FALSE, TRUE, NIL, NUMBER, STRING)) // Check literals
         {
             return LiteralExpression();
         }
-        else if(Match(SUPER))
+        else if (Match(SUPER))
         {
             return SuperExpression();
         }
-        else if(Match(LEFT_PAREN))
+        else if (Match(LEFT_PAREN))
         {
             return GroupingExpression();
         }
-        else if(Match(LEFT_SQUARE))
+        else if (Match(LEFT_SQUARE))
         {
             return ArrayCreation();
         }
-        else if(Match(THIS))
+        else if (Match(THIS))
         {
-            if(_inStaticMethod)
+            if (_inStaticMethod)
             {
                 Error(Previous(), "Cannot access 'this' in static method.");
             }
             return new Expr.This(Previous());
         }
-        else if(Match(IDENTIFIER))
+        else if (Match(IDENTIFIER))
         {
             return new Expr.Variable(Previous());
         }
@@ -839,11 +839,11 @@ public class Parser
 
         return literalToken.Type switch
         {
-            TRUE                => new(true, literalToken),
-            FALSE               => new(false, literalToken),
-            NIL                 => new(null, literalToken),
-            NUMBER or STRING    => new(literalToken.Literal, literalToken),
-            _                   => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
+            TRUE => new(true, literalToken),
+            FALSE => new(false, literalToken),
+            NIL => new(null, literalToken),
+            NUMBER or STRING => new(literalToken.Literal, literalToken),
+            _ => throw new UnreachableException($"{literalToken.Type}: {literalToken.Lexeme}")
         };
     }
 
@@ -851,13 +851,13 @@ public class Parser
     {
         Token leftSquare = Previous();
 
-        if(!Check(RIGHT_SQUARE) && !IsAtEnd())
+        if (!Check(RIGHT_SQUARE) && !IsAtEnd())
         {
             // If the next token is a semicolon ";", this expr will be the length of the array (e.g. ["a"; 10] -> array with ten 'a's)
             // If the next token is a comma ",", this expression is the first value in the list of array value initializers (e.g. [10,11,12] -> three element array, with elements 10, 11, and 12)
             Expr first = Expression();
 
-            if(Match(SEMICOLON))
+            if (Match(SEMICOLON))
             {
                 Expr defaultValueCount = Expression();
                 Consume(RIGHT_SQUARE, "Expect closing ']'.");
@@ -866,7 +866,7 @@ public class Parser
             else
             {
                 List<Expr> initializers = [first];
-                while(Match(COMMA) && !IsAtEnd())
+                while (Match(COMMA) && !IsAtEnd())
                 {
                     initializers.Add(Expression());
                 }
@@ -887,7 +887,7 @@ public class Parser
 
     private Token Consume(TokenType type, string msg)
     {
-        if(Check(type))
+        if (Check(type))
         {
             return Advance();
         }
@@ -897,9 +897,9 @@ public class Parser
 
     private bool Match(params TokenType[] types)
     {
-        foreach(TokenType type in types)
+        foreach (TokenType type in types)
         {
-            if(Check(type))
+            if (Check(type))
             {
                 Advance();
                 return true;
@@ -911,7 +911,7 @@ public class Parser
 
     private Token Advance()
     {
-        if(!IsAtEnd())
+        if (!IsAtEnd())
         {
             _current++;
         }
@@ -920,7 +920,7 @@ public class Parser
 
     private bool Check(TokenType type)
     {
-        if(IsAtEnd())
+        if (IsAtEnd())
         {
             return false;
         }
@@ -952,11 +952,11 @@ public class Parser
     {
         Advance();
 
-        while(!IsAtEnd())
+        while (!IsAtEnd())
         {
-            if(Previous().Type == SEMICOLON) return;
+            if (Previous().Type == SEMICOLON) return;
 
-            switch(Peek().Type)
+            switch (Peek().Type)
             {
                 case CLASS:
                 case FUN:
