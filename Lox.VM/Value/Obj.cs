@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace LoxVM.Value;
 
@@ -110,6 +113,14 @@ internal abstract class Obj
     /// <returns></returns>
     internal static ObjArray Arr(List<LoxValue>? initialValues = null) => new() { Array = initialValues ?? [] };
 
+    /// <summary>
+    /// Create a copy of this <see cref="Obj"/>.
+    /// Note: not yet implemented for all subclasses.
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    internal virtual Obj Copy() => throw new NotImplementedException(); // TODO: implement this method for subclasses
+
     public abstract override bool Equals(object? obj);
 
     public abstract override int GetHashCode();
@@ -125,6 +136,8 @@ internal class ObjString : Obj
     internal required string StringValue { get; set; }
 
     internal ObjString() : base(ObjType.String) { }
+
+    internal override ObjString Copy() => new() { StringValue = this.StringValue };
 
     public override string ToString() => StringValue;
 
@@ -444,6 +457,12 @@ internal class ObjArray : Obj
     /// A <see cref="List{LoxValue}"/> that holds the underlying elements.
     /// </summary>
     internal required List<LoxValue> Array { get; init; }
+
+    internal override ObjArray Copy()
+    {
+        List<LoxValue> newValues = Array.Select(LoxValue.FromLoxValue).ToList();
+        return new ObjArray() { Array = newValues };
+    }
 
     public override bool Equals(object? obj)
     {

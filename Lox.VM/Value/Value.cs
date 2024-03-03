@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection.Metadata;
 
@@ -37,6 +38,7 @@ internal class LoxValue
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is an object .
     /// </summary>
+    [MemberNotNullWhen(true, nameof(_internalObject))]
     internal bool IsObj => Type == ValueType.Obj;
 
     /// <summary>
@@ -148,7 +150,8 @@ internal class LoxValue
     {
         if (other.IsObj)
         {
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
+            return new(other._internalObject.Copy());
         }
         else
         {
