@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -45,10 +46,10 @@ internal class Vm
 
     private void DefineNativeMethods()
     {
-        DefineNative("clock", (_) => (LoxValue.Number(_stopwatch.ElapsedMilliseconds), true), 0);
-        DefineNative("len", (argNum) =>
+        DefineNative("clock", 0, (_) => (LoxValue.Number(_stopwatch.ElapsedMilliseconds), true));
+        DefineNative("len", 1, (argLocation) =>
         {
-            LoxValue val = _stack[argNum];
+            LoxValue val = _stack[argLocation];
 
             if (!val.IsObj || !(val.AsObj.IsType(ObjType.String) || val.AsObj.IsType(ObjType.Array)))
             {
@@ -66,7 +67,55 @@ internal class Vm
             {
                 return (LoxValue.Number(obj.AsArray.Array.Count), true);
             }
-        }, 1);
+        });
+        DefineNative("int", 1, (argLocation) =>
+        {
+            LoxValue value = _stack[argLocation];
+
+            if (!value.IsNumber)
+            {
+                AddRuntimeError("'int()' can only called on numbers.");
+                return (null, false);
+            }
+
+            return (LoxValue.Number(Convert.ToInt32(value.AsNumber)), true);
+        });
+        DefineNative("write", 1, (argLocation) =>
+        {
+            LoxValue value = _stack[argLocation];
+            Console.Write(value);
+            return (LoxValue.Nil(), true);
+        });
+        DefineNative("random", 1, (argLocation) =>
+        {
+            LoxValue maxValue = _stack[argLocation];
+
+            if (!maxValue.IsNumber || !(maxValue.AsNumber % 1 == 0))
+            {
+                AddRuntimeError("'max' argument must be an integer.");
+                return (null, false);
+            }
+
+            return (LoxValue.Number(Random.Shared.Next((int)maxValue.AsNumber)), true);
+        });
+        DefineNative("clear", 0, (_) =>
+        {
+            Console.Clear();
+            return (LoxValue.Nil(), true);
+        });
+        DefineNative("sleep", 1, (argLocation) =>
+        {
+            LoxValue sleepValue = _stack[argLocation];
+
+            if (!sleepValue.IsNumber || !(sleepValue.AsNumber % 1 == 0))
+            {
+                AddRuntimeError("Argument must be an integer.");
+                return (null, false);
+            }
+
+            Thread.Sleep((int)sleepValue.AsNumber);
+            return (LoxValue.Nil(), true);
+        });
     }
 
     internal InterpretResult Interpret(ObjFunction function)
@@ -288,26 +337,10 @@ internal class Vm
                     _stack.Push(initializedArray);
                     break;
                 case DefaultInitializedArray:
-                    LoxValue c = _stack.Pop();
-                    if (!c.IsNumber || !(c.AsNumber % 1 == 0) || c.AsNumber > 255)
+                    if (!DefaultInitArray())
                     {
-                        AddRuntimeError("Initializer count must be an integer number, which is less than 255.");
                         return InterpretResult.RuntimeError;
                     }
-
-                    byte count = (byte)c.AsNumber;
-                    LoxValue initValue = _stack.Pop();
-
-                    List<LoxValue> initValues = new(count);
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        initValues.Add(LoxValue.FromLoxValue(initValue));
-                    }
-
-                    initValues.Reverse();
-                    LoxValue initArray = LoxValue.Object(Obj.Arr(initValues));
-                    _stack.Push(initArray);
                     break;
                 case ArrayAccess:
                     if (!AccessArray())
@@ -325,6 +358,31 @@ internal class Vm
                     throw new UnreachableException();
             }
         }
+    }
+
+    private bool DefaultInitArray()
+    {
+        LoxValue c = _stack.Pop();
+        if (!c.IsNumber || !(c.AsNumber % 1 == 0) || c.AsNumber > 255)
+        {
+            AddRuntimeError("Initializer count must be an integer number, which is less than 255.");
+            return false;
+        }
+
+        byte count = (byte)c.AsNumber;
+        LoxValue initValue = _stack.Pop();
+
+        List<LoxValue> initValues = new(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            initValues.Add(LoxValue.FromLoxValue(initValue));
+        }
+
+        initValues.Reverse();
+        LoxValue initArray = LoxValue.Object(Obj.Arr(initValues));
+        _stack.Push(initArray);
+        return true;
     }
 
     private bool AssignArray()
@@ -769,6 +827,7 @@ internal class Vm
         callFrames = new CallFrame[STACK_MAX];
         openUpValues = null;
         _stack.Reset();
+        frameCount = 0;
     }
 
     private void AddRuntimeError(string message)
@@ -784,7 +843,7 @@ internal class Vm
         Errors.Add(new RuntimeError(message, callFrame.Closure.Function.Chunk.Lines[callFrame.Ip], null, new Shared.ErrorHandling.StackTrace(frames)));
     }
 
-    private void DefineNative(string name, Func<int, (LoxValue? returnValue, bool success)> native, int arity)
+    private void DefineNative(string name, int arity, Func<int, (LoxValue? returnValue, bool success)> native)
     {
         Obj nameObj = LoxValue.Object(name).AsObj;
         ObjNativeFn objNativeFn = new() { Arity = arity, Name = name, Function = native };
