@@ -41,7 +41,7 @@ abstract partial class Test
     /// For example, the error "[line 1] Scan Error: Unterminated multiline comment." will become "Unterminated multiline comment."
     /// </summary>
     /// <returns></returns>
-    [GeneratedRegex(@"Expect: ((\[line [0-9]*\])? (((Scan|Parse|Resolve|Runtime) )?Error)?( at (end|\'.*\'))?:)?(?<expected>.*)$")]
+    [GeneratedRegex(@"Expect: ((\[line [0-9]*\])? (((Scan|Parse|Resolve|Runtime|Compiler) )?Error)?( at (end|\'.*\'))?:)?(?<expected>.*)$")]
     internal static partial Regex ExpectedOutputRegex();
 
     /// <summary>
@@ -49,7 +49,7 @@ abstract partial class Test
     /// Behaves the same as <see cref="Test.ExpectedOutputRegex"/>, except does not not expect the "Expect: " prefix.
     /// </summary>
     /// <returns></returns>
-    [GeneratedRegex(@"((\[line [0-9]*\])? (((Scan|Parse|Resolve|Runtime) )?Error( at (end|\'.*\'))?: ))?(?<expected>.*)$")]
+    [GeneratedRegex(@"((\[line [0-9]*\])? (((Scan|Parse|Resolve|Runtime|Compiler) )?Error( at (end|\'.*\'))?: ))?(?<expected>.*)$")]
     internal static partial Regex OutputRegex();
 
     public abstract Task Run();
