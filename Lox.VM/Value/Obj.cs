@@ -159,19 +159,53 @@ internal class ObjString : Obj
     public override int GetHashCode() => StringValue.GetHashCode();
 }
 
+
+/// <summary>
+/// Represents a callable lox object, such as a function, native function or class.
+/// </summary>
+internal abstract class ObjCallable : Obj
+{
+    protected string nameAndArguments = string.Empty;
+
+    public ObjCallable(ObjType type) : base(type) { }
+
+    protected string GetNameAndArguments(string name, int arity)
+    {
+        if (!String.IsNullOrWhiteSpace(nameAndArguments))
+        {
+            return nameAndArguments;
+        }
+
+        // Most callables will never need to print their name, so we don't create the nameAndArguments string beforehand
+        // But once we do, we can save it 
+        nameAndArguments = GetArgumentString(name, arity);
+        return nameAndArguments;
+    }
+
+    private static string GetArgumentString(string name, int arity) => $"{name}({String.Join(", ", Enumerable.Repeat("var", arity))})"; // Probably faster than instantiating a StringBuilder every time
+
+    public abstract override bool Equals(object? obj);
+
+    public abstract override int GetHashCode();
+
+    public abstract override string ToString();
+}
+
 /// <summary>
 /// Represents a lox function.
 /// </summary>
-internal class ObjFunction : Obj
+internal class ObjFunction : ObjCallable
 {
     /// <summary>
-    /// Number of arguments to this function.
-    /// </summary>
-    internal required int Arity { get; init; }
-    /// <summary>
-    /// Name of the function.
+    /// The name of this function.
     /// </summary>
     internal required string Name { get; init; }
+
+    /// <summary>
+    /// The number of arguments to this function.
+    /// </summary>
+    internal required int Arity { get; init; }
+
     /// <summary>
     /// The code and constants associated with this function.
     /// </summary>
@@ -198,7 +232,7 @@ internal class ObjFunction : Obj
     /// <returns></returns>
     internal static ObjFunction TopLevel() => new() { Arity = 0, Name = "" };
 
-    public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {Name}>";
+    public override string ToString() => String.IsNullOrEmpty(Name) ? "<script>" : $"<fn {GetNameAndArguments(Name, Arity)}>";
 
     public override bool Equals(object? obj)
     {
@@ -221,17 +255,17 @@ internal class ObjFunction : Obj
 /// <summary>
 /// Represents a native lox function.
 /// </summary>
-internal class ObjNativeFn : Obj
+internal class ObjNativeFn : ObjCallable
 {
     /// <summary>
-    /// The number of arguments to this function.
-    /// </summary>
-    internal required int Arity { get; init; }
-
-    /// <summary>
-    /// The name of this function.
+    /// The name of this native function.
     /// </summary>
     internal required string Name { get; init; }
+
+    /// <summary>
+    /// The number of arguments to this native function.
+    /// </summary>
+    internal required int Arity { get; init; }
 
     /// <summary>
     /// A <see cref="Func{int, (LoxValue?, bool)}"/> object, that will be invoked when this native function is called.
@@ -241,7 +275,7 @@ internal class ObjNativeFn : Obj
 
     internal ObjNativeFn() : base(ObjType.Native) { }
 
-    public override string ToString() => $"<native fn {Name}>";
+    public override string ToString() => $"<native fn {GetNameAndArguments(Name, Arity)}>";
 
     public override bool Equals(object? obj)
     {
@@ -258,7 +292,7 @@ internal class ObjNativeFn : Obj
         return Arity == nativeFn.Arity && Name == nativeFn.Name;
     }
 
-    public override int GetHashCode() => HashCode.Combine(Arity, Name);
+    public override int GetHashCode() => HashCode.Combine(Name, Arity);
 }
 
 
@@ -340,10 +374,10 @@ internal class ObjUpValue : Obj
 /// <summary>
 /// Represents a lox class.
 /// </summary>
-internal class ObjClass : Obj
+internal class ObjClass : ObjCallable
 {
     /// <summary>
-    /// The name of the class.
+    /// The name of this class
     /// </summary>
     internal required string Name { get; init; }
 
@@ -360,7 +394,19 @@ internal class ObjClass : Obj
     /// </summary>
     internal bool IsStatic { get; init; }
 
-    public override string ToString() => $"<class {Name}>";
+    public override string ToString() => $"<class {GetClassNameAndArguments()}>";
+
+    private string GetClassNameAndArguments()
+    {
+        int arity = 0;
+
+        if (Methods.TryGetValue("init", out LoxValue? initMethod))
+        {
+            arity = initMethod.AsObj.AsBoundMethod.Method.Function.Arity;
+        }
+
+        return GetNameAndArguments(Name, arity);
+    }
 
     internal ObjClass() : base(ObjType.Class) { }
 
