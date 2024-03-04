@@ -218,7 +218,7 @@ internal class Vm
                     Obj varName = Frame.ReadConstant().AsObj;
                     if (!_globals.TryGetValue(varName, out LoxValue? value))
                     {
-                        AddRuntimeError($"Undefined variable {varName.AsString}.");
+                        AddRuntimeError($"Undefined variable '{varName.AsString}'.");
                         return InterpretResult.RuntimeError;
                     }
                     _stack.Push(value);
@@ -227,7 +227,7 @@ internal class Vm
                     Obj globalName = Frame.ReadConstant().AsObj;
                     if (!_globals.ContainsKey(globalName))
                     {
-                        AddRuntimeError($"Undefined variable {globalName.AsString}.");
+                        AddRuntimeError($"Undefined variable '{globalName.AsString}'.");
                         return InterpretResult.RuntimeError;
                     }
                     _globals[globalName] = _stack.Peek(0);
@@ -438,7 +438,7 @@ internal class Vm
 
             if (objArray.Array.Count <= index)
             {
-                AddRuntimeError("Index out of range.");
+                AddRuntimeError($"Index is out of bounds. Array size: {index}, index: {index}.");
                 return false;
             }
             _stack.Push(objArray.Array[index]);
@@ -448,7 +448,7 @@ internal class Vm
             string val = o.AsString.StringValue;
             if (val.Length <= index)
             {
-                AddRuntimeError("Index out of range.");
+                AddRuntimeError($"Index is out of bounds. Array size: {index}, index: {index}.");
                 return false;
             }
             _stack.Push(LoxValue.Object(Obj.Str(val[index].ToString())));
@@ -463,7 +463,7 @@ internal class Vm
 
         if (!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class))
         {
-            AddRuntimeError("Superclass must be a class.");
+            AddRuntimeError("Superclass must be a (non-static) class.");
             return false;
         }
 
@@ -482,7 +482,7 @@ internal class Vm
     {
         if (!superClass.Methods.TryGetValue(supMethodName, out LoxValue? method))
         {
-            AddRuntimeError($"Undefined property '{supMethodName}'.");
+            AddRuntimeError($"Undefined property: '{supMethodName}'.");
             return false;
         }
 
@@ -575,7 +575,7 @@ internal class Vm
         }
         else
         {
-            AddRuntimeError("Only instances have properties, and only classes have static methods.");
+            AddRuntimeError("Only instances have properties.");
             return false;
         }
     }
@@ -671,7 +671,7 @@ internal class Vm
                     }
                     else if (argCount != 0)
                     {
-                        AddRuntimeError($"Expected 0 arguments, got {argCount}.");
+                        AddRuntimeError($"Expected 0 arguments, but got {argCount}.");
                         return false;
                     }
                     return true;
@@ -691,7 +691,7 @@ internal class Vm
     {
         if (argCount != nativeFn.Arity)
         {
-            AddRuntimeError($"Expected {nativeFn.Arity} arguments but got {argCount}.");
+            AddRuntimeError($"Expected {nativeFn.Arity} arguments, but got {argCount}.");
             return false;
         }
 
@@ -710,7 +710,7 @@ internal class Vm
     {
         if (argCount != closure.Function.Arity)
         {
-            AddRuntimeError($"Expected {closure.Function.Arity} arguments but got {argCount}.");
+            AddRuntimeError($"Expected {closure.Function.Arity} arguments, but got {argCount}.");
             return false;
         }
 
