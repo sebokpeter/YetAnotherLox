@@ -732,58 +732,61 @@ internal class Vm
         LoxValue a = _stack.Pop();
         LoxValue b = _stack.Pop();
 
-        if (a.IsString || b.IsString)
-        {
-            // Concat a and b
-            // Automatically convert a non-string value (e.g. a number) to string, when one of the operand is string
-            string left = a.ToString();
-            string right = b.ToString();
-
-            _stack.Push(LoxValue.Object(Obj.Str(left + right)));
-            return true;
-        }
-        else if (a.IsNumber)
-        {
-            return HandleNum(a, b, op);
-        }
-        else if (a.IsBool)
+        if (op.IsLogicalOp())
         {
             return HandleBool(a, b, op);
         }
+        else if (op.IsMathOp() || op.IsComparisonOp())
+        {
+            if (!(a.IsNumber && b.IsNumber) && op == Add)
+            {
+                // Concat a and b
+                // Automatically convert a non-string value (e.g. a number) to string, when one of the operand is string
+                string left = a.ToString();
+                string right = b.ToString();
+
+                _stack.Push(LoxValue.Object(Obj.Str(left + right)));
+                return true;
+            }
+            else
+            {
+                return HandleNum(a, b, op);
+            }
+        }
         else
         {
-            throw new UnreachableException($"Operand {a} is neither a string, number, or bool.");
+            throw new UnreachableException($"Opcode was {op}");
         }
     }
 
     private bool HandleBool(LoxValue a, LoxValue b, OpCode op)
     {
-        if (!b.IsBool)
+        if (op == Or)
         {
-            AddRuntimeError("Both operands must be booleans.");
-            return false;
+            if (!IsFalsey(a))
+            {
+                _stack.Push(a);
+                return true;
+            }
+        }
+        else
+        {
+            if (IsFalsey(a))
+            {
+                _stack.Push(a);
+                return true;
+            }
         }
 
-        bool left = a.AsBool;
-        bool right = b.AsBool;
-
-        bool res = op switch
-        {
-            And => left && right,
-            Or => left || right,
-            _ => throw new UnreachableException($"Opcode was {op}.")
-        };
-
-        _stack.Push(LoxValue.Bool(res));
-
+        _stack.Push(b);
         return true;
     }
 
     private bool HandleNum(LoxValue a, LoxValue b, OpCode op)
     {
-        if (!b.IsNumber)
+        if (!(a.IsNumber && b.IsNumber))
         {
-            AddRuntimeError("Both operands must be numbers.");
+            AddRuntimeError("Operands must be numbers.");
             return false;
         }
 
@@ -804,6 +807,12 @@ internal class Vm
         }
         else
         {
+            if (op == Divide && right == 0)
+            {
+                AddRuntimeError("Attempted division by zero.");
+                return false;
+            }
+
             double res = op switch
             {
                 Add => left + right,
