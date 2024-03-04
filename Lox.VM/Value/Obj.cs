@@ -161,7 +161,7 @@ internal class ObjString : Obj
 
 
 /// <summary>
-/// Represents a callable lox object, such as a function, native function or class.
+/// Represents a callable lox object, such as a function, native function, or class.
 /// </summary>
 internal abstract class ObjCallable : Obj
 {
@@ -327,7 +327,7 @@ internal class ObjClosure : Obj
             return false;
         }
 
-        return Function.Equals(objClosure.Function);
+        return Function.Equals(objClosure.Function) && UpValues == objClosure.UpValues;
     }
 
     public override int GetHashCode() => Function.GetHashCode();
@@ -486,7 +486,7 @@ internal class ObjBoundMethod : Obj
             return false;
         }
 
-        return Receiver.Equals(boundMethod.Receiver) && Method.Equals(boundMethod.Method);
+        return this == boundMethod;
     }
 
     public override int GetHashCode() => HashCode.Combine(Receiver, Method);

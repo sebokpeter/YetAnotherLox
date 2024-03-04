@@ -190,7 +190,7 @@ internal class LoxValue
 
         return Type switch
         {
-            ValueType.Obj => AsObj.Equals(loxValue),
+            ValueType.Obj => AsObj.Equals(loxValue.AsObj),
             _ => _internalValue == loxValue._internalValue,
         };
     }
