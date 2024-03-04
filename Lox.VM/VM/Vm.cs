@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net.Sockets;
 
 using LoxVM.Chunk;
 using LoxVM.Value;
@@ -474,6 +475,7 @@ internal class Vm
         {
             inheritingClass.Methods[methodName] = methodVal;
         }
+
         _stack.Pop();
         return true;
     }
@@ -510,20 +512,61 @@ internal class Vm
             return false;
         }
 
-        ObjClass objClass = receiver.AsObj.IsType(ObjType.Class) ? receiver.AsObj.AsClass : receiver.AsObj.AsInstance.ObjClass;
-
-        return InvokeFromClass(objClass, name, methodArgCount);
+        return InvokeFromClass(receiver.AsObj, name, methodArgCount);
     }
 
-    private bool InvokeFromClass(ObjClass objClass, string name, int methodArgCount)
+    private bool InvokeFromClass(Obj receiver, string name, int methodArgCount)
     {
+        bool isReceiverInstance = receiver.IsType(ObjType.Instance);
+
+        ObjClass objClass = isReceiverInstance ? receiver.AsInstance.ObjClass : receiver.AsClass;
+
         if (!objClass.Methods.TryGetValue(name, out LoxValue? method))
         {
-            AddRuntimeError($"Undefined property: '{name}'.");
+            if (!isReceiverInstance)
+            {
+                AddRuntimeError($"Class '{objClass.Name}' has no static method named '{name}'."); // The receiver is a class, but it has no method with the given name
+            }
+            else
+            {
+                // The receiver is an instance ...
+                if (receiver.AsInstance.Fields.TryGetValue(name, out LoxValue? _))
+                {
+                    AddRuntimeError("Can only call functions and classes."); // But 'name' refers to a field, not to a method.
+                }
+                else
+                {
+                    AddRuntimeError($"Undefined property: '{name}'."); // We can't find a field or method with the given name
+
+                }
+            }
             return false;
         }
 
-        return CallFn(method.AsObj.AsClosure, methodArgCount);
+        ObjClosure closure = method.AsObj.AsClosure;
+
+        if (!CheckIfCallable(name, isReceiverInstance, objClass, closure))
+        {
+            return false;
+        }
+
+        return CallFn(closure, methodArgCount);
+    }
+
+    private bool CheckIfCallable(string name, bool isReceiverInstance, ObjClass objClass, ObjClosure closure)
+    {
+        if (closure.Function.IsStatic && isReceiverInstance)
+        {
+            AddRuntimeError($"Static method '{name}' cannot be called on an instance.");
+            return false;
+        }
+        else if (!closure.Function.IsStatic && !isReceiverInstance)
+        {
+            AddRuntimeError($"Class '{objClass.Name}' has no static method named '{name}'.");
+            return false;
+        }
+
+        return true;
     }
 
     private bool SetProp()

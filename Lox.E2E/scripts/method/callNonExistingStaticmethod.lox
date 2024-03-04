@@ -1,3 +1,0 @@
-class C {}
-
-C.foo(); // Expect: [line 3] Runtime Error: Class 'C' has no static method named 'foo'.

@@ -384,7 +384,7 @@ internal class ObjClass : ObjCallable
     /// <summary>
     /// A dictionary holding the methods of this class. 
     /// The key is the method's name, and the value is a <see cref="LoxValue"/>, which should be an <see cref="ObjClosure"/>.
-    /// Contains both the static and non-static methods.
+    /// Holds static and instance methods for this class.
     /// </summary>
     internal required Dictionary<string, LoxValue> Methods { get; init; }
 
