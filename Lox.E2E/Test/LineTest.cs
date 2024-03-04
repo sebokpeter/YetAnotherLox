@@ -14,7 +14,7 @@ sealed class LineTest : Test
 {
     private readonly IEnumerable<string> _lines;
 
-    public LineTest(string testScriptPath) : base(testScriptPath)
+    public LineTest(string testScriptPath, string executorPath) : base(testScriptPath, executorPath)
     {
         _lines = File.ReadAllLines(testScriptPath);
         Name = Name.Replace(".line", "");
@@ -27,9 +27,9 @@ sealed class LineTest : Test
         lox.BeginOutputReadLine();
         lox.BeginErrorReadLine();
 
-        using(StreamWriter inputWriter = lox.StandardInput)
+        using (StreamWriter inputWriter = lox.StandardInput)
         {
-            foreach(string line in _lines)
+            foreach (string line in _lines)
             {
                 inputWriter.WriteLine(line);
             }

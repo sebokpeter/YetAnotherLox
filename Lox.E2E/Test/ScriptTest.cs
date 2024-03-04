@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace E2E.Test;
 
@@ -29,7 +28,7 @@ sealed class ScriptTest : Test
     /// Since a runtime error terminates the script, only one runtime error should be expected.
     /// </summary>
     /// <param name="testScriptPath">The path of the .lox script that will be run by this <see cref="ScriptTest"/>.</param>
-    public ScriptTest(string testScriptPath) : base(testScriptPath)
+    public ScriptTest(string testScriptPath, string executorPath) : base(testScriptPath, executorPath)
     {
         _testScriptPath = testScriptPath;
     }
@@ -46,7 +45,7 @@ sealed class ScriptTest : Test
         {
             await lox.WaitForExitAsync(_cts.Token);
         }
-        catch(OperationCanceledException)
+        catch (OperationCanceledException)
         {
             _errors.Add($"Script ({Name}) did not finish in {TimeoutMS} milliseconds");
             return;

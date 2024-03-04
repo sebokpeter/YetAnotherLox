@@ -4,9 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    
     <OutputType>exe</OutputType>
     <IsPackable>false</IsPackable>
+    <AssemblyName>loxe2e</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

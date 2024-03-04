@@ -28,11 +28,11 @@ public class TestSuite
     /// <summary>
     /// Return the number of failed tests.
     /// </summary>
-    public int FailedTestCount 
+    public int FailedTestCount
     {
         get
         {
-            if(!_alreadyRun)
+            if (!_alreadyRun)
             {
                 return 0;
             }
@@ -48,7 +48,7 @@ public class TestSuite
     {
         get
         {
-            if(!_alreadyRun)
+            if (!_alreadyRun)
             {
                 return [];
             }
@@ -65,11 +65,22 @@ public class TestSuite
 
     private bool _alreadyRun = false;
 
-    public TestSuite(string folder)
+    /// <summary>
+    /// Create a new <see cref="TestSuite"/>. The <see cref="TestSuite"/> contains a number of tests, at least one for each .lox file in the directory <paramref name="folder"/>.
+    /// </summary>
+    /// <param name="folder">The folder where the tests reside.</param>
+    /// <param name="executorPath">THe path to the lox VM or Interpreter which will be used to run the tests.</param>
+    /// <exception cref="ArgumentException">If the <paramref name="folder"/> does not exists, of if the VM or Interpreter at <paramref name="executorPath"/> does not exists.</exception>
+    public TestSuite(string folder, string executorPath)
     {
-        if(!Directory.Exists(folder))
+        if (!Directory.Exists(folder))
         {
             throw new ArgumentException($"{folder} is not an existing folder.", nameof(folder));
+        }
+
+        if (!File.Exists(executorPath))
+        {
+            throw new ArgumentException($"VM or Interpreter at {executorPath} does not exists.", nameof(executorPath));
         }
 
         _testSuitName = Path.GetFileName(folder).TrimEnd(Path.DirectorySeparatorChar);
@@ -77,20 +88,14 @@ public class TestSuite
         _tests = Directory.GetFiles(folder).Where(file => file.EndsWith(".lox")).Select<string, Test>(file =>
         {
             string fileName = Path.GetFileNameWithoutExtension(file);
-            if(fileName.EndsWith(".line")) // Test files with the naming scheme <scriptName>.line.lox are run line-by-line
-            {
-                return new LineTest(file);
-            }
-            else
-            {
-                return new ScriptTest(file);
-            }
+            // Test files with the naming scheme <scriptName>.line.lox are run line-by-line
+            return fileName.EndsWith(".line") ? new LineTest(file, executorPath) : new ScriptTest(file, executorPath);
         }).ToArray();
     }
 
     public async Task Run()
     {
-        foreach(Test test in _tests)
+        foreach (Test test in _tests)
         {
             await test.Run();
         }
@@ -102,11 +107,11 @@ public class TestSuite
         Console.WriteLine("----------------------------------");
         Console.WriteLine($"'{_testSuitName}' tests:");
 
-        foreach(Test test in _tests)
+        foreach (Test test in _tests)
         {
             Console.Write($"\t{test.Name} - ");
 
-            if(test.Success)
+            if (test.Success)
             {
                 Utilities.WriteToConsoleWithColor(SuccessColor, "Ok");
             }
@@ -116,7 +121,7 @@ public class TestSuite
                 {
                     Console.WriteLine("Failed");
 
-                    foreach(string err in test.Errors)
+                    foreach (string err in test.Errors)
                     {
                         Console.WriteLine($"\t\t{err}");
                     }

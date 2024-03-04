@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net.Sockets;
 
 using LoxVM.Chunk;
 using LoxVM.Value;

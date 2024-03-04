@@ -22,9 +22,10 @@ abstract partial class Test
     /// </summary>
     public virtual IEnumerable<string> Errors => _errors;
 
-
-    internal readonly static string _interpreterPath = "Lox.Interpreted/bin/Debug/net8.0/cslox"; // There is only one interpreter, so it can be static.
-
+    /// <summary>
+    /// The path of the VM or Interpreter that will execute this test.
+    /// </summary>
+    internal string ExecutorPath { get; init; }
     internal readonly List<string> _results = [];
     internal readonly List<string> _errors = [];
 
@@ -53,14 +54,21 @@ abstract partial class Test
 
     public abstract Task Run();
 
-    public Test(string scriptPath)
+    public Test(string scriptPath, string executorPath)
     {
-        if(!scriptPath.EndsWith(".lox"))
+        if (!scriptPath.EndsWith(".lox"))
         {
             throw new ArgumentException("Path does not point to a Lox script.", nameof(scriptPath));
         }
 
+        if (!File.Exists(executorPath))
+        {
+            throw new ArgumentException($"VM or Interpreter at {executorPath} does not exists.", nameof(executorPath));
+        }
+
         Name = Path.GetFileNameWithoutExtension(scriptPath);
+
+        ExecutorPath = executorPath;
 
         _expectedResults = File.ReadAllLines(scriptPath).Where(line => ExpectedOutputRegex().IsMatch(line))
                             .Select(line => ExpectedOutputRegex().Match(line).Groups["expected"].Value)
@@ -80,21 +88,21 @@ abstract partial class Test
     /// <param name="checkResultsVerbatim">A switch that indicates whether of not the results should be interpreted verbatim.</param>
     internal virtual void CheckErrors(IEnumerable<string> results, bool checkResultsVerbatim = false)
     {
-        if(results.Count() != _expectedResults.Count())
+        if (results.Count() != _expectedResults.Count())
         {
             _errors.Add($"Expected {_expectedResults.Count()} results but got {results.Count()}.");
             return;
         }
 
-        if(!checkResultsVerbatim)
+        if (!checkResultsVerbatim)
         {
             results = results.Select(res => OutputRegex().Match(res).Groups["expected"].Value.Trim());
         }
 
         int i = 1;
-        foreach(var (result, expected) in results.Zip(_expectedResults))
+        foreach (var (result, expected) in results.Zip(_expectedResults))
         {
-            if(result != expected)
+            if (result != expected)
             {
                 _errors.Add($"Expected '{expected}' but got '{result}' (position {i}).");
             }
@@ -121,7 +129,7 @@ abstract partial class Test
 
         lox.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
         {
-            if(!String.IsNullOrWhiteSpace(e.Data))
+            if (!String.IsNullOrWhiteSpace(e.Data))
             {
                 _results.Add(e.Data.Trim());
             }
@@ -129,13 +137,13 @@ abstract partial class Test
 
         lox.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
         {
-            if(!String.IsNullOrWhiteSpace(e.Data))
+            if (!String.IsNullOrWhiteSpace(e.Data))
             {
                 _results.Add(e.Data.Trim());
             }
         });
 
-        lox.StartInfo.FileName = _interpreterPath;
+        lox.StartInfo.FileName = ExecutorPath;
 
         return lox;
     }
