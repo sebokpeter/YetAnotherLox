@@ -519,7 +519,7 @@ internal class Vm
     {
         if (!objClass.Methods.TryGetValue(name, out LoxValue? method))
         {
-            AddRuntimeError($"Undefined property '{name}'.");
+            AddRuntimeError($"Undefined property: '{name}'.");
             return false;
         }
 

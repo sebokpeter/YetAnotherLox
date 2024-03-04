@@ -136,7 +136,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         if (_functionType == FunctionType.Script)
         {
-            AddCompileError("Cannot return from top-level code.", stmt.Keyword);
+            AddCompileError("Can't return from top-level code.", stmt.Keyword);
         }
 
         if (stmt.Value is null)
@@ -147,7 +147,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         {
             if (_functionType == FunctionType.Initializer)
             {
-                AddCompileError("Cannot return a value from an initializer.", stmt.Keyword);
+                AddCompileError("Can't return value from an initializer.", stmt.Keyword);
             }
 
             EmitBytecode(stmt.Value);
@@ -353,7 +353,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         if (loop is null)
         {
-            AddCompileError("Cannot use 'break' outside of a loop.", stmt.Keyword);
+            AddCompileError("Can't use 'break' outside of a loop.", stmt.Keyword);
             return;
         }
 
@@ -366,7 +366,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         if (loop is null)
         {
-            AddCompileError("Cannot use 'continue' outside of a loop.", stmt.Keyword);
+            AddCompileError("Can't use 'continue' outside of a loop.", stmt.Keyword);
             return;
         }
 
@@ -571,11 +571,11 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         if (currentClass is null)
         {
-            AddCompileError("Cannot use 'super' outside of a class.", expr.Keyword);
+            AddCompileError("Can't use 'super' outside of a class.", expr.Keyword);
         }
         else if (!currentClass.HasSuperClass)
         {
-            AddCompileError("Cannot use 'super' in a class with no superclass.");
+            AddCompileError("Can't use 'super' in a class with no superclass.");
         }
 
         byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Method.Lexeme)));
