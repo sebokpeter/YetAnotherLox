@@ -575,7 +575,7 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
         }
         else if (!currentClass.HasSuperClass)
         {
-            AddCompileError("Can't use 'super' in a class with no superclass.");
+            AddCompileError("Can't use 'super' in a class with no superclass.", expr.Keyword);
         }
 
         byte name = MakeConstant(LoxValue.Object(Obj.Str(expr.Method.Lexeme)));
