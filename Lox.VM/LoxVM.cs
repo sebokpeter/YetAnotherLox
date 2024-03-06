@@ -84,14 +84,9 @@ public class Lox
     {
         (bool scanSuccess, List<Token>? tokens) = Scan(source);
 
-        if (!scanSuccess)
-        {
-            return InterpretResult.CompileError;
-        }
+        (bool parseSuccess, List<Stmt>? statements) = Parse(tokens!); // Try to parse even if we had scanning errors, so that we may catch more errors 
 
-        (bool parseSuccess, List<Stmt>? statements) = Parse(tokens!);
-
-        if (!parseSuccess)
+        if (!(parseSuccess && scanSuccess))
         {
             return InterpretResult.CompileError;
         }
@@ -107,7 +102,7 @@ public class Lox
     }
 
 
-    private static (bool success, List<Token>? tokens) Scan(string source)
+    private static (bool success, List<Token> tokens) Scan(string source)
     {
         Scanner scanner = new(source);
         List<Token> tokens = scanner.ScanTokens();
@@ -115,7 +110,7 @@ public class Lox
         if (scanner.HadError)
         {
             scanner.Errors.ReportAll();
-            return (false, null);
+            return (false, tokens);
         }
 
         return (true, tokens);
