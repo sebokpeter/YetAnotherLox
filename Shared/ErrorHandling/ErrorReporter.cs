@@ -11,7 +11,8 @@ public static class ErrorReporter
     /// Report all errors in this <see cref="IEnumerable{Error}"/>.
     /// </summary>
     /// <param name="errors">The error to be reported.</param>
-    public static void ReportAll(this IEnumerable<Error> errors) 
+    /// <param name="printStackStrace">A flag that indicates if the stack trace should be printed.</param>
+    public static void ReportAll(this IEnumerable<Error> errors)
     {
         foreach (Error error in errors)
         {

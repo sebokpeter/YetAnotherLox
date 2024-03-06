@@ -84,11 +84,11 @@ public record RuntimeError(string Message, int? Line, Token? Token, StackTrace? 
     {
         string message;
 
-        if(Line is null && Token is null)
+        if (Line is null && Token is null)
         {
             message = $"Runtime Error: {Message}";
         }
-        else if(Token is null)
+        else if (Token is null)
         {
             message = $"[line {Line}] Runtime Error: {Message}";
         }
@@ -97,11 +97,13 @@ public record RuntimeError(string Message, int? Line, Token? Token, StackTrace? 
             message = $"[line {Token.Line}] Runtime Error {Token.GetLocationString()}: {Message}";
         }
 
-        if(Trace is not null)
+#if PRINT_STACKTRACE
+        if (Trace is not null)
         {
             message += "\n";
             message += String.Join('\n', Trace.Frames.Select(frame => $"[line {frame.Line}] in {frame.FunctionName}."));
         }
+#endif
 
         return message;
     }
