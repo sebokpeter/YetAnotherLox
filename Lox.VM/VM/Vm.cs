@@ -462,7 +462,7 @@ internal class Vm
     {
         LoxValue superclassValue = _stack.Peek(1);
 
-        if (!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class))
+        if (!superclassValue.IsObj || !superclassValue.AsObj.IsType(ObjType.Class) || superclassValue.AsObj.AsClass.IsStatic)
         {
             AddRuntimeError("Superclass must be a (non-static) class.");
             return false;
