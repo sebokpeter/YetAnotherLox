@@ -8,4 +8,4 @@ class Derived < Base {
   }
 }
 
-Derived().foo(); // Expect: [line 11] Runtime Error: Undefined property 'doesNotExist'.
+Derived().foo(); // Expect: [line 11] Runtime Error: Undefined property: 'doesNotExist'.
