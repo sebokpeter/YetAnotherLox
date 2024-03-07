@@ -521,25 +521,31 @@ internal class Vm
 
         ObjClass objClass = isReceiverInstance ? receiver.AsInstance.ObjClass : receiver.AsClass;
 
-        if (!objClass.Methods.TryGetValue(name, out LoxValue? method))
+        LoxValue? method;
+        if (isReceiverInstance)
         {
-            if (!isReceiverInstance)
+            // Receiver is an instance
+            // Check if the class has a method with the given name, or if the instance has a field 
+            if (!(objClass.Methods.TryGetValue(name, out method) || receiver.AsInstance.Fields.TryGetValue(name, out method)))
             {
-                AddRuntimeError($"Class '{objClass.Name}' has no static method named '{name}'."); // The receiver is a class, but it has no method with the given name
+                AddRuntimeError($"Undefined property: '{name}'.");
+                return false;
             }
-            else
+        }
+        else
+        {
+            // Receiver is a class
+            // Check if the class has a method with the given name, and if that method is a static method
+            if (!(objClass.Methods.TryGetValue(name, out method) && method.AsObj.AsClosure.Function.IsStatic))
             {
-                // The receiver is an instance ...
-                if (receiver.AsInstance.Fields.TryGetValue(name, out LoxValue? _))
-                {
-                    AddRuntimeError("Can only call functions and classes."); // But 'name' refers to a field, not to a method.
-                }
-                else
-                {
-                    AddRuntimeError($"Undefined property: '{name}'."); // We can't find a field or method with the given name
+                AddRuntimeError($"Class '{objClass.Name}' has no static method named '{name}'.");
+                return false;
+            }
+        }
 
-                }
-            }
+        if (!(method.IsObj && method.AsObj.IsType(ObjType.Closure)))
+        {
+            AddRuntimeError("Can only call functions and classes.");
             return false;
         }
 
