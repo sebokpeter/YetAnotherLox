@@ -526,7 +526,7 @@ internal class Vm
         {
             // Receiver is an instance
             // Check if the class has a method with the given name, or if the instance has a field 
-            if (!(objClass.Methods.TryGetValue(name, out method) || receiver.AsInstance.Fields.TryGetValue(name, out method)))
+            if (!(receiver.AsInstance.Fields.TryGetValue(name, out method) || objClass.Methods.TryGetValue(name, out method)))
             {
                 AddRuntimeError($"Undefined property: '{name}'.");
                 return false;
@@ -543,13 +543,13 @@ internal class Vm
             }
         }
 
-        if (!(method.IsObj && method.AsObj.IsType(ObjType.Closure)))
+        if (!(method.IsObj && (method.AsObj.IsType(ObjType.Closure) || method.AsObj.IsType(ObjType.BoundMethod))))
         {
             AddRuntimeError("Can only call functions and classes.");
             return false;
         }
 
-        ObjClosure closure = method.AsObj.AsClosure;
+        ObjClosure closure = method.AsObj.IsType(ObjType.Closure) ? method.AsObj.AsClosure : method.AsObj.AsBoundMethod.Method;
 
         if (!CheckIfCallable(name, isReceiverInstance, objClass, closure))
         {
