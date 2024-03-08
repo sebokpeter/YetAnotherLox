@@ -543,6 +543,13 @@ internal class Vm
             }
         }
 
+        if (method.IsObj && method.AsObj.IsType(ObjType.BoundMethod))
+        {
+            // If we are calling a bound method, make sure that the method's original receiver is on the stack
+            ObjBoundMethod boundMethod = method.AsObj.AsBoundMethod;
+            _stack[_stack.StackTop - 1 - methodArgCount] = boundMethod.Receiver;
+        }
+
         if (!(method.IsObj && (method.AsObj.IsType(ObjType.Closure) || method.AsObj.IsType(ObjType.BoundMethod))))
         {
             AddRuntimeError("Can only call functions and classes.");
