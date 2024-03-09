@@ -344,6 +344,7 @@ internal class ObjUpValue : Obj
     internal required LoxValue LoxValue { get; set; }
     internal ObjUpValue? Next { get; set; }
     internal LoxValue Closed { get; set; }
+    internal int Location { get; init; }
 
     internal ObjUpValue() : base(ObjType.UpValue)
     {

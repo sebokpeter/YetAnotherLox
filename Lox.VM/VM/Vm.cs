@@ -159,7 +159,7 @@ internal class Vm
                     _stack.Push(result);
                     break;
                 case Constant:
-                    LoxValue constant = Frame.ReadConstant();
+                    LoxValue constant = LoxValue.FromLoxValue(Frame.ReadConstant());
                     _stack.Push(constant);
                     break;
                 case Negate:
@@ -268,7 +268,7 @@ internal class Vm
                     break;
                 case SetUpValue:
                     byte setUpValueSlot = Frame.ReadByte();
-                    Frame.Closure.UpValues[setUpValueSlot].LoxValue = _stack.Peek(0);
+                    Frame.Closure.UpValues[setUpValueSlot].LoxValue.Copy(_stack.Peek(0));
                     break;
                 case GetUpValue:
                     byte getUpvalueSlot = Frame.ReadByte();
@@ -646,14 +646,10 @@ internal class Vm
 
     private void CloseUpValues(int locationOnStack)
     {
-        LoxValue value = _stack[locationOnStack];
-
-        while (openUpValues is not null && locationOnStack > _stack.StackTop)
+        while (openUpValues is not null && openUpValues.Location >= locationOnStack)
         {
-            ObjUpValue upValue = openUpValues;
-            upValue.Closed = value;
-            upValue.LoxValue = value;
-            openUpValues = upValue.Next;
+            openUpValues.Closed = openUpValues.LoxValue;
+            openUpValues = openUpValues.Next;
         }
     }
 
@@ -670,12 +666,14 @@ internal class Vm
             bool isLocal = Frame.ReadByte() == 1;
             byte index = Frame.ReadByte();
 
-            closure.UpValues[i] = isLocal ? CaptureValue(_stack[Frame.Slot + index]) : Frame.Closure.UpValues[index];
+            closure.UpValues[i] = isLocal ? CaptureValue(Frame.Slot + index) : Frame.Closure.UpValues[index];
         }
     }
 
-    private ObjUpValue CaptureValue(LoxValue value)
+    private ObjUpValue CaptureValue(int locationOnStack)
     {
+        LoxValue value = _stack[locationOnStack];
+
         ObjUpValue? prevUpValue = null;
         ObjUpValue? upValue = openUpValues;
         while (upValue is not null)
@@ -689,7 +687,7 @@ internal class Vm
             return upValue;
         }
 
-        ObjUpValue createdUpValue = new() { LoxValue = value, Next = upValue };
+        ObjUpValue createdUpValue = new() { LoxValue = value, Next = upValue, Location = locationOnStack };
         if (prevUpValue is null)
         {
             openUpValues = createdUpValue;

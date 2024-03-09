@@ -14,9 +14,9 @@ internal class LoxValue
 
     private static readonly LoxValue _nilValue = new();  // Cache a 'nil' value, since we only need one
 
-    private readonly long _internalValue;
+    private long internalValue;
 
-    private readonly Obj? _internalObject;
+    private Obj? internalObject;
 
     internal ValueType Type { get; init; }
 
@@ -38,50 +38,50 @@ internal class LoxValue
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is an object .
     /// </summary>
-    [MemberNotNullWhen(true, nameof(_internalObject))]
+    [MemberNotNullWhen(true, nameof(internalObject))]
     internal bool IsObj => Type == ValueType.Obj;
 
     /// <summary>
     /// Returns true if the lox runtime type is string.
     /// </summary>
-    internal bool IsString => Type == ValueType.Obj && _internalObject!.Type == ObjType.String;
+    internal bool IsString => Type == ValueType.Obj && internalObject!.Type == ObjType.String;
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="double"/>.
     /// </summary>
-    internal double AsNumber => BitConverter.Int64BitsToDouble(_internalValue);
+    internal double AsNumber => BitConverter.Int64BitsToDouble(internalValue);
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="bool"/>.
     /// </summary>
-    internal bool AsBool => (_internalValue & TRUE_MASK) == TRUE_MASK;
+    internal bool AsBool => (internalValue & TRUE_MASK) == TRUE_MASK;
 
     /// <summary>
     /// Treat the value in this <see cref="LoxValue"/> as a <see cref="Obj"/>.
     /// </summary>
-    internal Obj AsObj => _internalObject!;
+    internal Obj AsObj => internalObject!;
 
     private LoxValue(long val, ValueType type)
     {
-        _internalValue = val;
+        internalValue = val;
         Type = type;
     }
 
     private LoxValue()
     {
-        _internalObject = null;
+        internalObject = null;
         Type = ValueType.Nil;
     }
 
     private LoxValue(Obj o, ValueType type)
     {
-        _internalObject = o;
+        internalObject = o;
         Type = type;
     }
 
     private LoxValue(double d)
     {
-        _internalValue = BitConverter.DoubleToInt64Bits(d);
+        internalValue = BitConverter.DoubleToInt64Bits(d);
         Type = ValueType.Number;
     }
 
@@ -89,7 +89,7 @@ internal class LoxValue
     {
         if (b)
         {
-            _internalValue = TRUE_MASK;
+            internalValue = TRUE_MASK;
         }
 
         Type = ValueType.Bool;
@@ -97,7 +97,7 @@ internal class LoxValue
 
     private LoxValue(Obj o)
     {
-        _internalObject = o;
+        internalObject = o;
         Type = ValueType.Obj;
     }
 
@@ -145,17 +145,31 @@ internal class LoxValue
     /// </summary>
     /// <param name="other">Another <see cref="LoxValue"/>, which will be copied.</param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException">Currently it is only possible to copy non-Obj. values. <see cref="NotImplementedException"/> will be thrown if <paramref name="other"/>'s <see cref="Type"/> is <see cref="ValueType.Obj"/>.</exception>
     internal static LoxValue FromLoxValue(LoxValue other)
     {
         if (other.IsObj)
         {
-            // throw new NotImplementedException();
-            return new(other._internalObject.Copy());
+            return new(other.internalObject.Copy());
         }
         else
         {
-            return new(other._internalValue, other.Type);
+            return new(other.internalValue, other.Type);
+        }
+    }
+
+    /// <summary>
+    /// Copy the value of <paramref name="other"/> into this <see cref="LoxValue"/>
+    /// </summary>
+    /// <param name="other">The <see cref="LoxValue"/> whose value will be copied.</param>
+    internal void Copy(LoxValue other)
+    {
+        if (other.IsObj)
+        {
+            internalObject = other.internalObject;
+        }
+        else
+        {
+            internalValue = other.internalValue;
         }
     }
 
@@ -166,7 +180,7 @@ internal class LoxValue
             ValueType.Bool => AsBool.ToString(),
             ValueType.Nil => "nil",
             ValueType.Number => AsNumber.ToString(),
-            ValueType.Obj => _internalObject!.ToString()!,
+            ValueType.Obj => internalObject!.ToString()!,
             _ => throw new UnreachableException()
         };
     }
@@ -191,11 +205,11 @@ internal class LoxValue
         return Type switch
         {
             ValueType.Obj => AsObj.Equals(loxValue.AsObj),
-            _ => _internalValue == loxValue._internalValue,
+            _ => internalValue == loxValue.internalValue,
         };
     }
 
-    public override int GetHashCode() => Type == ValueType.Obj ? _internalObject!.GetHashCode() : _internalValue.GetHashCode();
+    public override int GetHashCode() => Type == ValueType.Obj ? internalObject!.GetHashCode() : internalValue.GetHashCode();
 }
 
 
