@@ -119,7 +119,7 @@ internal abstract class Obj
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    internal abstract Obj Copy();
+    internal abstract Obj Clone();
 
     public abstract override bool Equals(object? obj);
 
@@ -137,7 +137,7 @@ internal class ObjString : Obj
 
     internal ObjString() : base(ObjType.String) { }
 
-    internal override ObjString Copy() => new() { StringValue = this.StringValue };
+    internal override ObjString Clone() => new() { StringValue = this.StringValue };
 
     public override string ToString() => StringValue;
 
@@ -251,7 +251,7 @@ internal class ObjFunction : ObjCallable
 
     public override int GetHashCode() => HashCode.Combine(Name, Arity);
 
-    internal override Obj Copy() => new ObjFunction() { Arity = Arity, Name = Name };
+    internal override Obj Clone() => new ObjFunction() { Arity = Arity, Name = Name };
 }
 
 /// <summary>
@@ -296,7 +296,7 @@ internal class ObjNativeFn : ObjCallable
 
     public override int GetHashCode() => HashCode.Combine(Name, Arity);
 
-    internal override Obj Copy() => new ObjNativeFn() { Name = Name, Arity = Arity, Function = Function };
+    internal override Obj Clone() => new ObjNativeFn() { Name = Name, Arity = Arity, Function = Function };
 }
 
 
@@ -336,7 +336,7 @@ internal class ObjClosure : Obj
 
     public override int GetHashCode() => Function.GetHashCode();
 
-    internal override Obj Copy() => new ObjClosure() { Function = Function, UpValues = UpValues };
+    internal override Obj Clone() => new ObjClosure() { Function = Function, UpValues = UpValues };
 }
 
 /// <summary>
@@ -394,10 +394,7 @@ internal class ObjClass : ObjCallable
     }
 
     public override int GetHashCode() => Name.GetHashCode();
-    internal override Obj Copy()
-    {
-        throw new NotImplementedException();
-    }
+    internal override Obj Clone() => new ObjClass() { Name = Name, Methods = Methods };
 }
 
 /// <summary>
@@ -436,10 +433,7 @@ internal class ObjInstance : Obj
 
     public override int GetHashCode() => HashCode.Combine(ObjClass, Fields);
 
-    internal override Obj Copy()
-    {
-        throw new NotImplementedException();
-    }
+    internal override Obj Clone() => new ObjInstance() { Fields = Fields, ObjClass = ObjClass };
 }
 
 internal class ObjBoundMethod : Obj
@@ -468,7 +462,7 @@ internal class ObjBoundMethod : Obj
 
     public override int GetHashCode() => HashCode.Combine(Receiver, Method);
 
-    internal override Obj Copy()
+    internal override Obj Clone()
     {
         throw new NotImplementedException();
     }
@@ -486,7 +480,7 @@ internal class ObjArray : Obj
     /// </summary>
     internal required List<LoxValue> Array { get; init; }
 
-    internal override ObjArray Copy()
+    internal override ObjArray Clone()
     {
         List<LoxValue> newValues = Array.Select(LoxValue.FromLoxValue).ToList();
         return new ObjArray() { Array = newValues };

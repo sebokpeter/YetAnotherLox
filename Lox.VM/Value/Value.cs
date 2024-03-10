@@ -147,7 +147,7 @@ internal class LoxValue
     {
         if (other.IsObj)
         {
-            return new(other.internalObject.Copy());
+            return new(other.internalObject.Clone());
         }
         else
         {
