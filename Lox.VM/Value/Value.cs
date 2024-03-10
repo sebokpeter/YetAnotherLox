@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Reflection.Metadata;
 
 namespace LoxVM.Value;
 
@@ -18,7 +16,7 @@ internal class LoxValue
 
     private Obj? internalObject;
 
-    internal ValueType Type { get; init; }
+    internal ValueType Type { get; private set; }
 
     /// <summary>
     /// Returns true if the lox runtime type of this <see cref="LoxValue"/> is <see cref="null"/>.
@@ -163,6 +161,8 @@ internal class LoxValue
     /// <param name="other">The <see cref="LoxValue"/> whose value will be copied.</param>
     internal void Copy(LoxValue other)
     {
+        Type = other.Type;
+
         if (other.IsObj)
         {
             internalObject = other.internalObject;

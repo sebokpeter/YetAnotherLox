@@ -28,9 +28,6 @@ internal class Vm
     private readonly Dictionary<Obj, LoxValue> _globals;
 
     private readonly Stopwatch _stopwatch;
-
-    private ObjUpValue? openUpValues;
-
     public Vm()
     {
         Errors = [];
@@ -148,7 +145,6 @@ internal class Vm
                 case Return:
                     int newTop = Frame.Slot;
                     LoxValue result = _stack.Pop();
-                    CloseUpValues(newTop);
                     frameCount--;
                     if (frameCount == 0)
                     {
@@ -235,11 +231,11 @@ internal class Vm
                     break;
                 case GetLocal:
                     byte getSlot = Frame.ReadByte();
-                    _stack.Push(_stack[Frame.Slot + getSlot]);
+                    _stack.Push(LoxValue.FromLoxValue(_stack[Frame.Slot + getSlot]));
                     break;
                 case SetLocal:
                     byte setSlot = Frame.ReadByte();
-                    _stack[Frame.Slot + setSlot] = _stack.Peek(0);
+                    _stack[Frame.Slot + setSlot].Copy(_stack.Peek(0));
                     break;
                 case JumpIfFalse:
                     ushort offset = Frame.ReadShort();
@@ -268,14 +264,13 @@ internal class Vm
                     break;
                 case SetUpValue:
                     byte setUpValueSlot = Frame.ReadByte();
-                    Frame.Closure.UpValues[setUpValueSlot].LoxValue.Copy(_stack.Peek(0));
+                    Frame.Closure.UpValues[setUpValueSlot].Copy(_stack.Peek(0));
                     break;
                 case GetUpValue:
                     byte getUpvalueSlot = Frame.ReadByte();
-                    _stack.Push(Frame.Closure.UpValues[getUpvalueSlot].LoxValue);
+                    _stack.Push(Frame.Closure.UpValues[getUpvalueSlot]);
                     break;
                 case CloseUpValue:
-                    CloseUpValues(_stack.StackTop - 1);
                     _stack.Pop();
                     break;
                 case Class:
@@ -644,20 +639,11 @@ internal class Vm
         _stack.Pop();
     }
 
-    private void CloseUpValues(int locationOnStack)
-    {
-        while (openUpValues is not null && openUpValues.Location >= locationOnStack)
-        {
-            openUpValues.Closed = openUpValues.LoxValue;
-            openUpValues = openUpValues.Next;
-        }
-    }
-
     private void CreateClosure()
     {
         ObjFunction function = Frame.ReadConstant().AsObj.AsFunction;
 
-        List<ObjUpValue> upValues = Enumerable.Range(0, function.UpValueCount).Select<int, ObjUpValue>(_ => null!).ToList();
+        List<LoxValue> upValues = Enumerable.Range(0, function.UpValueCount).Select<int, LoxValue>(_ => null!).ToList();
         ObjClosure closure = new() { Function = function, UpValues = upValues };
         _stack.Push(LoxValue.Object(closure));
 
@@ -666,39 +652,10 @@ internal class Vm
             bool isLocal = Frame.ReadByte() == 1;
             byte index = Frame.ReadByte();
 
-            closure.UpValues[i] = isLocal ? CaptureValue(Frame.Slot + index) : Frame.Closure.UpValues[index];
+            closure.UpValues[i] = isLocal ? _stack[Frame.Slot + index] : Frame.Closure.UpValues[index];
         }
     }
 
-    private ObjUpValue CaptureValue(int locationOnStack)
-    {
-        LoxValue value = _stack[locationOnStack];
-
-        ObjUpValue? prevUpValue = null;
-        ObjUpValue? upValue = openUpValues;
-        while (upValue is not null)
-        {
-            prevUpValue = upValue;
-            upValue = upValue.Next;
-        }
-
-        if (upValue is not null && upValue.LoxValue == value)
-        {
-            return upValue;
-        }
-
-        ObjUpValue createdUpValue = new() { LoxValue = value, Next = upValue, Location = locationOnStack };
-        if (prevUpValue is null)
-        {
-            openUpValues = createdUpValue;
-        }
-        else
-        {
-            prevUpValue.Next = createdUpValue;
-        }
-
-        return createdUpValue;
-    }
 
     private bool CallValue(LoxValue c, int argCount)
     {
@@ -887,7 +844,6 @@ internal class Vm
     {
         Errors.Clear();
         callFrames = new CallFrame[STACK_MAX];
-        openUpValues = null;
         _stack.Reset();
         frameCount = 0;
     }

@@ -119,7 +119,7 @@ internal abstract class Obj
     /// </summary>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    internal virtual Obj Copy() => throw new NotImplementedException(); // TODO: implement this method for subclasses
+    internal abstract Obj Copy();
 
     public abstract override bool Equals(object? obj);
 
@@ -250,6 +250,8 @@ internal class ObjFunction : ObjCallable
     }
 
     public override int GetHashCode() => HashCode.Combine(Name, Arity);
+
+    internal override Obj Copy() => new ObjFunction() { Arity = Arity, Name = Name };
 }
 
 /// <summary>
@@ -293,6 +295,8 @@ internal class ObjNativeFn : ObjCallable
     }
 
     public override int GetHashCode() => HashCode.Combine(Name, Arity);
+
+    internal override Obj Copy() => new ObjNativeFn() { Name = Name, Arity = Arity, Function = Function };
 }
 
 
@@ -309,7 +313,7 @@ internal class ObjClosure : Obj
     /// <summary>
     /// The upvalues that are used in this closure.
     /// </summary>
-    internal required List<ObjUpValue> UpValues { get; init; }
+    internal required List<LoxValue> UpValues { get; init; }
 
     internal ObjClosure() : base(ObjType.Closure) { }
 
@@ -331,45 +335,8 @@ internal class ObjClosure : Obj
     }
 
     public override int GetHashCode() => Function.GetHashCode();
-}
 
-/// <summary>
-/// Represents a local variable in an enclosing function.
-/// </summary>
-internal class ObjUpValue : Obj
-{
-    /// <summary>
-    /// A reference to the variable.
-    /// </summary>
-    internal required LoxValue LoxValue { get; set; }
-    internal ObjUpValue? Next { get; set; }
-    internal LoxValue Closed { get; set; }
-    internal int Location { get; init; }
-
-    internal ObjUpValue() : base(ObjType.UpValue)
-    {
-        Next = null;
-        Closed = LoxValue.Nil();
-    }
-
-    public override string ToString() => $"<upvalue {LoxValue}>";
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is null)
-        {
-            return false;
-        }
-
-        if (obj is not ObjUpValue upValue)
-        {
-            return false;
-        }
-
-        return LoxValue.Equals(upValue.LoxValue) && Closed.Equals(upValue.Closed) && (Next?.Equals(upValue.Next) ?? upValue.Next is null);
-    }
-
-    public override int GetHashCode() => HashCode.Combine(LoxValue, Next, Closed);
+    internal override Obj Copy() => new ObjClosure() { Function = Function, UpValues = UpValues };
 }
 
 /// <summary>
@@ -427,6 +394,10 @@ internal class ObjClass : ObjCallable
     }
 
     public override int GetHashCode() => Name.GetHashCode();
+    internal override Obj Copy()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 /// <summary>
@@ -464,6 +435,11 @@ internal class ObjInstance : Obj
     }
 
     public override int GetHashCode() => HashCode.Combine(ObjClass, Fields);
+
+    internal override Obj Copy()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 internal class ObjBoundMethod : Obj
@@ -491,6 +467,11 @@ internal class ObjBoundMethod : Obj
     }
 
     public override int GetHashCode() => HashCode.Combine(Receiver, Method);
+
+    internal override Obj Copy()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 /// <summary>
