@@ -325,7 +325,7 @@ public class Parser
     }
 
 
-    private Stmt.For ForeachStatement()
+    private Stmt ForeachStatement()
     {
         int foreachStartLine = Previous().Line;
         Token paren = Consume(LEFT_PAREN, "Expect '(' after 'foreach'.");
@@ -335,6 +335,22 @@ public class Parser
         Consume(IN, "Expect 'in' after name.");
 
         Expr collectionExpr = Expression();
+
+        Stmt.Var? varStmt = null;
+
+        if (collectionExpr is Expr.Array)
+        {
+            // If we want to iterate over an array directly, we should move the array to a variable
+            // Otherwise we will have to re-create the array every time we want to access it
+
+            // So this: foreach(x in [1, 2, 3]) becomes:
+            // var array = [1, 2, 3]
+            // foreach (x in array)
+
+            Token varToken = new(VAR, Guid.NewGuid().ToString(), null, foreachStartLine);
+            varStmt = new(varToken, collectionExpr);
+            collectionExpr = new Expr.Variable(varToken);
+        }
 
         Consume(RIGHT_PAREN, "Expect ')'.");
         Consume(LEFT_BRACE, "Expect '{' before foreach body.");
@@ -346,17 +362,17 @@ public class Parser
         {
             _loopDepth++;
 
-            List<Stmt> body = Block();
-
             // Get the current element from the loop
             // The name of the element is the name given in the foreach loop ('foreach(var name...)')
             Stmt.Var access = new(new Token(name.Type, name.Lexeme, name.Literal, name.Line + 1), new Expr.ArrayAccess(CopyCollectionExpr(collectionExpr, paren.Line, paren), new Token(LEFT_SQUARE, "", null, paren.Line)!, new Expr.Variable(new Token(IDENTIFIER, loopName, null, paren.Line + 1))));
 
             // Create a new block, with the array access as the first statement.
-            Stmt newBody = new Stmt.Block([access, .. body]);
+            Stmt newBody = new Stmt.Block([access, .. Block()]);
+            Stmt.For forStmt = new(initializer, condition, increment, newBody, foreachStartLine);
 
-            var tmp = new Stmt.For(initializer, condition, increment, newBody, foreachStartLine);
-            return tmp;
+            // If varStmt is not null, the original collectionExpression was an array. We created a variable so that the array is only initialized once.
+            // In this case we return a block statement, where the first statement is the variable statement (the statement that creates the array), and the second statement is the for statement 
+            return varStmt is not null ? new Stmt.Block([varStmt, forStmt]) : forStmt;
         }
         finally
         {
