@@ -73,7 +73,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
     public ObjFunction Compile()
     {
-        // TODO
         foreach (Stmt stmt in _statements)
         {
             EmitBytecode(stmt);
@@ -261,10 +260,8 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
 
         EmitBytecode(stmt.Body);
 
-        foreach (int contLocation in loop.ContinueLocations)
-        {
-            PatchJump(contLocation); // If the body has any continue statements, they need to jump here, just before the increment is executed.
-        }
+        // Logically, this is where 'continue' statements jump (between the body and the increment)
+        // But the actual patching is done in EndScope(), since that is where we close upvalues and/or pop locals from the stack, and we want 'continue' to jump just before that (so that, for example, any lingering values are removed from the stack)
 
         if (stmt.Increment is not null)
         {
@@ -781,6 +778,17 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
     {
         scopeDepth--;
 
+        if (loop is not null && loop.IsForLoop)
+        {
+            // If we are in a loop that contains 'continue' statements, they should jump here
+            // Here we close upvalues and/or remove locals from the stack
+            // We want to do this before the next cycle begins
+            foreach (int continueLocation in loop.ContinueLocations)
+            {
+                PatchJump(continueLocation);
+            }
+        }
+
         while (localCount > 0 && _locals[localCount - 1].Depth > scopeDepth)
         {
             if (_locals[localCount - 1].IsCaptured)
@@ -790,7 +798,6 @@ internal class BytecodeCompiler : Stmt.IVoidVisitor, Expr.IVoidVisitor
             else
             {
                 EmitByte(OpCode.Pop);
-
             }
             localCount--;
         }
