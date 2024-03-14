@@ -1,8 +1,10 @@
-Yet another C# implementation of the Lox language from the Crafting Interpreters book (https://craftinginterpreters.com). It implements the tree-walk interpreter from the second chapter, 
+Yet another C# implementation of the Lox language from the Crafting Interpreters book (https://craftinginterpreters.com). It implements the tree-walk interpreter and the VM, 
 and also adds some additional features on top.
 
 
 - [AST Node Generation](#ast-node-generation)
+- [Interpreter](#interpreter)
+- [VM](#vm)
 - [Additional features](#additional-features)
   - [Multiline comments](#multiline-comments)
   - [Automatic string coercion](#automatic-string-coercion)
@@ -17,7 +19,6 @@ and also adds some additional features on top.
   - [Compound assignment operators](#compound-assignment-operators)
   - [Postfix operators](#postfix-operators)
   - [Foreach loops](#foreach-loops)
-- [TODOS](#todos)
 
 
 
@@ -25,9 +26,17 @@ and also adds some additional features on top.
 
 The AstGenerator project is a simple C# source generator, that takes any additional .txt files passed to the compilation, and tries to create AST nodes from them. It is used to automatically generate repetitive code for statement and expression nodes.
 
+# Interpreter
+
+Lox.Interpreter: C# implementation of the tree-walk interpreter from the second chapter.
+
+# VM
+
+Lox.VM: C# implementation of the bytecode virtual machine from chapter three. It reuses some elements, such as Scanner and Parser. 
+
 # Additional features
 
-There are some additional Lox features implemented in this interpreter.
+There are some additional Lox features implemented.
 
 ## Multiline comments
 
@@ -501,8 +510,3 @@ for(var @loop_0 = 0; @loop_0 < len(array); @loop_0++) {
 }
 */
 ```
-
-
-# TODOS
-
-- Testing
