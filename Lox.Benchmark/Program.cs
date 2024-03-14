@@ -1,1 +1,5 @@
-Console.WriteLine("Hello World!");
+using BenchmarkDotNet.Running;
+
+using Lox.Benchmark.Scanner;
+
+BenchmarkRunner.Run<ScannerBenchmark>();
