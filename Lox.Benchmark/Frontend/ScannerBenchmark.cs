@@ -7,40 +7,31 @@ namespace Lox.Benchmark.Scanner;
 [MemoryDiagnoser]
 public class ScannerBenchmark
 {
+    [Params(1, 10, 100, 1_000, 10_000)]
+    public int amount;
+
+    private string emptySource = String.Empty;
+    private string varSource = String.Empty;
+
+    [GlobalSetup]
+    public void GlobalSetup()
+    {
+        emptySource = new string(' ', amount);
+        varSource = String.Join(' ', Enumerable.Range(0, amount).Select(i => $"var {i};"));
+    }
+
 
     [Benchmark]
-    [ArgumentsSource(nameof(EmptySource))]
-    public List<Token> ScanEmpty(string source)
+    public List<Token> ScanEmpty()
     {
-        Frontend.Scanner.Scanner scanner = new(source);
+        Frontend.Scanner.Scanner scanner = new(emptySource);
         return scanner.ScanTokens();
     }
 
     [Benchmark]
-    [ArgumentsSource(nameof(VariableSource))]
-    public List<Token> ScanVariables(string source)
+    public List<Token> ScanVariables()
     {
-        Frontend.Scanner.Scanner scanner = new(source);
+        Frontend.Scanner.Scanner scanner = new(varSource);
         return scanner.ScanTokens();
-    }
-
-    public IEnumerable<string> EmptySource()
-    {
-        yield return "";
-        yield return " ";
-        yield return new string(' ', 10);
-        yield return new string(' ', 100);
-        yield return new string(' ', 1_000);
-        yield return new string(' ', 10_000);
-    }
-
-    public IEnumerable<string> VariableSource()
-    {
-        yield return "var x;";
-        yield return String.Join(' ', Enumerable.Range(0, 10).Select(i => $"var {i};"));
-        yield return String.Join(' ', Enumerable.Range(0, 100).Select(i => $"var {i};"));
-        yield return String.Join(' ', Enumerable.Range(0, 1_000).Select(i => $"var {i};"));
-        yield return String.Join(' ', Enumerable.Range(0, 10_000).Select(i => $"var {i};"));
-
     }
 }
